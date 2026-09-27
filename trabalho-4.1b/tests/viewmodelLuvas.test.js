@@ -200,6 +200,16 @@ test('viewmodel: os cotovelos do rifle deixam os dois pulsos nos limites da AAOS
     vm.frame(camera, 1 / 60, { item: 'ak47', visible: true });
     const { avisos } = vm.status();
     assert.deepEqual(avisos, { direita: [], esquerda: [] }, `posição ${id}: ${JSON.stringify(avisos)}`);
+    // e com folga: nenhum ângulo a mais de 93 % do limite (na P2 a supinação da esquerda ficava a 97 %, 77,8° de 80°)
+    for (const lado of ['direita', 'esquerda']) {
+      const { angulos: a, limites: l } = vm.gloves.bracos[lado];
+      const razoes = {
+        flexao: a.flexao >= 0 ? a.flexao / l.pulso.flexao : -a.flexao / l.pulso.extensao,
+        desvio: a.desvio >= 0 ? a.desvio / l.pulso.radial : -a.desvio / l.pulso.ulnar,
+        pronacao: a.pronacao >= 0 ? a.pronacao / l.antebraco.pronacao : -a.pronacao / l.antebraco.supinacao,
+      };
+      for (const [k, r] of Object.entries(razoes)) assert.ok(r <= 0.93, `posição ${id}, ${lado}: ${k} a ${(100 * r).toFixed(0)} % do limite`);
+    }
     // o cotovelo de verdade (o osso antebraco) fora da tela em 16:9 e 21:9 e abaixo do pulso
     const fovV = viewmodelVerticalFov(VIEWMODEL.presets[id].fov);
     const t = Math.tan((fovV * Math.PI) / 360);
@@ -218,7 +228,7 @@ test('viewmodel: os cotovelos do rifle deixam os dois pulsos nos limites da AAOS
   }
   // as categorias sem cotovelos de luva usam os de massinha
   assert.deepEqual(categoryPlacement('pistola').gloveElbows, categoryPlacement('pistola').elbows);
-  assert.deepEqual(categoryPlacement('rifle').gloveElbows, { direita: [13.1, -8.2, 13.9], esquerda: [-3.9, -24.4, -15.7] });
+  assert.deepEqual(categoryPlacement('rifle').gloveElbows, { direita: [13.1, -8.2, 13.9], esquerda: [-5.9, -36.4, -13.7] });
   vm.dispose();
 });
 

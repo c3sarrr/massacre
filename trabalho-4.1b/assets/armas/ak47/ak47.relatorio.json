@@ -46,13 +46,13 @@
    "triangulos": 5699
   },
   "longe": {
-   "triangulos": 1424
+   "triangulos": 1425
   }
  },
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.222,
+   "medianaPxPorMm": 2.234,
    "minimo": 0.982,
    "maximo": 1.035
   }
@@ -181,7 +181,7 @@
    }
   },
   "e": {
-   "palmaAndouMM": 23.81,
+   "palmaAndouMM": 25.6,
    "dedosPararam": {
     "indicador_1": "contato",
     "indicador_2": "contato",
@@ -199,87 +199,98 @@
    "vizinhos": {},
    "polegar": {
     "graus": {
-     "abducao": 53.25,
-     "cmc": 6.88,
-     "rotacao": 17.0,
-     "mcp": 0.72,
-     "ip": 3.67
+     "abducao": 35.31,
+     "cmc": -20.0,
+     "rotacao": 16.0,
+     "mcp": 35.43,
+     "ip": 16.59
     },
     "ik": {
-     "abducao": 53.25,
-     "cmc": 6.88,
-     "rotacao": 17.0,
-     "mcp": 0.62,
-     "ip": 3.56
+     "abducao": 35.31,
+     "cmc": -20.0,
+     "rotacao": 16.0,
+     "mcp": 33.75,
+     "ip": 16.56
     },
-    "polpaEncostaMM": -0.05,
-    "polpaAoAlvoMM": 3.36,
+    "polpaEncostaMM": -0.04,
+    "polpaAoAlvoMM": 14.58,
     "encostou": true,
-    "chegouDeMM": null
+    "chegouDeMM": null,
+    "desvioDoEixoGraus": 46.1
    },
-   "penetracaoMM": 0.05,
+   "penetracaoMM": 0.048,
    "contatosMM": {
-    "palma": -0.046,
-    "indicador": -0.049,
-    "medio": -0.011,
-    "anelar": 0.017,
-    "minimo": -0.019,
-    "polegar": -0.05
+    "palma": 0.279,
+    "indicador": -0.048,
+    "medio": -0.043,
+    "anelar": -0.003,
+    "minimo": -0.038,
+    "polegar": -0.043
    },
-   "palmaMeioMM": -0.05,
+   "palmaMeioMM": 0.28,
    "luva": {
     "juntas": {
      "pulso": 1.0,
-     "indicador_mcp": 0.9959,
-     "indicador_pip": 0.9597,
-     "indicador_dip": 0.9793,
-     "medio_mcp": 1.0015,
-     "medio_pip": 0.9909,
-     "medio_dip": 0.9941,
-     "anelar_mcp": 1.2903,
-     "anelar_pip": 0.9839,
-     "anelar_dip": 0.9913,
-     "minimo_mcp": 1.0022,
-     "minimo_pip": 0.9733,
-     "minimo_dip": 0.9842,
-     "polegar_mcp": 0.9984,
-     "polegar_ip": 0.9976
+     "indicador_mcp": 0.998,
+     "indicador_pip": 0.9895,
+     "indicador_dip": 0.9748,
+     "medio_mcp": 1.0038,
+     "medio_pip": 0.9922,
+     "medio_dip": 0.9948,
+     "anelar_mcp": 1.308,
+     "anelar_pip": 0.9825,
+     "anelar_dip": 0.9904,
+     "minimo_mcp": 1.0006,
+     "minimo_pip": 0.964,
+     "minimo_dip": 0.9786,
+     "polegar_mcp": 0.9877,
+     "polegar_ip": 1.0
     },
     "atravessaMM": 0.0,
-    "assentamentoMM": 0.023,
+    "assentamentoMM": 0.025,
     "piorJunta": [
-     "indicador_pip",
-     0.9597
+     "minimo_pip",
+     0.964
     ],
     "paredeDoPunho": 1.0
    },
    "angulos": {
-    "anelar_1": 48.19,
-    "anelar_2": 48.19,
-    "anelar_3": 32.12,
-    "indicador_1": 9.42,
-    "indicador_2": 67.22,
-    "indicador_3": 44.81,
-    "medio_1": 42.42,
-    "medio_2": 42.42,
-    "medio_3": 28.28,
-    "minimo_1": 56.95,
-    "minimo_2": 56.95,
-    "minimo_3": 37.97
+    "anelar_1": 49.88,
+    "anelar_2": 49.88,
+    "anelar_3": 33.25,
+    "indicador_1": 17.44,
+    "indicador_2": 43.27,
+    "indicador_3": 48.44,
+    "medio_1": 40.88,
+    "medio_2": 40.88,
+    "medio_3": 27.25,
+    "minimo_1": 63.61,
+    "minimo_2": 63.61,
+    "minimo_3": 42.41
+   },
+   "lados": {
+    "polegarMM": 23.92,
+    "dedosMM": {
+     "indicador": -18.1,
+     "medio": -24.76,
+     "anelar": -25.86,
+     "minimo": -25.68
+    }
    }
   },
+  "frente": "e",
   "marca": {
    "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd",
    "e": "e9f11073664b9f2a333b6046ab2b243b67b5f49e78a3d22641033c782b6f2b07"
   },
-  "segundos": 27.8
+  "segundos": 10.1
  },
  "arma": "ak47",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-27T03:25:56",
+ "gerado": "2026-09-27T17:53:49",
  "entradas": {
-  "hash": "5edac74ebb9f8730fc18974008cf6dfa10f971113ffbe3866cd3de9bfdbe501b"
+  "hash": "6118c47d00f69f6e8580a19517d04e9cc8014479888962b15f9cd7cc8e7f2965"
  },
  "origemMM": [
   -551.0,
@@ -289,15 +300,15 @@
   "mundo": 0.3593,
   "longe": 0.277
  },
- "facesEscondidasRemovidas": 1780,
+ "facesEscondidasRemovidas": 1781,
  "arquivos": {
-  "ak47.glb": 399120,
-  "ak47_m.webp": 2868440,
-  "ak47_mundo_m.webp": 288938,
-  "ak47_mundo_n.webp": 212826,
-  "ak47_n.webp": 1570164
+  "ak47.glb": 399508,
+  "ak47_m.webp": 2936320,
+  "ak47_mundo_m.webp": 291454,
+  "ak47_mundo_n.webp": 216678,
+  "ak47_n.webp": 1626000
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 270.8
+ "segundos": 315.1
 }

@@ -30,7 +30,10 @@
 #    quando a regra pede um lado (o polegar direito cruzando para o lado esquerdo do punho), é escolhido pela própria
 #    IK — a polpa encostada na arma, de frente para ela, o mais longe possível para aquele lado (alvo_na_arma); e o
 #    polegar assenta sem caminho de chegada (_assentar_na_arma): erguido pela normal ele dava ainda mais a volta e
-#    cruzava o punho.
+#    cruzava o punho;
+#  - na mão da frente (a regra dela dá o ponto e o `eixo`), a IK pesa também a direção da falange distal: o polegar
+#    deitado ao longo da face do lado dele, apontando para a boca, e não em pé ao lado do guarda-mão (20 mm por unidade de
+#    1 − cos entre o eixo do osso distal e o pedido); o relatório traz o desvio que sobrou, em graus.
 # Unidades: mm e graus além do repouso (os totais no relatório); o rig em metros no Blender.
 import itertools
 import math
@@ -60,6 +63,7 @@ DEDOS = tuple(f'{d}_{i}' for d in DEDOS4 for i in (1, 2, 3))  # as cápsulas dos
 TENAR = ('polegar_1', 'mao')  # a tenar: com o polegar (LIVRE), os vértices do refino pela malha na pega
 PASSO_REFINO = 2.0
 PESO_MALHA = 30.0  # a entrada da malha do polegar e da tenar na arma, no refino: praticamente uma restrição
+PESO_EIXO_MM = 20.0  # a falange distal fora do eixo pedido (mão da frente): mm por unidade de 1 − cos
 
 
 def limites(mao):
@@ -211,13 +215,20 @@ def _entrada_na_arma(cadeia, ms, na):
     return soma
 
 
-def _custo(cadeia, g, alvo, normal, na=None):
+def _direcao_distal(ms):
+    """Para onde aponta a falange distal (o +Y do osso), unitária, no referencial das matrizes."""
+    return (ms[2].to_3x3() @ Vector((0.0, 1.0, 0.0))).normalized()
+
+
+def _custo(cadeia, g, alvo, normal, na=None, eixo=None):
     ms = cadeia.matrizes(g)
     p, lado = cadeia.polpa_em(g, ms)
     c = ((p - alvo).length_squared + (PESO_NORMAL_MM * (1.0 + lado.dot(normal))) ** 2
          + PESO_COLISAO ** 2 * cadeia.penetracao(ms))
     if na is not None:
         c += PESO_COLISAO ** 2 * _entrada_na_arma(cadeia, ms, na)
+    if eixo is not None:
+        c += (PESO_EIXO_MM * (1.0 - _direcao_distal(ms).dot(eixo))) ** 2
     return c
 
 
@@ -273,11 +284,12 @@ def refinar_na_malha(custo_de, lim, g, na, m, cadeia):
     return _padrao(com_malha, lim, g, com_malha(g), passo=PASSO_REFINO)
 
 
-def resolver(cadeia, alvo, normal, lim, inicio=None, na=None, m=None):
+def resolver(cadeia, alvo, normal, lim, inicio=None, na=None, m=None, eixo=None):
     """Os graus do polegar (além do repouso) que põem a polpa no alvo, de frente para ele e fora dos dedos (e da arma,
-    com `na`, a luva na arma de empunhadura_arma.NaArma, e a pose da mão `m`: aí o refino pela malha da tenar)."""
+    com `na`, a luva na arma de empunhadura_arma.NaArma, e a pose da mão `m`: aí o refino pela malha da tenar); com o
+    `eixo` (unitário, no referencial da luva), a falange distal apontando para ele."""
     def custo_de(g):
-        return _custo(cadeia, g, alvo, normal, na)
+        return _custo(cadeia, g, alvo, normal, na, eixo)
 
     g = minimizar(custo_de, lim, inicio)
     return g if na is None else refinar_na_malha(custo_de, lim, g, na, m, cadeia)
@@ -371,15 +383,16 @@ def _assentar_na_arma(col, lim, m, cadeia, ik, livre, resto, na):
     return m, g, encostou
 
 
-def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None):
+def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None, eixo=None):
     """O polegar da pose `m` com a polpa no alvo, chegando pela normal dele até encostar e assentando pela IP e pela
     MCP; `superficie` são os triângulos da luva em que a polpa deve assentar (nas poses de teste). Na pega, `na` é a
     luva na arma (empunhadura_arma.NaArma): o alvo e a normal vêm no referencial da luva, a arma entra na IK e no
-    contato e o encosto da polpa é medido nela. Devolve (pose, relatório): os graus totais, os da IK, a distância da
-    polpa à superfície e ao ponto do alvo (mm), se encostou e a altura de onde chegou (mm)."""
+    contato e o encosto da polpa é medido nela; o `eixo` (a mão da frente, no referencial da luva) é para onde a
+    falange distal aponta. Devolve (pose, relatório): os graus totais, os da IK, a distância da polpa à superfície e ao
+    ponto do alvo (mm), se encostou, a altura de onde chegou (mm) e, com o `eixo`, o desvio da falange distal (graus)."""
     lim = limites(mao)
     cadeia = Cadeia(col, mao, {o: q for o, q in m.pose().items() if not o.startswith('polegar')})
-    ik = resolver(cadeia, alvo, normal, lim, na=na, m=m)
+    ik = resolver(cadeia, alvo, normal, lim, na=na, m=m, eixo=eixo)
     livre, resto = _livre_e_resto(col)
     if na is not None:
         m, g, encostou = _assentar_na_arma(col, lim, m, cadeia, ik, livre, resto, na)
@@ -422,6 +435,9 @@ def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None):
         encosto = na.encosto(na.pontos(m.pose()), cadeia.lado_da_polpa)
     rel = {'graus': totais(mao, g), 'ik': totais(mao, ik), 'polpaEncostaMM': round(encosto, 2),
            'polpaAoAlvoMM': round((polpa - alvo).length, 2), 'encostou': encostou, 'chegouDeMM': acima}
+    if eixo is not None:
+        cosseno = max(-1.0, min(1.0, _direcao_distal(cadeia.matrizes(g)).dot(eixo)))
+        rel['desvioDoEixoGraus'] = round(math.degrees(math.acos(cosseno)), 1)
     return m, rel
 
 

@@ -32,10 +32,13 @@ export const VIEWMODEL = F({
    * `gloveElbows` (Fase 4.1b) = os mesmos alvos para os braços de luva, nas categorias das armas com pega (sem ele, os
    * `elbows`): o braço realista tem o pulso e o antebraço com os limites da AAOS. Achados por varredura das direções do
    * antebraço com a pega da AK de verdade — o cotovelo fora da tela em 16:9 e 21:9, abaixo do pulso e o antebraço a
-   * mais de 3 mm da arma, nas três posições prontas do CS, com o menor Σ(ângulo/limite)²: a mão do gatilho com 11–19°
-   * de extensão e 9–13° de desvio ulnar (a pegada do punho de pistola) e o antebraço na meia pronação; a do apoio com
-   * 72–78° de supinação, 50–56° de extensão e 10–17° de desvio radial (a palma para cima debaixo do guarda-mão: o
-   * braço pendente, que é a referência da torção — o polegar para cima da câmera —, pede a supinação quase toda). Uma
+   * mais de 3 mm da arma, nas três posições prontas do CS: a mão do gatilho com o menor Σ(ângulo/limite)² — 11–19° de
+   * extensão e 9–13° de desvio ulnar (a pegada do punho de pistola) e o antebraço na meia pronação; a da frente, desde a
+   * pega em C do CS:GO (2026-09-27: o polegar deitado no lado esquerdo, os quatro dedos no direito), com o menor pior
+   * ângulo em relação ao limite (minimax — a soma dos quadrados trocava extensão por supinação e a deixava a 79,9° de
+   * 80°): 66–71° de supinação, 60–63° de extensão e 12–18° de desvio radial, todos a no máximo 91 % do limite (na P2, a
+   * pega antiga pedia 77,8° de supinação, 97 %), com o antebraço a 11 mm da arma. A palma para cima debaixo do
+   * guarda-mão pede muita supinação: o braço pendente é a referência da torção (o polegar para cima da câmera). Uma
    * referência pelo ombro (o úmero) não serve: as posições do viewmodel são estilizadas como as do CS (a mão do gatilho
    * a 16 cm do ombro, o cotovelo do apoio 44 cm à frente do olho) e a torção passava de 100°.
    */
@@ -43,7 +46,7 @@ export const VIEWMODEL = F({
     pistola: F({ pos: F([1.8, -0.9, -13.5]), angles: F([3, 4, -2]), elbows: F({ direita: F([12, -20, 2]), esquerda: F([-10, -20, 0]) }) }),
     rifle: F({
       pos: F([4.5, -3.1, -9]), angles: F([4, 1, -2]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -16, -4]) }),
-      gloveElbows: F({ direita: F([13.1, -8.2, 13.9]), esquerda: F([-3.9, -24.4, -15.7]) }),
+      gloveElbows: F({ direita: F([13.1, -8.2, 13.9]), esquerda: F([-5.9, -36.4, -13.7]) }),
     }),
     sniper: F({ pos: F([5, -4.1, -9.6]), angles: F([3.5, 1, -1.5]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -17, -8]) }) }),
     escopeta: F({ pos: F([4.5, -3.2, -9.2]), angles: F([4, 1, -2]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -17, -6]) }) }),

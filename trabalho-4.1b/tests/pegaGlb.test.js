@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { OSSOS_DE_DEDO, ossosDoLado } from '../src/data/luvas.js';
+import { LIMITES_DA_PEGA, OSSOS_DE_DEDO, ossosDoLado } from '../src/data/luvas.js';
 import { lerPega } from '../src/characters/hands/pega.js';
 import { lerGlb, validarSaida } from '../tools/blender/saida.mjs';
 import { validarPega } from '../tools/blender/saidaPega.mjs';
@@ -83,8 +83,15 @@ test('lerPega recusa sem o clipe, sem o nó pega ou sem a marca', () => {
 
 const REL_OK = {
   empunhadura: {
-    d: { penetracaoMM: 0.05, contatosMM: { palma: 0.03, indicador_gatilho: 0.02, polegar: 0.04 } },
-    e: { penetracaoMM: 0.04, contatosMM: { palma: 0.04, polegar: 0.05 } },
+    d: {
+      penetracaoMM: 0.05, contatosMM: { palma: 0.03, indicador_gatilho: 0.02, polegar: 0.04 },
+      lados: { polegarMM: 14.2, dedosMM: { medio: -12.5, anelar: -13.1, minimo: -11.8 } },
+    },
+    e: {
+      penetracaoMM: 0.04, contatosMM: { palma: 0.04, polegar: 0.05 },
+      lados: { polegarMM: 19.6, dedosMM: { indicador: -18.4, medio: -19.9, anelar: -18.7, minimo: -17.2 } },
+    },
+    frente: 'e',
     marca: MARCA,
   },
 };
@@ -102,6 +109,32 @@ test('validarPega aponta o relatório sem a empunhadura, a penetração, o conta
   longe.empunhadura.e.contatosMM.polegar = 1.2;
   assert.match(validarPega(longe, lerPega(gltfPega()), MARCA).join('\n'), /polegar/);
   assert.match(validarPega(REL_OK, lerPega(gltfPega()), { d: 'c'.repeat(64), e: MARCA.e }).join('\n'), /marca/);
+});
+
+test('validarPega exige na mão da frente só o polegar de um lado e os quatro dedos do outro', () => {
+  const semLados = structuredClone(REL_OK);
+  delete semLados.empunhadura.e.lados;
+  assert.match(validarPega(semLados, lerPega(gltfPega()), MARCA).join('\n'), /mão da frente.*lados/);
+  const semFrente = structuredClone(REL_OK);
+  delete semFrente.empunhadura.frente;
+  assert.match(validarPega(semFrente, lerPega(gltfPega()), MARCA).join('\n'), /mão da frente/);
+  const faltaDedo = structuredClone(REL_OK);
+  delete faltaDedo.empunhadura.e.lados.dedosMM.minimo;
+  assert.match(validarPega(faltaDedo, lerPega(gltfPega()), MARCA).join('\n'), /minimo/);
+  const indicadorTrocado = structuredClone(REL_OK);
+  indicadorTrocado.empunhadura.e.lados.dedosMM.indicador = 6.1;
+  assert.match(validarPega(indicadorTrocado, lerPega(gltfPega()), MARCA).join('\n'), /indicador.*lado do polegar/);
+  // perto demais do meio da arma (dentro da margem) também reprova: o dedo não chegou ao outro lado
+  const noMeio = structuredClone(REL_OK);
+  noMeio.empunhadura.e.lados.dedosMM.anelar = -(LIMITES_DA_PEGA.ladoMM - 0.5);
+  assert.match(validarPega(noMeio, lerPega(gltfPega()), MARCA).join('\n'), /anelar/);
+  const polegarTrocado = structuredClone(REL_OK);
+  polegarTrocado.empunhadura.e.lados.polegarMM = -15;
+  assert.match(validarPega(polegarTrocado, lerPega(gltfPega()), MARCA).join('\n'), /polegar.*lado dos dedos/);
+  // a mão do gatilho, quando traz os lados, passa pela mesma conta
+  const gatilho = structuredClone(REL_OK);
+  gatilho.empunhadura.d.lados.dedosMM.medio = 3;
+  assert.match(validarPega(gatilho, lerPega(gltfPega()), MARCA).join('\n'), /empunhadura d.*medio/);
 });
 
 test('a AK de verdade: a pega no .glb, a marca igual à do luvas.glb e a saída aprovada', () => {
