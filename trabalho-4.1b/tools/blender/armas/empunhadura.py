@@ -27,9 +27,17 @@ CONTATO_MM = 0.05
 PERTO_MM = 12.0  # pares de triângulos a menos disso no repouso não são contato (dobra ou membrana)
 DOBRA_MM = 22.0  # a membrana entre dois dedos: a pele a até 22 mm da MCP deles (o alcance da dobra da MCP)
 ABERTURA_MAXIMA = 20.0
-_FORA = {'indicador': -1.0, 'anelar': 1.0, 'minimo': 1.0}  # sinal da abertura (giro em Z) para longe do médio
+# o sinal da abertura (giro em Z) para longe do médio, na mão direita (a esquerda: para_fora)
+_FORA = {'indicador': -1.0, 'anelar': 1.0, 'minimo': 1.0}
 _VIZINHOS = {'indicador': ('medio',), 'medio': ('indicador', 'anelar'), 'anelar': ('medio', 'minimo'),
              'minimo': ('anelar',)}
+
+
+def para_fora(dedo, lado):
+    """O sinal da abertura que afasta o dedo do médio no lado `lado` ('d' ou 'e'): a luva esquerda é a direita
+    espelhada, e o giro em Z do osso espelhado anda para o outro lado (na esquerda, o sinal da direita juntava os dedos
+    em vez de afastar)."""
+    return _FORA[dedo] * (1.0 if lado == 'd' else -1.0)
 
 
 def _cadeia(d):
@@ -189,7 +197,7 @@ def separar_vizinhos(col, mao_pose, dedos):
         osso = f'{fora}_1'
         if col.profundidade(mao_pose.pose(), A, B) <= CONTATO_MM:
             continue
-        sinal = _FORA[fora]
+        sinal = para_fora(fora, col.lado)
         ab0 = mao_pose.aberturas.get(osso, 0.0)
 
         def cruza_aberto(g):

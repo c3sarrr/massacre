@@ -6,8 +6,9 @@
 // que o UV automático gira por ilha): as ranhuras correm ao longo de X, então a aspereza maior (T) fica atravessada.
 // O padrão fino some pelo filtro de frequência (fwidth) quando fica menor que o pixel, para não cintilar com o balanço
 // da arma. Nenhum boil, nenhuma digital de massinha. ARMA_PADRAO segue a ordem de PADROES (src/data/acabamentos.js).
-// As luvas (Fase 4.1b) têm os padrões do couro (o grão: células de 0,8 mm com o fundo escuro, pela distância à borda da
-// célula de Voronoi) e do tecido (a malha de jérsei de 0,6 mm, os fios subindo e descendo); a borracha usa o pontilhado.
+// As luvas (Fase 4.1b) têm os padrões do couro (o grão: seixinhos arredondados de 0,8 mm com o vale largo e raso entre
+// eles, nas células de Voronoi de domínio torcido) e do tecido (a malha de jérsei de 0,6 mm, os fios subindo e descendo);
+// a borracha usa o pontilhado.
 // A malha delas se deforma na CPU (o modelo das dobras, src/characters/hands/modeloDobras.js): com ARMA_REPOUSO, o
 // padrão sai da posição e da normal de repouso (os atributos `repouso` e `normalRepouso`, u) e fica preso ao couro e ao
 // tecido quando os dedos dobram, em vez de escorregar pela luva.
@@ -68,8 +69,12 @@ float armaTrama( vec2 p ) {
   float fio = sobe > 0.5 ? sin( f.y * 3.14159265 ) : sin( f.x * 3.14159265 );
   return mix( 0.25, 1.0, sobe ) * ( 0.6 + 0.4 * fio );
 }
-// Grão de couro: a célula de Voronoi mais perto e a segunda, num plano; 1 na dobrinha entre as células, 0 no alto do grão.
+// Grão de couro (o seixinho do couro sintético de luva): a célula de Voronoi mais perto e a segunda, num plano; 0 no alto
+// do seixo, subindo em rampa larga até 1 no vale entre dois, e o ombro do seixo arredondando para ele. O domínio vem
+// torcido por ruído (as células saem irregulares, não polígonos) e o vale é largo e raso: o vale fino e escuro (0,18 da
+// célula) da primeira versão desenhava uma rede de trincas, que de perto lia como verniz craquelado e não como couro.
 float armaGrao( vec2 p ) {
+  p += vec2( armaRuido( vec3( p * 0.6, 3.1 ) ), armaRuido( vec3( p * 0.6, 8.9 ) ) ) * 0.7 - 0.35;
   vec2 c = floor( p );
   vec2 f = fract( p );
   float d1 = 8.0;
@@ -87,7 +92,9 @@ float armaGrao( vec2 p ) {
       }
     }
   }
-  return 1.0 - smoothstep( 0.0, 0.18, sqrt( d2 ) - sqrt( d1 ) );
+  float vale = 1.0 - smoothstep( 0.04, 0.5, sqrt( d2 ) - sqrt( d1 ) );
+  float ombro = smoothstep( 0.1, 0.7, sqrt( d1 ) );
+  return clamp( vale * 0.75 + ombro * 0.25, 0.0, 1.0 );
 }
 // Malha de tecido (jérsei): fileiras de laçadas em V, o fio subindo e descendo; 1 no alto do fio, 0 no fundo.
 float armaMalha( vec2 p ) {
@@ -141,10 +148,11 @@ vec2 armaPadrao( vec3 p, vec3 n, float varAssada ) {
     vec3 b = p * 190.0;
     return vec2( 0.0, ( ( armaRuido( a ) - 0.5 ) * armaFiltro( a ) + ( armaRuido( b ) - 0.5 ) * armaFiltro( b ) ) * 0.08 );
   #elif ARMA_PADRAO == 8
-    // grão do couro: 31,75 células por u (0,8 mm); o fundo vai para a segunda cor e fica mais áspero
+    // grão do couro: 31,75 células por u (0,8 mm); o vale vai um pouco para a segunda cor e fica mais áspero (o topo do
+    // seixo, alisado pelo uso, brilha um pouco mais)
     float g = armaGrao( p.yz * 31.75 ) * w.x + armaGrao( p.xz * 31.75 ) * w.y + armaGrao( p.xy * 31.75 ) * w.z;
-    g = mix( 0.3, g, armaFiltro( p * 31.75 ) );
-    return vec2( g * 0.55, g * 0.12 );
+    g = mix( 0.35, g, armaFiltro( p * 31.75 ) );
+    return vec2( g * 0.3, ( g - 0.35 ) * 0.14 );
   #elif ARMA_PADRAO == 9
     // trama do tecido: 42,3 laçadas por u (0,6 mm); o fundo na segunda cor, o alto do fio um pouco mais liso
     float t = armaMalha( p.yz * 42.3 ) * w.x + armaMalha( p.xz * 42.3 ) * w.y + armaMalha( p.xy * 42.3 ) * w.z;

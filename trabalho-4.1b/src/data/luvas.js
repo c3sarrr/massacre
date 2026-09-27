@@ -7,7 +7,10 @@
 //    metacarpo próprio (a borda da palma fecha em concha).
 //  - Orçamento: os dois braços juntos (D6).
 //  - Pinturas: acabamento, cor e desgaste por zona, no formato das skins das armas; Massa Crua em coiote e Tropa do
-//    Estúdio em preto (seção 7.1).
+//    Estúdio em preto (seção 7.1). O coiote de partida (#8B6B4A) saía na pista, sob a luz quente, no mesmo laranja da
+//    madeira de fábrica da AK e da mesa (P2, 2026-09-27: rgb 180/117/75 contra 188/129/97, 1,2× de luminância): ficou
+//    mais escuro e puxado para o oliva (o matiz ~40°, longe dos ~23° da madeira), e o couro gasta menos (o gasto do
+//    couro clareia).
 
 const F = Object.freeze;
 
@@ -30,7 +33,22 @@ export const OSSOS_DE_DEDO = F([
   'anelar_0', 'anelar_1', 'anelar_2', 'anelar_3',
   'minimo_0', 'minimo_1', 'minimo_2', 'minimo_3',
 ]);
-export const LIMITES_DA_PEGA = F({ penetracaoMM: 0.3, contatoMM: 1, contatoJogoMM: 0.05 });
+// `ladoMM` (regra do usuário de 2026-09-27, para toda arma com mão da frente): na mão da frente só o polegar fica de um
+// lado da arma e os quatro dedos do outro, como a pega da AK no CS:GO — a polpa de cada um a pelo menos esta distância
+// do plano do meio da arma, do lado certo (a mão do gatilho, quando a regra dela diz os lados, passa pela mesma conta).
+// `polegarCurvaGraus` e `polegarFolgaMM` (o usuário, 2026-09-27: "o dedo tem que estar colado com a arma", sem curva):
+// o polegar da mão da frente reto e deitado na face do lado dele — a MCP mais a IP até 20° (a versão recusada fazia um
+// arco de 52°), a falange distal encostando (o trecho dela mais perto até `contatoMM`) e nenhum trecho a mais de 8 mm (a
+// cunha da base, que sai da quina de baixo do guarda-mão).
+// `dedosJuntosMM` (a revisão crítica da 4.1b, 2026-09-27): os dedos que abraçam a arma lado a lado, sem leque — a falange
+// média de cada um a no máximo esta distância da do vizinho, menos da metade da largura dela (17 a 19 mm na ficha).
+// Fechando cada dedo sozinho, os da mão da frente da AK saíam em leque (até 8,53 mm, a ponta a 17 mm); a ponta não
+// conta, porque o dedo que dobra mais sai da ponta do vizinho.
+export const LIMITES_DA_PEGA = F({
+  penetracaoMM: 0.3, contatoMM: 1, contatoJogoMM: 0.05, ladoMM: 5, polegarCurvaGraus: 20, polegarFolgaMM: 8,
+  dedosJuntosMM: 8,
+});
+export const DEDOS_DA_FRENTE = F(['indicador', 'medio', 'anelar', 'minimo']);
 // As categorias do viewmodel com regra de pega no Blender (tools/blender/armas/empunhadura_regras.py): a arma realista
 // delas sai com a pega no .glb; as outras entram com as armas delas (4.1c, 4.1d).
 export const CATEGORIAS_COM_PEGA = F(['rifle']);
@@ -48,9 +66,9 @@ export const LUVAS = F({
     massaCrua: F({
       nome: 'Massa Crua (coiote)',
       zonas: F({
-        couro: F({ acabamento: 'couro', cor: '#8B6B4A', desgaste: 0.25 }),
-        tecido: F({ acabamento: 'tecido', cor: '#6B5038', desgaste: 0.15 }),
-        reforco: F({ acabamento: 'borracha', cor: '#4A3A2C', desgaste: 0.2 }),
+        couro: F({ acabamento: 'couro', cor: '#5C5139', desgaste: 0.15 }),
+        tecido: F({ acabamento: 'tecido', cor: '#4D4432', desgaste: 0.12 }),
+        reforco: F({ acabamento: 'borracha', cor: '#342E24', desgaste: 0.15 }),
       }),
     }),
     tropa: F({

@@ -5,12 +5,18 @@
 #  - cada mão, pela regra da categoria (empunhadura_regras.py) com as correções da arma: a luva entra no soquete da mão
 #    (a âncora, as giradas, a diagonal) e chega pela normal da palma até encostar (empunhadura_arma.encostar), com a CMC
 #    do polegar na pose de pegar; os dedos da regra fecham em volta da arma (empunhadura_arma.agarrar) e os vizinhos se
-#    separam; o indicador vai ao gatilho (empunhadura_arma.dedo_no_alvo); o polegar pousa do lado da regra
-#    (empunhadura_polegar.alvo_na_arma e fechar_no_alvo);
+#    separam (e, na mão da frente, se juntam lado a lado: empunhadura_arma.juntar_dedos); o indicador vai ao gatilho
+#    (empunhadura_arma.dedo_no_alvo); o polegar pousa do lado da regra (empunhadura_polegar.alvo_na_arma e
+#    fechar_no_alvo) ou, na mão da frente, deitado reto na face do lado dele e apontando para a boca
+#    (empunhadura_polegar.deitar_na_arma);
 #  - a validação (seção 6.3, bloqueia a exportação): nenhum vértice da luva a mais de 0,3 mm dentro da arma; a palma
 #    (com a tenar e a hipotenar), cada dedo da regra, a polpa do indicador (no gatilho) e a do polegar a no máximo 1 mm
 #    da arma; a luva sem se atravessar e sem afinar nas juntas (validar_maos.conferir_uma, os limites das poses de
-#    teste); os ângulos dentro dos limites da ficha;
+#    teste); os ângulos dentro dos limites da ficha; na mão da frente (regra do usuário de 2026-09-27), só o polegar de
+#    um lado e os quatro dedos do outro (_lados: a polpa de cada um a pelo menos LADO_MM do plano do meio da arma, do
+#    lado certo) e o polegar reto e deitado na arma (_polegar_deitado: a curva, a distal encostando, a proximal perto);
+#    os dedos que abraçam a arma lado a lado, sem leque (a falange média de cada um a no máximo JUNTOS_MM da do vizinho,
+#    empunhadura_arma.folgas_entre_dedos; a mão da frente os junta, empunhadura_arma.juntar_dedos);
 #  - as sondas (o `luvas_contato` do jogo mede nelas): o vértice de cada contato mais perto da arma e a distância dele;
 #  - a saída (seção 6.4): o nó `pega` com a marca e as sondas nos extras, os nós `pega_mao_d`/`pega_mao_e` (o
 #    referencial do osso `mao` de cada braço na pose, no da arma) e a armadura `pega_luvas` (os dois braços) com a ação
@@ -31,6 +37,13 @@ from .unidades import S
 
 PENETRACAO_MM = 0.3
 CONTATO_MM = 1.0
+LADO_MM = 5.0  # o `ladoMM` de LIMITES_DA_PEGA (src/data/luvas.js): a polpa a pelo menos isto do meio, do lado certo
+POLEGAR_CURVA_GRAUS = 20.0  # o `polegarCurvaGraus`: a MCP mais a IP do polegar deitado da mão da frente
+POLEGAR_FOLGA_MM = 8.0  # o `polegarFolgaMM`: nenhum trecho do polegar deitado mais longe que isto da arma
+# o `dedosJuntosMM`: a falange média de cada dedo que abraça a arma a no máximo isto da do vizinho — menos da metade da
+# largura dela (17 a 19 mm na ficha); o leque da mão da frente antes de juntar_dedos chegava a 8,5 mm, a mão do gatilho
+# fica em 2,5 e 3,3 mm
+JUNTOS_MM = 8.0
 # os ossos de dedo da pega (seção 6.4: 17 por mão)
 OSSOS_DE_DEDO = (('polegar_1', 'polegar_2', 'polegar_3')
                  + tuple(f'{d}_{i}' for d in ('indicador', 'medio') for i in (1, 2, 3))
@@ -97,11 +110,16 @@ def _pegar(col, na, mao, r, soquete, gatilho, base, lado):
     na.encaixe, andou = EA.encostar(na, m, palma, na.encaixe, _vertices_do_corpo(col), *r['chegada'])
     rel['palmaAndouMM'] = round(andou, 2)
     parou = {}
+    aberta = m
     for d in r['dedos']:
         m, p = EA.agarrar(na, mao, m, d)
         parou.update(p)
     m, vizinhos = empunhadura.separar_vizinhos(col, m, [d for d in DEDOS4 if d in r['dedos']])
     rel.update({'dedosPararam': parou, 'vizinhos': vizinhos})
+    if r.get('juntar'):
+        topo = validar_maos.Topologia(col.luva, luvas.REFORCO)
+        m, rel['juntar'] = EA.juntar_dedos(col, na, mao, m, aberta, r['dedos'],
+                                           lambda pts: validar_maos.atravessa(pts, topo)[0])
     if r['gatilho']:
         g = r['gatilho']
         guarda = na.vertices(['indicador_2', 'indicador_3'])
@@ -113,8 +131,13 @@ def _pegar(col, na, mao, r, soquete, gatilho, base, lado):
                                                        g['raio'], folga)
         rel['indicador']['folgaDoResto'] = round(folga(na.pontos(m.pose())) + g['folga'], 2)
     cadeia = polegar.Cadeia(col, mao, {o: q for o, q in m.pose().items() if not o.startswith('polegar')})
-    alvo_p, normal_p = polegar.alvo_na_arma(cadeia, na, m, lim, regras.lado_do_polegar(r), r['polegar']['peso'])
-    m, rel['polegar'] = polegar.fechar_no_alvo(col, mao, m, alvo_p, normal_p, None, na=na)
+    p = r['polegar']
+    if p.get('deitado'):
+        eixo = (na.encaixe.inverted().to_3x3() @ Vector(p['eixo'])).normalized()
+        m, rel['polegar'] = polegar.deitar_na_arma(col, mao, m, na, eixo, Vector(p['face']).normalized())
+    else:
+        alvo_p, normal_p = polegar.alvo_na_arma(cadeia, na, m, lim, regras.lado_do_polegar(r), p['peso'])
+        m, rel['polegar'] = polegar.fechar_no_alvo(col, mao, m, alvo_p, normal_p, None, na=na)
     return m, rel
 
 
@@ -135,6 +158,49 @@ def _contatos(col, na, mao, pts, r):
         i = min(dist, key=dist.get)
         saida[nome] = [i, round(dist[i], 3)]
     return saida
+
+
+def _lados(col, na, mao, pts, r):
+    """Os lados da regra (a mão da frente): onde fica a polpa do polegar e a de cada dedo de `r['lados']['dedos']` no
+    eixo do lado do polegar (mm, a partir do plano do meio da arma, que passa pela origem dela) — o centro dos vértices
+    do lado da polpa do osso distal de cada um —, e os problemas: o polegar a menos de LADO_MM do lado dele ou um dedo a
+    menos de LADO_MM do outro lado."""
+    eixo = Vector(r['lados']['polegar']).normalized()
+
+    def onde(indices):
+        centro = sum((Vector(pts[i]) for i in indices), Vector()) / len(indices)
+        return round(centro.dot(eixo), 2)
+
+    lados = {'polegarMM': onde(polegar.Cadeia(col, mao, {}).lado_da_polpa),
+             'dedosMM': {d: onde(EA.CadeiaDedo(na, d, {}).lado_da_polpa) for d in r['lados']['dedos']}}
+    problemas = []
+    if lados['polegarMM'] < LADO_MM:
+        problemas.append(f"o polegar a {lados['polegarMM']:.2f} mm do meio da arma (tem de ficar do lado dele, a pelo "
+                         f"menos {LADO_MM} mm)")
+    for d, v in lados['dedosMM'].items():
+        if v > -LADO_MM:
+            problemas.append(f'o {d} a {v:.2f} mm do meio da arma, do lado do polegar ou no meio (tem de passar para o '
+                             f'outro lado, a pelo menos {LADO_MM} mm)')
+    return lados, problemas
+
+
+def _polegar_deitado(rel_polegar):
+    """Os problemas do polegar deitado da mão da frente (o relatório de empunhadura_polegar.deitar_na_arma): a curva (a
+    MCP mais a IP) além de POLEGAR_CURVA_GRAUS, a falange distal sem encostar (o trecho dela mais perto a mais que o
+    contato) ou algum trecho a mais de POLEGAR_FOLGA_MM da arma."""
+    t = rel_polegar['trechosMM']
+    meio = len(t) // 2
+    problemas = []
+    if rel_polegar['curvaGraus'] > POLEGAR_CURVA_GRAUS:
+        problemas.append(f"o polegar da frente com {rel_polegar['curvaGraus']}° de curva (máximo {POLEGAR_CURVA_GRAUS}°): "
+                         'tem de ficar reto, deitado na arma')
+    if min(t[meio:]) > CONTATO_MM:
+        problemas.append(f'a falange distal do polegar da frente não encosta na arma ({min(t[meio:]):.2f} mm)')
+    for i, v in enumerate(t):
+        if v > POLEGAR_FOLGA_MM:
+            problemas.append(f"a falange {'proximal' if i < meio else 'distal'} do polegar da frente a {v:.2f} mm da arma "
+                             f'(máximo {POLEGAR_FOLGA_MM} mm)')
+    return problemas
 
 
 def _angulos(mao, m):
@@ -174,13 +240,25 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
         m, rel_m = _pegar(col, na, mao, r, soq[r['soquete']], perto.get('gatilho'), base, lado)
         pose = m.pose()
         pts = na.pontos(pose)
-        penetracao = na.penetracao(pts)
+        penetracao = na.penetracao(pts, limite=None)  # sem o limite das buscas: um dedo inteiro dentro da arma conta
         contatos = _contatos(col, na, mao, pts, r)
         conta, problemas_luva = validar_maos.conferir_uma(col.modelo, luva, luvas.REFORCO, f'pega {nome}', pose)
         totais, problemas_angulos = _angulos(mao, m)
         meio = min(na.arma.distancia(pts[i]) for i in na.vertices(['mao']))
         rel[lado] = {**rel_m, 'penetracaoMM': round(penetracao, 3), 'contatosMM': {k: v[1] for k, v in contatos.items()},
                      'palmaMeioMM': round(meio, 2), 'luva': conta, 'angulos': totais}
+        if r.get('lados'):
+            rel[lado]['lados'], problemas_lados = _lados(col, na, mao, pts, r)
+            problemas += [f'pega {nome}: {p}' for p in problemas_lados]
+        if r['polegar'].get('deitado'):
+            problemas += [f'pega {nome}: {p}' for p in _polegar_deitado(rel_m['polegar'])]
+        rel[lado]['juntosMM'] = EA.folgas_entre_dedos(col, pose, r['dedos'])
+        for par, (media, _distal) in rel[lado]['juntosMM'].items():
+            if media > JUNTOS_MM:
+                problemas.append(f'pega {nome}: {par} com a falange média a {media:.2f} mm uma da outra (máximo '
+                                 f'{JUNTOS_MM} mm): os dedos em leque, não lado a lado')
+        if r.get('frente'):
+            rel['frente'] = lado
         if penetracao > PENETRACAO_MM:
             problemas.append(f'pega {nome}: a luva entra {penetracao:.2f} mm na arma (máximo {PENETRACAO_MM} mm)')
         for k, (_i, d) in contatos.items():
