@@ -385,8 +385,8 @@ com correção nos nós dos dedos e no punho.
    **Mão da frente (regra do usuário de 2026-09-27, válida para toda arma que tem mão da frente):** só o polegar fica de
    um lado da arma e os outros quatro dedos do outro, como a pega da AK no CS:GO — o polegar reto e deitado no lado
    esquerdo, encostado na arma e apontando para a frente, sem curva (a pega "thumb break"), e os quatro dedos abraçando
-   por baixo até o lado direito; a validação do `construir` reprova a arma que sair diferente (desenho da 4.1b, seção
-   6.2).
+   por baixo até o lado direito, lado a lado (sem leque); a validação do `construir` reprova a arma que sair diferente
+   (desenho da 4.1b, seção 6.2).
 4. Correções manuais por arma, quando precisar, ficam no script da arma e passam pelas mesmas validações.
 
 ### 7.4 Validação e exportação

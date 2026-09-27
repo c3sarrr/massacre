@@ -43,10 +43,10 @@
    "triangulos": 27381
   },
   "mundo": {
-   "triangulos": 5700
+   "triangulos": 5699
   },
   "longe": {
-   "triangulos": 1424
+   "triangulos": 1425
   }
  },
  "uv": {
@@ -178,6 +178,16 @@
     "minimo_1": 46.03,
     "minimo_2": 46.03,
     "minimo_3": 30.69
+   },
+   "juntosMM": {
+    "medio-anelar": [
+     2.45,
+     0.98
+    ],
+    "anelar-minimo": [
+     3.34,
+     4.55
+    ]
    }
   },
   "e": {
@@ -197,85 +207,109 @@
     "minimo_3": "contato"
    },
    "vizinhos": {},
+   "juntar": {
+    "anelar": 6.25,
+    "minimo": 10.78,
+    "indicador": -4.69
+   },
    "polegar": {
     "graus": {
-     "abducao": 32.75,
+     "abducao": 32.5,
      "cmc": 6.25,
-     "rotacao": 14.5,
+     "rotacao": 15.5,
      "mcp": 0.0,
      "ip": 0.0
     },
-    "coladoMM": 6.59,
+    "coladoMM": 6.52,
     "trechosMM": [
-     6.59,
-     5.34,
-     4.12,
-     2.48,
-     0.31,
-     -0.0
+     6.52,
+     5.26,
+     4.04,
+     2.38,
+     0.21,
+     0.0
     ],
     "curvaGraus": 0.0,
-    "desvioDoEixoGraus": 14.4,
-    "polpaEncostaMM": -0.0
+    "desvioDoEixoGraus": 14.2,
+    "polpaEncostaMM": 0.0
    },
    "penetracaoMM": 0.05,
    "contatosMM": {
     "palma": -0.042,
-    "indicador": -0.043,
+    "indicador": -0.047,
     "medio": -0.05,
-    "anelar": -0.039,
-    "minimo": -0.045,
-    "polegar": -0.003
+    "anelar": -0.002,
+    "minimo": -0.023,
+    "polegar": 0.003
    },
    "palmaMeioMM": -0.04,
    "luva": {
     "juntas": {
      "pulso": 1.0,
-     "indicador_mcp": 0.9975,
-     "indicador_pip": 0.9991,
-     "indicador_dip": 0.999,
-     "medio_mcp": 1.0092,
+     "indicador_mcp": 1.0073,
+     "indicador_pip": 0.9974,
+     "indicador_dip": 0.9667,
+     "medio_mcp": 1.0035,
      "medio_pip": 0.9904,
      "medio_dip": 0.9939,
-     "anelar_mcp": 1.2928,
-     "anelar_pip": 0.9845,
-     "anelar_dip": 0.9916,
-     "minimo_mcp": 1.0004,
-     "minimo_pip": 0.9647,
-     "minimo_dip": 0.9791,
+     "anelar_mcp": 1.2457,
+     "anelar_pip": 0.9879,
+     "anelar_dip": 0.9936,
+     "minimo_mcp": 1.0091,
+     "minimo_pip": 0.9758,
+     "minimo_dip": 0.9854,
      "polegar_mcp": 0.9981,
      "polegar_ip": 0.9957
     },
-    "atravessaMM": 0.0,
-    "assentamentoMM": 0.025,
+    "atravessaMM": 0.121,
+    "assentamentoMM": 0.022,
     "piorJunta": [
-     "minimo_pip",
-     0.9647
+     "indicador_dip",
+     0.9667
     ],
-    "paredeDoPunho": 1.0
+    "paredeDoPunho": 1.0,
+    "ondeAtravessa": [
+     95.05,
+     22.72,
+     -16.37
+    ]
    },
    "angulos": {
-    "anelar_1": 47.53,
-    "anelar_2": 47.53,
-    "anelar_3": 31.69,
-    "indicador_1": 19.45,
-    "indicador_2": 26.39,
-    "indicador_3": 17.59,
+    "anelar_1": 43.22,
+    "anelar_2": 43.22,
+    "anelar_3": 28.81,
+    "indicador_1": 18.56,
+    "indicador_2": 30.89,
+    "indicador_3": 53.69,
     "medio_1": 31.97,
     "medio_2": 42.98,
     "medio_3": 28.66,
-    "minimo_1": 63.09,
-    "minimo_2": 63.09,
-    "minimo_3": 42.06
+    "minimo_1": 55.41,
+    "minimo_2": 55.41,
+    "minimo_3": 36.94
    },
    "lados": {
-    "polegarMM": 20.19,
+    "polegarMM": 20.09,
     "dedosMM": {
-     "indicador": -16.51,
+     "indicador": -16.21,
      "medio": -24.62,
-     "anelar": -25.51,
-     "minimo": -25.64
+     "anelar": -25.3,
+     "minimo": -25.18
     }
+   },
+   "juntosMM": {
+    "indicador-medio": [
+     1.55,
+     2.63
+    ],
+    "medio-anelar": [
+     2.64,
+     3.72
+    ],
+    "anelar-minimo": [
+     6.77,
+     15.68
+    ]
    }
   },
   "frente": "e",
@@ -283,32 +317,32 @@
    "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd",
    "e": "e9f11073664b9f2a333b6046ab2b243b67b5f49e78a3d22641033c782b6f2b07"
   },
-  "segundos": 10.3
+  "segundos": 20.8
  },
  "arma": "ak47",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-27T18:52:57",
+ "gerado": "2026-09-27T20:57:48",
  "entradas": {
-  "hash": "f60bbc43ad57f93722268c4882a1fb0cfb31dad5c2e0e565e34da14b423775a1"
+  "hash": "38a04f79f412c16dfbed6bb5e34fa070bc56686daad1b0ed83c7db8a92f236c3"
  },
  "origemMM": [
   -551.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.3594,
+  "mundo": 0.3593,
   "longe": 0.277
  },
  "facesEscondidasRemovidas": 1781,
  "arquivos": {
-  "ak47.glb": 399720,
-  "ak47_m.webp": 2902630,
-  "ak47_mundo_m.webp": 294838,
-  "ak47_mundo_n.webp": 219168,
-  "ak47_n.webp": 1615010
+  "ak47.glb": 399492,
+  "ak47_m.webp": 2865674,
+  "ak47_mundo_m.webp": 288590,
+  "ak47_mundo_n.webp": 213738,
+  "ak47_n.webp": 1571640
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 307.9
+ "segundos": 307.0
 }

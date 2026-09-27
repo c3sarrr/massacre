@@ -12,6 +12,8 @@
 #    as de cima param (não podem andar sem empurrar a falange para dentro) e as de baixo seguem; cada toque é achado
 #    por bisseção (0,05° na junta que mais anda) e as juntas param nos limites da ficha. Fechar uma junta de cada vez,
 #    da base para a ponta, parava o dedo esticado com a ponta na frente do punho e a falange proximal no ar;
+#  - os dedos juntos (a mão da frente, `juntar_dedos`): o de fora gira na MCP para o vizinho e fecha de novo, até os
+#    dois se encostarem lado a lado; `folgas_entre_dedos` mede o que sobra entre eles (a validação da pega);
 #  - o dedo num alvo (o indicador no gatilho): a IK das três juntas mais a abertura pela cinemática da cadeia, e a
 #    chegada pela normal do alvo até encostar, como o polegar (empunhadura_polegar.py).
 # Unidades: mm e graus além do repouso; o Blender em metros.
@@ -21,6 +23,7 @@ import math
 import numpy as np
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
+from mathutils.kdtree import KDTree
 
 from . import empunhadura, maos_rig
 from .empunhadura import CONTATO_MM, TOLERANCIA_GRAUS
@@ -40,6 +43,11 @@ PASSO_FINAL = 0.25
 PESO_NORMAL_MM = 15.0
 PESO_ARMA = 5.0
 POLPA_T = 0.55
+# os dedos juntos: o de fora e o vizinho para onde ele gira, a partir do médio; a bisseção da abertura
+JUNTAR = (('anelar', 'medio'), ('minimo', 'anelar'), ('indicador', 'medio'))
+PASSO_JUNTAR_GRAUS = 0.25
+JUNTAR_ATRAVESSA_MM = 0.15  # metade do limite da validação da luva (0,3 mm), com folga
+PARES_VIZINHOS = (('indicador', 'medio'), ('medio', 'anelar'), ('anelar', 'minimo'))
 
 
 class Arma:
@@ -207,6 +215,80 @@ def agarrar(na, mao, m, dedo):
                 ativos[j] = False
                 parou[ossos[j]] = 'contato'
     return m, parou
+
+
+def juntar_dedos(col, na, mao, m, aberta, dedos, atravessa):
+    """Os dedos lado a lado, como numa mão fechada de verdade: dobrados, os dedos convergem para a palma. Fechando cada
+    um sozinho na arma a partir da abertura do repouso, os da mão da frente saíam em leque (na AK, a ponta de um a 12 a
+    17 mm da do vizinho). A partir do médio, o de fora gira na MCP para o vizinho (a abertura, até a ABERTURA_MAXIMA
+    além do repouso) e fecha de novo na arma a partir da mão aberta (`aberta`); fica a maior abertura (bisseção de
+    PASSO_JUNTAR_GRAUS) em que ele não atravessa o vizinho nem entra na arma e em que a luva inteira não se atravessa
+    mais que JUNTAR_ATRAVESSA_MM (`atravessa(pontos)`: a conta da validação, validar_maos.atravessa — a membrana entre
+    dois dedos, perto das MCP, amassa quando eles se juntam). Devolve (pose, {dedo: graus girados})."""
+    girou = {}
+    for dedo, vizinho in JUNTAR:
+        if dedo not in dedos or vizinho not in dedos:
+            continue
+        osso = f'{dedo}_1'
+        # a pele entre os dois, perto das MCP, é a membrana entre eles (como em separar_vizinhos)
+        longe = (osso, f'{vizinho}_1')
+        A = col.triangulos(empunhadura._falanges(dedo), longe)
+        B = col.triangulos(empunhadura._falanges(vizinho), longe)
+        vertices = na.vertices(empunhadura._falanges(dedo))
+        sinal = -empunhadura.para_fora(dedo, col.lado)  # para o vizinho
+        ab0 = m.aberturas.get(osso, 0.0)
+        inicio = m
+        for i in (1, 2, 3):
+            o = f'{dedo}_{i}'
+            inicio = inicio.com(o, flexao=aberta.flexao.get(o, 0.0))
+
+        def fechado(g, inicio=inicio, osso=osso, ab0=ab0, sinal=sinal, dedo=dedo):
+            return agarrar(na, mao, inicio.com(osso, abertura=ab0 + sinal * g), dedo)[0]
+
+        def cabe(p, A=A, B=B, vertices=vertices):
+            pose = p.pose()
+            return (col.profundidade(pose, A, B) <= CONTATO_MM
+                    and na.penetracao(na.pontos(pose), vertices, limite=None) <= CONTATO_MM
+                    and atravessa(col.modelo.pontos(pose)) <= JUNTAR_ATRAVESSA_MM)
+
+        a, b = 0.0, empunhadura.ABERTURA_MAXIMA - abs(ab0)
+        if cabe(fechado(b)):
+            a = b
+        else:
+            while b - a > PASSO_JUNTAR_GRAUS:
+                c = (a + b) / 2
+                if cabe(fechado(c)):
+                    a = c
+                else:
+                    b = c
+        if a > 0.0:
+            m = fechado(a)
+            girou[dedo] = round(sinal * a, 2)
+    return m, girou
+
+
+def folgas_entre_dedos(col, pose, dedos):
+    """A folga (mm) entre cada par de dedos vizinhos, na falange média e na distal: a menor distância entre os vértices
+    de uma e os da mesma falange do vizinho, na luva posada (no referencial dela). {'indicador-medio': [média,
+    distal], ...}."""
+    pts = np.asarray(col.modelo.pontos(pose))
+    por = {}
+    for i, dono in enumerate(col.dono):
+        por.setdefault(dono, []).append(i)
+    folgas = {}
+    for a, b in PARES_VIZINHOS:
+        if a not in dedos or b not in dedos:
+            continue
+        par = []
+        for f in (2, 3):
+            ia, ib = por.get(f'{a}_{f}', []), por.get(f'{b}_{f}', [])
+            kd = KDTree(len(ib))
+            for k, i in enumerate(ib):
+                kd.insert(Vector(pts[i]), k)
+            kd.balance()
+            par.append(round(min(kd.find(Vector(pts[i]))[2] for i in ia), 2))
+        folgas[f'{a}-{b}'] = par
+    return folgas
 
 
 class CadeiaDedo:

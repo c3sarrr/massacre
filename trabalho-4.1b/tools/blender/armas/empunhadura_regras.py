@@ -67,6 +67,9 @@ FRENTE = {
     'ancora': {'ponto': 'palma', 'de': 'soquete', 'mm': (0.0, 10.0, -30.0)},
     'chegada': (40.0, 60.0),
     'dedos': DEDOS4,
+    # os quatro dedos lado a lado, encostados no vizinho (empunhadura_arma.juntar_dedos): fechando cada um sozinho, eles
+    # saíam em leque pelo lado direito da arma
+    'juntar': True,
     'gatilho': None,
     # o polegar deitado reto na face `face` (a esquerda), encostado ao longo da falange proximal e da distal, as duas
     # apontando para `eixo` (unitários, no referencial da arma: a boca, subindo um pouco) —

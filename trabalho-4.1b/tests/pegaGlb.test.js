@@ -86,11 +86,13 @@ const REL_OK = {
     d: {
       penetracaoMM: 0.05, contatosMM: { palma: 0.03, indicador_gatilho: 0.02, polegar: 0.04 },
       lados: { polegarMM: 14.2, dedosMM: { medio: -12.5, anelar: -13.1, minimo: -11.8 } },
+      juntosMM: { 'medio-anelar': [2.45, 0.98], 'anelar-minimo': [3.34, 4.55] },
     },
     e: {
       penetracaoMM: 0.04, contatosMM: { palma: 0.04, polegar: 0.05 },
       lados: { polegarMM: 19.6, dedosMM: { indicador: -18.4, medio: -19.9, anelar: -18.7, minimo: -17.2 } },
       polegar: { curvaGraus: 0, trechosMM: [6.48, 5.23, 4.01, 2.36, 0.2, 0.09] },
+      juntosMM: { 'indicador-medio': [3.98, 9.71], 'medio-anelar': [2.64, 3.72], 'anelar-minimo': [6.77, 15.68] },
     },
     frente: 'e',
     marca: MARCA,
@@ -152,6 +154,27 @@ test('validarPega exige na mão da frente o polegar reto e deitado na arma (sem 
   const baseLonge = structuredClone(REL_OK);
   baseLonge.empunhadura.e.polegar.trechosMM[0] = LIMITES_DA_PEGA.polegarFolgaMM + 1;
   assert.match(validarPega(baseLonge, lerPega(gltfPega()), MARCA).join('\n'), /proximal/);
+});
+
+test('validarPega exige os dedos que abraçam a arma lado a lado, sem leque', () => {
+  const semJuntos = structuredClone(REL_OK);
+  delete semJuntos.empunhadura.e.juntosMM;
+  assert.match(validarPega(semJuntos, lerPega(gltfPega()), MARCA).join('\n'), /mão da frente.*lado a lado/);
+  const faltaPar = structuredClone(REL_OK);
+  delete faltaPar.empunhadura.e.juntosMM['indicador-medio'];
+  assert.match(validarPega(faltaPar, lerPega(gltfPega()), MARCA).join('\n'), /indicador-medio/);
+  // o leque da primeira pega da mão da frente da AK: a falange média do mínimo a 8,53 mm da do anelar
+  const leque = structuredClone(REL_OK);
+  leque.empunhadura.e.juntosMM['anelar-minimo'][0] = 8.53;
+  assert.match(validarPega(leque, lerPega(gltfPega()), MARCA).join('\n'), /anelar-minimo.*leque/);
+  // só a falange média conta: a ponta do dedo que dobra mais pode sair da do vizinho
+  const pontas = structuredClone(REL_OK);
+  pontas.empunhadura.e.juntosMM['indicador-medio'][1] = 20;
+  assert.deepEqual(validarPega(pontas, lerPega(gltfPega()), MARCA), []);
+  // a mão do gatilho passa pela mesma conta nos dedos que abraçam o punho
+  const gatilho = structuredClone(REL_OK);
+  gatilho.empunhadura.d.juntosMM['medio-anelar'][0] = LIMITES_DA_PEGA.dedosJuntosMM + 1;
+  assert.match(validarPega(gatilho, lerPega(gltfPega()), MARCA).join('\n'), /empunhadura d.*medio-anelar/);
 });
 
 test('a AK de verdade: a pega no .glb, a marca igual à do luvas.glb e a saída aprovada', () => {

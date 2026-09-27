@@ -9,6 +9,8 @@
 // E o polegar da frente reto e deitado na arma (`polegar.curvaGraus` e `polegar.trechosMM`, a folga de cada trecho da
 // falange proximal e da distal, da base para a ponta): a curva até polegarCurvaGraus, a distal encostando (o trecho
 // mais perto dela até contatoMM) e nenhum trecho além de polegarFolgaMM.
+// E os dedos que abraçam a arma lado a lado, sem leque (`juntosMM`: por par de vizinhos, a folga na falange média e na
+// distal): a média até dedosJuntosMM, nas duas mãos; a mão da frente tem de trazer os três pares dos quatro dedos.
 import { DEDOS_DA_FRENTE, LIMITES_DA_PEGA } from '../../src/data/luvas.js';
 
 const fmt = (v) => v.toFixed(2).replace('.', ',');
@@ -35,6 +37,26 @@ function problemasDosLados(lado, lados, exigidos) {
 }
 
 /** Os problemas do polegar da mão da frente: reto (a curva) e deitado na arma (a distal encostada, a proximal perto). */
+const PARES_DA_FRENTE = DEDOS_DA_FRENTE.slice(1).map((d, i) => `${DEDOS_DA_FRENTE[i]}-${d}`);
+
+/** Os problemas dos dedos lado a lado de um braço (os pares `exigidos` têm de vir). */
+function problemasDosJuntos(lado, juntos, exigidos) {
+  if (!juntos) {
+    return exigidos ? [`empunhadura ${lado}: a mão da frente sem a conferência dos dedos lado a lado (construa a arma de novo)`] : [];
+  }
+  const problemas = [];
+  for (const par of exigidos ?? []) {
+    if (!juntos[par]) problemas.push(`empunhadura ${lado}: sem a folga entre os dedos ${par} (construa a arma de novo)`);
+  }
+  for (const [par, [media]] of Object.entries(juntos)) {
+    if (!(media <= LIMITES_DA_PEGA.dedosJuntosMM)) {
+      problemas.push(`empunhadura ${lado}: ${par} com a falange média a ${fmt(media ?? NaN)} mm uma da outra (máximo `
+        + `${LIMITES_DA_PEGA.dedosJuntosMM} mm): os dedos em leque, não lado a lado`);
+    }
+  }
+  return problemas;
+}
+
 function problemasDoPolegar(lado, polegar) {
   const L = LIMITES_DA_PEGA;
   const t = polegar?.trechosMM;
@@ -65,7 +87,7 @@ function problemasDoPolegar(lado, polegar) {
 
 /**
  * Os problemas da pega: o relatório sem a seção, a penetração acima de 0,3 mm ou um contato acima de 1 mm num braço, a
- * mão da frente sem só o polegar de um lado e os quatro dedos do outro, a marca do .glb diferente da do relatório ou da
+ * mão da frente sem só o polegar de um lado e os quatro dedos do outro, os dedos em leque, a marca do .glb diferente da do relatório ou da
  * das luvas (`marcaLuvas`, a do luvas.glb; null se ainda não há luvas).
  * @returns {string[]}
  */
@@ -95,6 +117,7 @@ export function validarPega(relatorio, pega, marcaLuvas) {
     }
     if (r.lados) problemas.push(...problemasDosLados(lado, r.lados, lado === e.frente ? DEDOS_DA_FRENTE : null));
     if (lado === e.frente) problemas.push(...problemasDoPolegar(lado, r.polegar));
+    problemas.push(...problemasDosJuntos(lado, r.juntosMM, lado === e.frente ? PARES_DA_FRENTE : null));
     if (pega.marca[lado] !== e.marca?.[lado]) problemas.push(`empunhadura ${lado}: a marca do .glb não é a do relatório`);
     if (marcaLuvas && pega.marca[lado] !== marcaLuvas[lado]) {
       problemas.push(`empunhadura ${lado}: a marca do rig da pega (${pega.marca[lado].slice(0, 12)}…) não é a do luvas.glb `

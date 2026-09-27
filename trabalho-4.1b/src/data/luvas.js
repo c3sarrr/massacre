@@ -40,8 +40,13 @@ export const OSSOS_DE_DEDO = F([
 // o polegar da mão da frente reto e deitado na face do lado dele — a MCP mais a IP até 20° (a versão recusada fazia um
 // arco de 52°), a falange distal encostando (o trecho dela mais perto até `contatoMM`) e nenhum trecho a mais de 8 mm (a
 // cunha da base, que sai da quina de baixo do guarda-mão).
+// `dedosJuntosMM` (a revisão crítica da 4.1b, 2026-09-27): os dedos que abraçam a arma lado a lado, sem leque — a falange
+// média de cada um a no máximo esta distância da do vizinho, menos da metade da largura dela (17 a 19 mm na ficha).
+// Fechando cada dedo sozinho, os da mão da frente da AK saíam em leque (até 8,53 mm, a ponta a 17 mm); a ponta não
+// conta, porque o dedo que dobra mais sai da ponta do vizinho.
 export const LIMITES_DA_PEGA = F({
   penetracaoMM: 0.3, contatoMM: 1, contatoJogoMM: 0.05, ladoMM: 5, polegarCurvaGraus: 20, polegarFolgaMM: 8,
+  dedosJuntosMM: 8,
 });
 export const DEDOS_DA_FRENTE = F(['indicador', 'medio', 'anelar', 'minimo']);
 // As categorias do viewmodel com regra de pega no Blender (tools/blender/armas/empunhadura_regras.py): a arma realista
