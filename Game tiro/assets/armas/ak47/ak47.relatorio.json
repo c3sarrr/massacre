@@ -43,7 +43,7 @@
    "triangulos": 27381
   },
   "mundo": {
-   "triangulos": 5700
+   "triangulos": 5699
   },
   "longe": {
    "triangulos": 1425
@@ -52,7 +52,7 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.242,
+   "medianaPxPorMm": 2.211,
    "minimo": 0.982,
    "maximo": 1.035
   }
@@ -81,30 +81,268 @@
   "detalhes",
   "interno"
  ],
+ "empunhadura": {
+  "d": {
+   "palmaAndouMM": -11.25,
+   "dedosPararam": {
+    "medio_1": "contato",
+    "medio_2": "contato",
+    "medio_3": "contato",
+    "anelar_1": "contato",
+    "anelar_2": "contato",
+    "anelar_3": "contato",
+    "minimo_1": "contato",
+    "minimo_2": "contato",
+    "minimo_3": "contato"
+   },
+   "vizinhos": {},
+   "indicador": {
+    "graus": {
+     "abertura": -19.92,
+     "mcp": 14.89,
+     "pip": 28.64,
+     "dip": 1.74
+    },
+    "encostou": true,
+    "chegouDeMM": 4.0,
+    "polpaEncostaMM": -0.04,
+    "polpaAoAlvoMM": 1.21,
+    "folgaDoResto": 3.21
+   },
+   "polegar": {
+    "graus": {
+     "abducao": 70.0,
+     "cmc": 15.0,
+     "rotacao": 0.0,
+     "mcp": 2.66,
+     "ip": 78.83
+    },
+    "ik": {
+     "abducao": 70.0,
+     "cmc": 15.0,
+     "rotacao": 0.0,
+     "mcp": 1.38,
+     "ip": 73.75
+    },
+    "polpaEncostaMM": -0.04,
+    "polpaAoAlvoMM": 4.94,
+    "encostou": true,
+    "chegouDeMM": null
+   },
+   "penetracaoMM": 0.044,
+   "contatosMM": {
+    "palma": -0.044,
+    "medio": 0.014,
+    "anelar": 0.014,
+    "minimo": -0.042,
+    "indicador_gatilho": -0.044,
+    "polegar": -0.036
+   },
+   "palmaMeioMM": 8.35,
+   "luva": {
+    "juntas": {
+     "pulso": 1.0,
+     "indicador_mcp": 0.9793,
+     "indicador_pip": 0.9853,
+     "indicador_dip": 0.9999,
+     "medio_mcp": 1.0158,
+     "medio_pip": 0.9813,
+     "medio_dip": 0.9895,
+     "anelar_mcp": 1.2946,
+     "anelar_pip": 0.9825,
+     "anelar_dip": 0.9904,
+     "minimo_mcp": 1.0045,
+     "minimo_pip": 0.9883,
+     "minimo_dip": 0.9916,
+     "polegar_mcp": 0.999,
+     "polegar_ip": 0.9281
+    },
+    "atravessaMM": 0.0,
+    "assentamentoMM": 0.021,
+    "piorJunta": [
+     "polegar_ip",
+     0.9281
+    ],
+    "paredeDoPunho": 1.0
+   },
+   "angulos": {
+    "anelar_1": 49.92,
+    "anelar_2": 49.92,
+    "anelar_3": 33.28,
+    "indicador_1": 29.89,
+    "indicador_2": 48.64,
+    "indicador_3": 11.74,
+    "medio_1": 51.8,
+    "medio_2": 51.8,
+    "medio_3": 34.53,
+    "minimo_1": 46.03,
+    "minimo_2": 46.03,
+    "minimo_3": 30.69
+   },
+   "juntosMM": {
+    "medio-anelar": [
+     2.45,
+     0.98
+    ],
+    "anelar-minimo": [
+     3.34,
+     4.55
+    ]
+   }
+  },
+  "e": {
+   "palmaAndouMM": 25.56,
+   "dedosPararam": {
+    "indicador_1": "contato",
+    "indicador_2": "contato",
+    "indicador_3": "contato",
+    "medio_1": "contato",
+    "medio_2": "contato",
+    "medio_3": "contato",
+    "anelar_1": "contato",
+    "anelar_2": "contato",
+    "anelar_3": "contato",
+    "minimo_1": "contato",
+    "minimo_2": "contato",
+    "minimo_3": "contato"
+   },
+   "vizinhos": {},
+   "juntar": {
+    "anelar": 6.25,
+    "minimo": 10.78,
+    "indicador": -4.69
+   },
+   "polegar": {
+    "graus": {
+     "abducao": 32.5,
+     "cmc": 6.25,
+     "rotacao": 15.5,
+     "mcp": 0.0,
+     "ip": 0.0
+    },
+    "coladoMM": 6.52,
+    "trechosMM": [
+     6.52,
+     5.26,
+     4.04,
+     2.38,
+     0.21,
+     0.0
+    ],
+    "curvaGraus": 0.0,
+    "desvioDoEixoGraus": 14.2,
+    "polpaEncostaMM": 0.0
+   },
+   "penetracaoMM": 0.05,
+   "contatosMM": {
+    "palma": -0.042,
+    "indicador": -0.047,
+    "medio": -0.05,
+    "anelar": -0.002,
+    "minimo": -0.023,
+    "polegar": 0.003
+   },
+   "palmaMeioMM": -0.04,
+   "luva": {
+    "juntas": {
+     "pulso": 1.0,
+     "indicador_mcp": 1.0073,
+     "indicador_pip": 0.9974,
+     "indicador_dip": 0.9667,
+     "medio_mcp": 1.0035,
+     "medio_pip": 0.9904,
+     "medio_dip": 0.9939,
+     "anelar_mcp": 1.2457,
+     "anelar_pip": 0.9879,
+     "anelar_dip": 0.9936,
+     "minimo_mcp": 1.0091,
+     "minimo_pip": 0.9758,
+     "minimo_dip": 0.9854,
+     "polegar_mcp": 0.9981,
+     "polegar_ip": 0.9957
+    },
+    "atravessaMM": 0.121,
+    "assentamentoMM": 0.022,
+    "piorJunta": [
+     "indicador_dip",
+     0.9667
+    ],
+    "paredeDoPunho": 1.0,
+    "ondeAtravessa": [
+     95.05,
+     22.72,
+     -16.37
+    ]
+   },
+   "angulos": {
+    "anelar_1": 43.22,
+    "anelar_2": 43.22,
+    "anelar_3": 28.81,
+    "indicador_1": 18.56,
+    "indicador_2": 30.89,
+    "indicador_3": 53.69,
+    "medio_1": 31.97,
+    "medio_2": 42.98,
+    "medio_3": 28.66,
+    "minimo_1": 55.41,
+    "minimo_2": 55.41,
+    "minimo_3": 36.94
+   },
+   "lados": {
+    "polegarMM": 20.09,
+    "dedosMM": {
+     "indicador": -16.21,
+     "medio": -24.62,
+     "anelar": -25.3,
+     "minimo": -25.18
+    }
+   },
+   "juntosMM": {
+    "indicador-medio": [
+     1.55,
+     2.63
+    ],
+    "medio-anelar": [
+     2.64,
+     3.72
+    ],
+    "anelar-minimo": [
+     6.77,
+     15.68
+    ]
+   }
+  },
+  "frente": "e",
+  "marca": {
+   "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd",
+   "e": "e9f11073664b9f2a333b6046ab2b243b67b5f49e78a3d22641033c782b6f2b07"
+  },
+  "segundos": 20.8
+ },
  "arma": "ak47",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-26T18:18:59",
+ "gerado": "2026-09-27T20:57:48",
  "entradas": {
-  "hash": "599e5970e8772e89ada564c628a06bf9b493e76b7023d4b73c15f536e85cf2c1"
+  "hash": "38a04f79f412c16dfbed6bb5e34fa070bc56686daad1b0ed83c7db8a92f236c3"
  },
  "origemMM": [
   -551.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.3594,
+  "mundo": 0.3593,
   "longe": 0.277
  },
- "facesEscondidasRemovidas": 1780,
+ "facesEscondidasRemovidas": 1781,
  "arquivos": {
-  "ak47.glb": 360540,
-  "ak47_m.webp": 2980252,
-  "ak47_mundo_m.webp": 293568,
-  "ak47_mundo_n.webp": 204964,
-  "ak47_n.webp": 1569966
+  "ak47.glb": 399492,
+  "ak47_m.webp": 2865674,
+  "ak47_mundo_m.webp": 288590,
+  "ak47_mundo_n.webp": 213738,
+  "ak47_n.webp": 1571640
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 146.6
+ "segundos": 307.0
 }

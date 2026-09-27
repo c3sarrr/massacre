@@ -18,6 +18,8 @@ import { SetLibrary } from './clay/set/index.js';
 import { SdfMesher } from './clay/sdf/sdfMesher.js';
 import { WeaponLibrary } from './weapons/model/weaponLibrary.js';
 import { HandLibrary } from './characters/hands/handLibrary.js';
+import { LuvasSource } from './characters/hands/luvasSource.js';
+import { carregadoresDoNavegador } from './weapons/model/glbSource.js';
 import { InputManager } from './input/inputManager.js';
 import { Rebinder } from './input/rebind.js';
 import { Cheats } from './debug/cheats.js';
@@ -82,10 +84,14 @@ async function main() {
   const weaponModels = new WeaponLibrary({ sdf, log, events, anisotropy: render.anisotropy });
   // Mãos de massinha de 4 dedos: a malha e a braçadeira geradas uma vez, os dois lados com os pesos do skinning.
   const handModels = new HandLibrary({ sdf, log });
+  // Luvas táticas das armas realistas (Fase 4.1b): o .glb do Blender com os dois braços, as pinturas das facções e o
+  // antebraço de massinha gerado uma vez — cada braço com o esqueleto e a luva dele.
+  const luvasModels = new LuvasSource({ carregadores: carregadoresDoNavegador(), sdf, log, anisotropia: render.anisotropy });
   config.watch('graphics.anisotropy', () => {
     clay.setAnisotropy(render.anisotropy);
     set.setAnisotropy(render.anisotropy);
     weaponModels.setAnisotropy(render.anisotropy);
+    luvasModels.setAnisotropia(render.anisotropy);
   });
   const quality = new QualityManager({ config, events, store, log });
   const input = new InputManager({ events, config, log, canvas, touchLayer });
@@ -103,8 +109,8 @@ async function main() {
   const toasts = new Toasts(uiRoot);
 
   const services = {
-    events, log, store, config, render, clay, set, sdf, weaponModels, handModels, quality, input, rebinder, loop, states, rng, cheats,
-    roster, localLoadout, sv, focusNav, toasts, uiRoot, debugRoot, touchLayer,
+    events, log, store, config, render, clay, set, sdf, weaponModels, handModels, luvasModels, quality, input, rebinder, loop, states,
+    rng, cheats, roster, localLoadout, sv, focusNav, toasts, uiRoot, debugRoot, touchLayer,
   };
   services.overlay = new DebugOverlay(services);
   services.console = new DebugConsole(services);

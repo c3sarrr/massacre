@@ -13,6 +13,9 @@
 //   npm run blender -- conferir <arma|todas>  renders em tools/blender/conferencia/<arma>/ (as de massinha, como acima)
 //   npm run blender -- abrir <arma>           abre a .blend da conferência (as de massinha, como acima)
 //
+// Luvas (Fase 4.1b; tools/blender/armas/luvas.py, a ficha em tools/blender/refs/luvas.json): o alvo `luvas` nas mesmas
+// quatro ações (construir, validar, conferir, abrir); `todas` no construir e no validar começa pelas luvas.
+//
 // Prepara o contexto que o Blender não sabe calcular sozinho — a paleta das massas, o acento da facção, a planta de
 // referência, a mão de massinha em cada pose (o próprio rig do jogo, src/characters/hands/) e, para abrir e conferir,
 // a prévia do jogo (tools/blender/previa.mjs: a malha que o jogo gera, com as mãos e a câmera do viewmodel) — em
@@ -29,6 +32,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as THREE from 'three';
 import { gerarPrevia } from './blender/previa.mjs';
 import { validarSaida } from './blender/saida.mjs';
+import { validarSaidaLuvas } from './blender/saidaLuvas.mjs';
+import { LUVAS } from '../src/data/luvas.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = join(ROOT, 'tools', 'blender', 'massacre_armas.py');
@@ -228,7 +233,10 @@ function rodarComEtapas(args, script, rotulo) {
   });
 }
 
-/** Hash das entradas de uma arma realista: os .py do pacote, a ficha e o registro da arma (plano da 4.1a, D14). */
+/**
+ * Hash das entradas de uma arma realista (os .py do pacote, a ficha e o registro da arma; plano da 4.1a, D14) ou das
+ * luvas (os .py e a ficha delas, com `def` nulo).
+ */
 function hashEntradas(id, def, ficha) {
   const h = createHash('sha256');
   const pasta = join(ROOT, 'tools', 'blender', 'armas');
@@ -248,10 +256,17 @@ async function contextoReal(id, { forcar = false } = {}) {
   const def = ARMAS_REAIS[id];
   if (!def) throw new Error(`${id} não é uma arma realista (tem: ${Object.keys(ARMAS_REAIS).join(', ')})`);
   const ficha = validarFicha(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', `${id}.json`), 'utf8')));
+  // A pega (Fase 4.1b, D5): o solver refaz o rig das luvas dentro do construir da arma, então a ficha e as pinturas das
+  // luvas entram no contexto e no hash — mudar as luvas refaz a pega de todas as armas.
+  const { validarFichaLuvas } = await import('../src/characters/hands/fichaLuvas.js');
+  const luvas = {
+    ficha: validarFichaLuvas(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', 'luvas.json'), 'utf8'))),
+    pinturas: LUVAS.pinturas,
+  };
   const ctx = {
     id, raiz: ROOT, ficha, fabrica: def.fabrica, pecas: def.pecas, zonas: def.zonas, soquetes: soquetesDaArma(id),
     orcamento: orcamentoDaArma(id), saida: join(ROOT, def.pasta), conferencia: join(ROOT, 'tools', 'blender', 'conferencia', id),
-    hash: hashEntradas(id, def, ficha), forcar,
+    categoria: def.categoria, luvas, hash: hashEntradas(id, def, { ficha, luvas }), forcar,
   };
   mkdirSync(TMP, { recursive: true });
   const arquivo = join(TMP, `${id}-real.json`);
@@ -265,7 +280,113 @@ function resumoSaida(id) {
   if (problemas.length) throw new Error(`${id}: a saída tem problemas:\n  ${problemas.join('\n  ')}`);
   const s = relatorio.silhueta;
   const t = Object.entries(relatorio.lods).map(([l, d]) => `${l} ${d.triangulos.toLocaleString('pt-BR')}`).join(' · ');
-  return `silhueta ${(s.iouTolerancia * 100).toFixed(1)} % (bruto ${(s.iouBruto * 100).toFixed(1)} %) · ${t} triângulos · ${(bytes / 1048576).toFixed(2)} MB`;
+  return `silhueta ${(s.iouTolerancia * 100).toFixed(1)} % (bruto ${(s.iouBruto * 100).toFixed(1)} %) · ${t} triângulos · ${(bytes / 1048576).toFixed(2)} MB`
+    + resumoPega(relatorio.empunhadura);
+}
+
+/** A pega das luvas numa linha: a maior entrada na arma e o contato mais longe de cada mão (Fase 4.1b). */
+function resumoPega(e) {
+  if (!e) return '';
+  const maos = ['d', 'e'].map((l) => {
+    const c = Object.entries(e[l].contatosMM);
+    const [nome, mm] = c.reduce((a, b) => (b[1] > a[1] ? b : a));
+    return `${l === 'd' ? 'direita' : 'esquerda'} entra ${e[l].penetracaoMM} mm, contato mais longe ${nome} ${mm} mm`;
+  });
+  return ` · pega (${e.segundos} s): ${maos.join('; ')}`;
+}
+
+/** Contexto das luvas para o principal.py: a ficha validada, o registro (pinturas e orçamento), as pastas e o hash. */
+async function contextoLuvas() {
+  const { validarFichaLuvas } = await import('../src/characters/hands/fichaLuvas.js');
+  const ficha = validarFichaLuvas(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', 'luvas.json'), 'utf8')));
+  const ctx = {
+    id: 'luvas', raiz: ROOT, ficha, pinturas: LUVAS.pinturas, orcamento: LUVAS.orcamento, saida: join(ROOT, LUVAS.pasta),
+    conferencia: join(ROOT, 'tools', 'blender', 'conferencia', 'luvas'), hash: hashEntradas('luvas', LUVAS, ficha),
+  };
+  mkdirSync(TMP, { recursive: true });
+  const arquivo = join(TMP, 'luvas-real.json');
+  writeFileSync(arquivo, JSON.stringify(ctx));
+  return { arquivo, ctx };
+}
+
+/** A linha `MASSACRE-<nome>` da saída do Blender, lida como JSON. */
+function linhaJson(saida, nome) {
+  const linha = saida.split('\n').find((l) => l.startsWith(`MASSACRE-${nome} `));
+  if (!linha) throw new Error(`o Blender não devolveu a linha MASSACRE-${nome}`);
+  return JSON.parse(linha.slice(`MASSACRE-${nome} `.length));
+}
+
+/** As contas das luvas numa linha: os triângulos, cada medida com o alvo e o desvio, e o assentamento das peças. */
+// As poses de teste do relatório das luvas: a maior penetração da luva nela mesma (e em que pose), a das juntas
+// sozinhas no limite, a junta que mais afinou, o pior assentamento das peças e o encosto da polpa do polegar nos dedos.
+function resumoPoses(poses) {
+  let pen = { mm: 0, pose: '—' };
+  let junta = { razao: 1, nome: '—', pose: '—' };
+  let assento = 0;
+  for (const [nome, p] of Object.entries(poses)) {
+    if (typeof p?.atravessaMM !== 'number') continue;
+    if (p.atravessaMM > pen.mm) pen = { mm: p.atravessaMM, pose: nome };
+    if (p.piorJunta && p.piorJunta[1] < junta.razao) junta = { razao: p.piorJunta[1], nome: p.piorJunta[0], pose: nome };
+    assento = Math.max(assento, p.assentamentoMM);
+  }
+  const limite = Object.values(poses.juntasNoLimite ?? {}).reduce((m, j) => Math.max(m, j.atravessaMM), 0);
+  const polegar = Object.entries(poses.contato ?? {})
+    .filter(([, c]) => typeof c?.polegar?.polpaEncostaMM === 'number')
+    .map(([nome, c]) => `${nome} ${c.polegar.polpaEncostaMM} mm`);
+  return `poses: penetração ${pen.mm} mm (${pen.pose}), juntas no limite ${limite} mm, `
+    + `pior junta ${junta.razao} (${junta.nome}, ${junta.pose}), assento ${assento} mm, `
+    + `polpa do polegar nos dedos (${polegar.join(', ')})`;
+}
+
+function resumoLuvas(rel) {
+  const medidas = Object.entries(rel.medidas)
+    .map(([nome, m]) => `${nome} ${m.mm.toFixed(2)}/${m.alvo.toFixed(2)} mm (${((m.mm / m.alvo - 1) * 100).toFixed(2)} %)`);
+  const t = rel.triangulos;
+  return `${t.luva.toLocaleString('pt-BR')} triângulos por luva (base ${t.base.toLocaleString('pt-BR')}, detalhes `
+    + `${t.detalhes.toLocaleString('pt-BR')}) · ${medidas.join(' · ')} · assentamento ${rel.assentamentoMM} mm · `
+    + resumoPoses(rel.poses);
+}
+
+/** A saída das luvas em assets/maos/ conferida contra o registro (tools/blender/saidaLuvas.mjs); lança os problemas. */
+function saidaLuvas() {
+  const { problemas, bytes } = validarSaidaLuvas(ROOT);
+  if (problemas.length) throw new Error(`luvas: a saída em ${LUVAS.pasta} tem problemas:\n  - ${problemas.join('\n  - ')}`);
+  return `${LUVAS.pasta}luvas.glb e texturas em ${(bytes / 1048576).toFixed(2)} MB`;
+}
+
+async function construirLuvas(forcar) {
+  const { arquivo, ctx } = await contextoLuvas();
+  const rel = join(ctx.saida, 'luvas.relatorio.json');
+  if (!forcar && existsSync(rel)) {
+    const antigo = JSON.parse(readFileSync(rel, 'utf8'));
+    if (antigo.entradas?.hash === ctx.hash && !validarSaidaLuvas(ROOT).problemas.length) {
+      return `luvas: sem mudança nas entradas — ${resumoLuvas(antigo)} · ${saidaLuvas()}`;
+    }
+  }
+  const t0 = Date.now();
+  const saida = await rodarComEtapas(['construir', arquivo], SCRIPT_REAIS, 'luvas');
+  return `luvas: construídas em ${((Date.now() - t0) / 1000).toFixed(0)} s — ${resumoLuvas(linhaJson(saida, 'LUVAS'))} · `
+    + saidaLuvas();
+}
+
+async function validarLuvas() {
+  const { arquivo } = await contextoLuvas();
+  const rel = linhaJson(rodarSemJanela(['validar', arquivo], SCRIPT_REAIS), 'VALIDACAO');
+  return `luvas: validação aprovada — ${resumoLuvas(rel)} · ${saidaLuvas()}`;
+}
+
+async function conferirLuvas() {
+  const { arquivo, ctx } = await contextoLuvas();
+  const arquivos = linhaJson(rodarSemJanela(['conferir', arquivo], SCRIPT_REAIS), 'CONFERIR');
+  return `luvas: ${arquivos.length} vistas em ${ctx.conferencia}`;
+}
+
+async function abrirLuvas() {
+  const blend = join(ROOT, 'tools', 'blender', 'conferencia', 'luvas', 'luvas.blend');
+  if (!existsSync(blend)) throw new Error('luvas: rode antes npm run blender -- construir luvas');
+  const filho = spawn(blenderExe(), [blend], { detached: true, stdio: 'ignore' });
+  filho.unref();
+  return `Blender aberto com ${blend}`;
 }
 
 async function construirReal(id, forcar) {
@@ -312,10 +433,14 @@ async function principal() {
   const { ARMAS_REAIS } = await import('../src/data/armasReais.js');
   const real = (id) => Boolean(ARMAS_REAIS[id]);
   if (acao === 'construir' || (acao === 'validar' && alvo && !alvo.endsWith('.js'))) {
-    if (!alvo) throw new Error(`uso: npm run blender -- ${acao} <${Object.keys(ARMAS_REAIS).join('|')}|todas>`);
+    if (!alvo) throw new Error(`uso: npm run blender -- ${acao} <luvas|${Object.keys(ARMAS_REAIS).join('|')}|todas>`);
     let falhas = 0;
-    for (const id of alvo === 'todas' ? Object.keys(ARMAS_REAIS) : [alvo]) {
+    for (const id of alvo === 'todas' ? ['luvas', ...Object.keys(ARMAS_REAIS)] : [alvo]) {
       try {
+        if (id === 'luvas') {
+          console.log(acao === 'construir' ? await construirLuvas(forcar) : await validarLuvas());
+          continue;
+        }
         if (!real(id)) throw new Error(`${id} não é uma arma realista (tem: ${Object.keys(ARMAS_REAIS).join(', ')})`);
         console.log(acao === 'construir' ? await construirReal(id, forcar) : await validarReal(id));
       } catch (err) {
@@ -328,10 +453,10 @@ async function principal() {
   }
   // As de massinha que ainda não foram refeitas (a receita da AK fica no disco até a Tarefa 16, mas quem vale é a realista).
   const deMassinha = Object.keys(ARMAS).filter((id) => !real(id));
-  const ids = alvo !== 'todas' ? [alvo] : acao === 'conferir' ? [...Object.keys(ARMAS_REAIS), ...deMassinha] : deMassinha;
+  const ids = alvo !== 'todas' ? [alvo] : acao === 'conferir' ? ['luvas', ...Object.keys(ARMAS_REAIS), ...deMassinha] : deMassinha;
   const acoes = {
-    abrir: (id) => (real(id) ? abrirReal(id) : abrir(id)),
-    conferir: (id) => (real(id) ? conferirReal(id) : conferir(id)),
+    abrir: (id) => (id === 'luvas' ? abrirLuvas() : real(id) ? abrirReal(id) : abrir(id)),
+    conferir: (id) => (id === 'luvas' ? conferirLuvas() : real(id) ? conferirReal(id) : conferir(id)),
     'ida-volta': idaVolta,
   };
   if (acao === 'validar') {

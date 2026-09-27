@@ -46,7 +46,8 @@ export class ArsenalBench {
     this.stand = null;
     this.weapon = null; // instância na roda
     // `skin`: a skin de massa da de massinha (a da realista é a do serviço); `faction`: null na realista.
-    this.state = { id: null, faction: null, lod: 'perto', skin: null, explode: 0, anchors: false, plan: false, spin: true };
+    // `gloves`: a facção das luvas no "Segurar" das armas com pega (Fase 4.1b).
+    this.state = { id: null, faction: null, lod: 'perto', gloves: 'massaCrua', skin: null, explode: 0, anchors: false, plan: false, spin: true };
     this.skinMaterials = [];
     this.overlay = null;
     this.onChange = null; // o painel escuta (troca de arma, carga pronta, skin)
@@ -275,6 +276,12 @@ export class ArsenalBench {
   setLod(lod) {
     this.state.lod = lod;
     return this.refresh();
+  }
+
+  /** A facção das luvas no "Segurar" (a arma da roda não muda: a pintura é das luvas). */
+  setGloveFaction(faccao) {
+    this.state.gloves = faccao;
+    this.onChange?.();
   }
 
   /**

@@ -51,7 +51,7 @@ test('material de zona: o trecho de shader entra nos pontos do shader do three',
   for (const k of ['mapaM', 'corDois', 'corGasto', 'metalGasto', 'asperezaGasto', 'desgaste', 'varAspereza', 'varCor']) {
     assert.ok(shader.uniforms[k], `uniform ${k}`);
   }
-  assert.match(shader.vertexShader, /vPosArma = position;/);
+  assert.match(shader.vertexShader, /#else\nvPosArma = position;\nvNormalArma = normal;/);
   assert.match(shader.fragmentShader, /vec4 armaM = texture2D\( mapaM, vAoMapUv \);/);
   assert.match(shader.fragmentShader, /roughnessFactor = mix\( roughnessFactor, asperezaGasto, armaGasto \);/);
   assert.match(shader.fragmentShader, /metalnessFactor = mix\( metalnessFactor, metalGasto, armaGasto \);/);

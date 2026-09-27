@@ -2,8 +2,9 @@
 // (viewmodel_fov, viewmodel_offset_x/y/z, viewmodel_presetpos, r_viewmodel), a braçadeira de teste (cl_bracadeira), a
 // bancada de armas (arsenal, arma <id>), a lista das armas com a origem (armas: o .glb do Blender ou a receita de
 // massinha), o ajuste ao vivo da posição de cada categoria na mão (viewmodel_ajuste, para afinar src/data/viewmodel.js)
-// e, na 4.1a, as skins de cor e acabamento das armas realistas (skin). Falam com a mesma config, a mesma biblioteca de
-// armas e o mesmo viewmodel que o jogo usa.
+// e, na 4.1a, as skins de cor e acabamento das armas realistas (skin). Na 4.1b, o viewmodel_ajuste afina também os
+// cotovelos das luvas (gloveElbows) quando a arma na mão tem a pega, e os comandos das luvas (luvas, luvas_contato)
+// vêm de luvasCommands.js. Falam com a mesma config, a mesma biblioteca de armas e o mesmo viewmodel que o jogo usa.
 
 import { EV } from '../core/events.js';
 import { ACABAMENTOS } from '../data/acabamentos.js';
@@ -16,6 +17,7 @@ import { FABRICA, aplicarZonas, descreverSkin, lerArgumentosSkin, skinPorNome } 
 import { SELECT } from '../player/moveCmd.js';
 import { applyViewmodelPreset, currentViewmodelPreset } from '../weapons/viewmodel/placement.js';
 import { onOff } from './consoleArgs.js';
+import { registerLuvasCommands } from './luvasCommands.js';
 
 const SLOT_SELECT = Object.freeze({ primary: SELECT.SLOT1, secondary: SELECT.SLOT2, melee: SELECT.SLOT3 });
 const ARMBAND_ARGS = Object.freeze({ tr: 'tr', ct: 'ct', 0: 'off', off: 'off', nenhum: 'off' });
@@ -178,11 +180,14 @@ export function registerWeaponCommands(con, s, { goState, matchState }) {
         const [side, ...xyz] = args;
         if (side !== 'direita' && side !== 'esquerda') throw new Error('uso: viewmodel_ajuste cotovelo direita|esquerda x y z');
         if (xyz.length !== 3) throw new Error('uso: viewmodel_ajuste cotovelo direita|esquerda x y z');
-        vm.setTune(cat, { elbows: { [side]: xyz.map((a) => num(a, 'cotovelo')) } });
+        // o cotovelo dos braços que estão na mão: os de luva (armas com pega) ou os de massinha
+        const chave = vm.status().bracos === 'luvas' ? 'gloveElbows' : 'elbows';
+        vm.setTune(cat, { [chave]: { [side]: xyz.map((a) => num(a, 'cotovelo')) } });
       } else if (what !== undefined) {
         throw new Error('uso: viewmodel_ajuste [pos x y z | ang arfagem guinada rolagem | cotovelo direita|esquerda x y z | mao direita|esquerda x y z rx ry rz | zerar]');
       }
       return vm.tuneLine(cat);
     },
   });
+  registerLuvasCommands(con, s, { matchState });
 }

@@ -97,7 +97,9 @@ test('weaponModels: as duas origens, os níveis de cada uma e o info da AK no fo
   const info = await lib.describe('ak47');
   assert.equal(info.source, 'glb');
   assert.equal(info.category, 'rifle');
+  // a cena falsa não tem a pega das luvas (um .glb de antes da 4.1b): sem braços (a AK de verdade: viewmodelLuvas.test.js)
   assert.equal(info.hands, false);
+  assert.equal(info.pega, null);
   assert.deepEqual(info.parts, ['ferrolho', 'carregador', 'gatilho', 'cao', 'seletor']);
   assert.deepEqual(info.anchors.boca.pos, [21.69, 0, 0]);
   assert.equal(info.anchors.maoDireita.pose, null);
@@ -216,4 +218,14 @@ test('weaponModels: o relatório do console tem as duas origens', async () => {
   assert.ok(ak.every((r) => r.source === 'glb' && r.state === 'pronta' && r.triangles > 0));
   assert.ok(linhas.some((r) => r.id === 'glock' && r.source === 'massinha'));
   assert.equal(ZONAS.length, 5);
+});
+
+test('weaponModels: o .glb de rifle sem a pega das luvas aparece sem braços, com o erro no log pedindo a reconstrução', async () => {
+  const erros = [];
+  const { lib } = nova({ log: { error: (m) => erros.push(m), debug() {}, warn() {} } });
+  const info = await lib.describe('ak47');
+  assert.equal(info.hands, false);
+  assert.equal(info.pega, null);
+  assert.equal(erros.length, 1);
+  assert.match(erros[0], /arma ak47: sem a pega das luvas \(construa a arma de novo no Blender\)/);
 });

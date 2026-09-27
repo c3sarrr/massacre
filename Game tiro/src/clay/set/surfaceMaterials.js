@@ -7,6 +7,9 @@
 //    translúcida).
 //  - fabric: tecido preto das softboxes (trama, "sheen" de tecido).
 //  - diffuser: frente da softbox / lente do fresnel / lâmpada (emissivo com ponto quente no centro e costura).
+//  - foam: isopor expandido (EPS) branco das placas de rebater (Fase 4.1b, o rebatedor da bancada): as contas fundidas
+//    de ~4 mm (célula de Voronoi 3D no espaço do objeto: cada conta abaulada, um tom próprio e o sulco raso entre elas),
+//    bem fosco, sem metal; a conta some pelo filtro de frequência quando fica menor que o pixel (sem cintilar).
 
 import * as THREE from 'three';
 import { PALETTE } from '../../data/palette.js';
@@ -202,6 +205,55 @@ float seamDark = uSeam * (1.0 - smoothstep(0.015, 0.035, edge)) * 0.55;
 float ringMod = mix(1.0, 0.8 + 0.2 * sin(sqrt(r2) * 6.2831853 * 7.0), uRings);
 setEmit = uEmit * max(hot, 0.0) * (0.94 + 0.12 * (weave - 0.5)) * (1.0 - seamDark) * ringMod;
 diffuseColor.rgb = vec3(0.02);
+`,
+  });
+}
+
+/**
+ * Isopor (EPS) branco: contas fundidas de `conta` mm. Fosco (rugosidade 0,92), sem metal; o relevo da conta e o sulco
+ * entre elas saem de uma célula de Voronoi 3D no espaço do objeto e somem pelo filtro de frequência de longe.
+ */
+export function foamMaterial(tex, { color = '#F2F1EC', conta = 4, name = 'isopor' } = {}) {
+  return createSetMaterial({
+    name,
+    params: { color: 0xffffff, roughness: 0.92, metalness: 0 },
+    uniforms: { uFoam: { value: linear(color) }, uConta: { value: conta } },
+    light: { wrap: 0.3, lift: 0.06 },
+    fragPars: 'uniform vec3 uFoam;\nuniform float uConta;',
+    surface: /* glsl */ `
+vec3 q = setP / uConta;
+vec3 c = floor(q);
+vec3 f = fract(q);
+float d1 = 8.0;
+float d2 = 8.0;
+vec3 perto = vec3(0.0);
+vec3 celula = c;
+for (int k = -1; k <= 1; k++) {
+  for (int j = -1; j <= 1; j++) {
+    for (int i = -1; i <= 1; i++) {
+      vec3 o = vec3(float(i), float(j), float(k));
+      vec3 r = o + clayHash33(c + o) * 0.8 + 0.1 - f;
+      float d = dot(r, r);
+      if (d < d1) {
+        d2 = d1;
+        d1 = d;
+        perto = r;
+        celula = c + o;
+      } else if (d < d2) {
+        d2 = d;
+      }
+    }
+  }
+}
+// 1 enquanto a conta tem uns pixels; 0 quando fica menor que o pixel (fica a média: o branco liso)
+float filtro = 1.0 - smoothstep(0.25, 0.75, length(fwidth(q)));
+float sulco = (1.0 - smoothstep(0.0, 0.14, sqrt(d2) - sqrt(d1))) * filtro;
+float tom = (clayHash13(celula + 7.3) - 0.5) * 0.06 * filtro;
+diffuseColor.rgb = uFoam * (1.0 + tom - sulco * 0.14);
+setRough += sulco * 0.04;
+// a conta abaulada: a normal inclina do centro dela para fora (perto aponta do ponto para o centro)
+vec3 abaulado = -(perto - setN * dot(perto, setN)) * 0.5 * filtro;
+setObjN = normalize(setN + abaulado);
 `,
   });
 }

@@ -5,10 +5,15 @@
 // conjunto é pedido; os materiais por (arma, conjunto, skin), guardando a de fábrica e as duas últimas usadas. Tudo
 // marcado `userData.shared` (o dispose das cenas não toca); sai no `forget` (recarga) e no `dispose`. Os carregadores
 // são injetados: no navegador, o GLTFLoader do vendor e o TextureLoader; no Node, falsos.
+// Fase 4.1b: nas categorias com regra de pega (CATEGORIAS_COM_PEGA), o `info.pega` (pegaDoGltf: a marca do rig, os dedos
+// do clipe `empunhadura` e o referencial do osso `mao` de cada lado) e `hands: true` — o viewmodel segura com as luvas.
+// Sem a pega no .glb (construído antes das luvas) a arma aparece sem braços, com o erro no log.
 
 import * as THREE from 'three';
 import { ARMAS_REAIS, LODS_REAIS, TEXTURAS_DO_LOD } from '../../data/armasReais.js';
+import { CATEGORIAS_COM_PEGA } from '../../data/luvas.js';
 import { VIEWMODEL } from '../../data/viewmodel.js';
+import { pegaDoGltf } from '../../characters/hands/pega.js';
 import { FABRICA, chaveDaSkin, skinDeFabrica } from '../skins/skin.js';
 import { fichaParaPlanta, MM_POR_U, validarFicha } from './ficha.js';
 import { ancorasDosSoquetes, montarInstanciaGlb, resumirGlb } from './glbWeapon.js';
@@ -116,6 +121,7 @@ export class GlbSource {
         this.#carregar.json(new URL(`tools/blender/refs/${id}.json`, RAIZ).href),
       ]).then(([gltf, relatorio, ficha]) => {
         const resumo = resumirGlb(gltf.scene, id);
+        const pega = this.#pega(id, gltf);
         // O modelo carregado é o molde das instâncias e nunca vai à cena: as malhas dele guardam só a geometria, com um
         // material neutro no lugar dos do arquivo; cada instância recebe os materiais das zonas (montarInstanciaGlb).
         const neutro = new THREE.MeshBasicMaterial({ name: `molde:${id}` });
@@ -129,7 +135,7 @@ export class GlbSource {
           neutro.dispose();
           throw new Error(`arma ${id} descartada durante a carga`);
         }
-        const pronto = { resumo, info: this.#info(id, resumo, relatorio, validarFicha(ficha)), ms: now() - t0, neutro };
+        const pronto = { resumo, info: this.#info(id, resumo, relatorio, validarFicha(ficha), pega), ms: now() - t0, neutro };
         this.#prontos.set(id, pronto);
         this.#log?.debug?.(`arma ${id} (glb): ${LODS_REAIS.map((l) => `${l} ${resumo.lods[l].triangulos}`).join(' · ')} triângulos em ${pronto.ms.toFixed(0)} ms`);
         return pronto;
@@ -143,15 +149,30 @@ export class GlbSource {
     return p;
   }
 
-  #info(id, resumo, relatorio, ficha) {
+  /** A pega das luvas da arma (null na categoria sem regra de pega, ou com o erro no log se o .glb não a tem). */
+  #pega(id, gltf) {
+    if (!CATEGORIAS_COM_PEGA.includes(this.#categoria(id))) return null;
+    try {
+      return pegaDoGltf(gltf, id);
+    } catch (e) {
+      this.#log?.error?.(`arma ${id}: sem a pega das luvas (construa a arma de novo no Blender) — ${e?.message ?? e}`);
+      return null;
+    }
+  }
+
+  #categoria(id) {
+    return VIEWMODEL.weapons[id]?.category ?? ARMAS_REAIS[id].categoria;
+  }
+
+  #info(id, resumo, relatorio, ficha, pega) {
     const a = ARMAS_REAIS[id];
     const min = new THREE.Vector3().fromArray(resumo.caixa.min);
     const max = new THREE.Vector3().fromArray(resumo.caixa.max);
     return {
-      id, source: 'glb', category: VIEWMODEL.weapons[id]?.category ?? a.categoria,
+      id, source: 'glb', category: this.#categoria(id),
       bounds: resumo.caixa, radius: max.distanceTo(min) / 2,
       anchors: ancorasDosSoquetes(resumo.soquetes), sockets: resumo.soquetes,
-      hands: false, // as luvas chegam na 4.1b (plano da 4.1a, D7)
+      hands: Boolean(pega), pega,
       plan: fichaParaPlanta(ficha), lengthU: ficha.medidas.comprimento.mm / MM_POR_U,
       parts: [...a.pecas], zones: [...a.zonas], lods: [...LODS_REAIS],
       report: relatorio, ficha, iou: relatorio?.silhueta?.iouTolerancia ?? null, recipe: null,

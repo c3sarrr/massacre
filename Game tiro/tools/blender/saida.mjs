@@ -3,11 +3,15 @@
 // primitivas, materiais e acessores), do cabeçalho de cada .webp (lado e se é sem perdas) e do relatório que o Blender
 // gravou. `validarSaida` confere tudo contra o registro das armas realistas (src/data/armasReais.js): os três níveis com
 // as peças da arma, as zonas, os soquetes da categoria, os triângulos e as texturas do orçamento, as tangentes e as UV
-// do nível de perto, o total dos arquivos e os números do relatório (medidas ±1 %, silhueta ≥ 98 % com tolerância).
+// do nível de perto, o total dos arquivos e os números do relatório (medidas ±1 %, silhueta ≥ 98 % com tolerância); desde
+// a 4.1b, a pega das luvas nas categorias com regra (saidaPega.mjs e src/characters/hands/pega.js).
 
 import { readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ARMAS_REAIS, LODS_REAIS, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
+import { CATEGORIAS_COM_PEGA, LUVAS } from '../../src/data/luvas.js';
+import { lerPega } from '../../src/characters/hands/pega.js';
+import { validarPega } from './saidaPega.mjs';
 
 const GLTF = 0x46546c67;
 const JSON_CHUNK = 0x4e4f534a;
@@ -74,8 +78,8 @@ export function resumoGlb(json, id) {
             const zona = materiais[p.material]?.name ?? null;
             if (zona && !zonas.includes(zona)) zonas.push(zona);
             if (zona) zonasUsadas.add(zona);
-            if (!p.attributes.TANGENT) lod.tangentes = false;
-            if (!p.attributes.TEXCOORD_0) lod.uv = false;
+            if (p.attributes.TANGENT === undefined) lod.tangentes = false; // pela chave: o acessor 0 é válido
+            if (p.attributes.TEXCOORD_0 === undefined) lod.uv = false;
           }
         }
         pilha.push(...filhos(n));
@@ -158,7 +162,8 @@ export function validarSaida(id, raiz) {
   for (const f of Object.values(arqs)) bytes += statSync(join(pasta, f)).size;
   if (bytes > orc.arquivosMB * 1024 * 1024) problemas.push(`arquivos: ${(bytes / 1048576).toFixed(2)} MB (orçamento ${orc.arquivosMB} MB)`);
 
-  const resumo = resumoGlb(lerGlb(readFileSync(join(pasta, arqs.glb))).json, id);
+  const json = lerGlb(readFileSync(join(pasta, arqs.glb))).json;
+  const resumo = resumoGlb(json, id);
   const pecas = ['base', ...a.pecas];
   for (const lod of LODS_REAIS) {
     const l = resumo.lods[lod];
@@ -196,6 +201,19 @@ export function validarSaida(id, raiz) {
   for (const lod of LODS_REAIS) {
     const t = relatorio.lods?.[lod]?.triangulos;
     if (resumo.lods[lod] && t !== resumo.lods[lod].triangulos) problemas.push(`${lod}: o relatório diz ${t} triângulos e o .glb tem ${resumo.lods[lod].triangulos}`);
+  }
+  // A pega das luvas (Fase 4.1b): nas categorias com regra, os nós e o clipe no .glb, a seção do relatório e a marca
+  // igual à do luvas.glb (se as luvas já foram construídas).
+  if (CATEGORIAS_COM_PEGA.includes(a.categoria)) {
+    try {
+      const glbLuvas = join(raiz, LUVAS.pasta, 'luvas.glb');
+      const marcaLuvas = existsSync(glbLuvas)
+        ? lerGlb(readFileSync(glbLuvas)).json.nodes?.find((n) => n.name === 'luvas')?.extras?.marca ?? null
+        : null;
+      problemas.push(...validarPega(relatorio, lerPega(json), marcaLuvas));
+    } catch (e) {
+      problemas.push(e.message);
+    }
   }
   return { problemas, resumo, relatorio, bytes };
 }

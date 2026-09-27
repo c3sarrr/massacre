@@ -7,12 +7,15 @@
 // Fase 4.1 (armas): o perfil recortado e extrudado (polígono em XY com os cantos em filete, "opExtrusion"
 // arredondado de iq), o torno (polígono do meridiano girado em volta de X) e o tubo (cones arredondados encadeados
 // por uma polilinha) — formas de peça de massa cortada à mão (QPG2, QPL4); contornos em src/clay/sdf/polygon.js.
+// Fase 4.1b (luvas): o tronco de seção de retângulo arredondado que muda ao longo de X (src/clay/sdf/tronco.js), o
+// antebraço de massinha que entra no punho da luva.
 // Todas aceitam pos/rot/scale (rígida + escala uniforme, então o SDF continua exato) e mat.
 
 import {
   fail, readInteger, readMaterial, readNonNegative, readPoints, readPositive, readPositiveVec3, readTransform, readVec3,
 } from './params.js';
 import { filletPolygon, latheOutline, polygonDistance } from './polygon.js';
+import { lerTronco } from './tronco.js';
 
 const TAU = Math.PI * 2;
 
@@ -535,6 +538,13 @@ export function compileShape(node, type, path) {
       return latheShape(node, t, mat, path);
     case 'tube':
       return tubeShape(node, t, mat, path);
+    case 'tronco': {
+      const { x0, x1, alcance, d } = lerTronco(node, path);
+      return exactShape((x, y, z) => {
+        toLocal(t, x, y, z);
+        return t.s * d(LP[0], LP[1], LP[2]);
+      }, mat, sphereBound(t, (x0 + x1) / 2, 0, 0, Math.hypot((x1 - x0) / 2, alcance), 1));
+    }
     default:
       return fail(path, `forma desconhecida: ${type}`);
   }

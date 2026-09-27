@@ -50,7 +50,7 @@ export class MatchState {
     this.viewmodel = null; // arma na mão em primeira pessoa (Fase 4.1)
     this.reflection = null; // reflexo do set das armas realistas (Fase 4.1a): o render target do PMREM
     this.hold = null; // "Segurar" da bancada de armas: {id, faction, lod} (câmera livre estacionada)
-    this._vm = { item: null, visible: false, faction: null, lod: 'perto' }; // pedido do viewmodel neste quadro
+    this._vm = { item: null, visible: false, faction: null, lod: 'perto', gloves: null }; // pedido do viewmodel neste quadro
     this.physicsDebug = null;
     this.showPos = null;
     this.strafe = null; // medidor de counter-strafe (cl_showpos)
@@ -118,7 +118,7 @@ export class MatchState {
     // Arma na mão: camada própria com as luzes do mapa copiadas; o mundo de colisão tapa a luz. As mãos e as armas do
     // inventário começam a ser geradas já (a troca não espera).
     this.viewmodel = new Viewmodel({
-      render: s.render, weapons: s.weaponModels, hands: s.handModels, config: s.config, events: s.events, log: s.log,
+      render: s.render, weapons: s.weaponModels, hands: s.handModels, luvas: s.luvasModels, config: s.config, events: s.events, log: s.log,
     });
     this.viewmodel.attach(this.map.scene, this.map.collision ?? null);
     // GPU reiniciada: o reflexo se perdeu com ela (o mapa reassa o ambiente dele antes: inscreveu-se na montagem).
@@ -126,6 +126,7 @@ export class MatchState {
       if (!lost) this.#captureReflection();
     });
     s.handModels.geometries().catch((err) => s.log?.error('mãos de massinha:', err));
+    s.luvasModels?.carregar().catch(() => {}); // o erro de carga das luvas já vai ao log pela fonte
     this.#preloadWeapons();
     // Contexto do pós (jogo, vitrine...) e exposição da montagem de luz do mapa.
     s.render.post?.configure(this.map.post ?? { context: 'jogo', exposure: 1 });
@@ -237,6 +238,7 @@ export class MatchState {
       this.reflection?.dispose();
       this.reflection = capturarReflexo(s.render.renderer, this.map.scene, pontoDoReflexo(this.map));
       s.weaponModels.setEnvironment(this.reflection.texture, REFLEXO.intensidade);
+      s.luvasModels?.setAmbiente(this.reflection.texture, REFLEXO.intensidade);
     } finally {
       if (body) [body.root.visible, body.shadow.visible] = was;
     }
@@ -250,14 +252,16 @@ export class MatchState {
 
   /**
    * "Segurar" da bancada de armas (mapas sem colisão): a câmera livre para no ponto dado (o olhar continua) e o
-   * viewmodel mostra a arma escolhida, com o acento e o nível da bancada; null solta. Devolve se está segurando.
-   * @param {{id:string, faction?:string|null, lod?:string, camera?:{position:import('three').Vector3, yaw:number, pitch:number}}|null} spec
+   * viewmodel mostra a arma escolhida, com o acento, o nível e a facção das luvas da bancada; null solta. Devolve se está
+   * segurando.
+   * @param {{id:string, faction?:string|null, lod?:string, gloves?:string|null,
+   *   camera?:{position:import('three').Vector3, yaw:number, pitch:number}}|null} spec
    */
   setHold(spec) {
     const p = this.player;
     if (!(p instanceof FreeCamera)) return false;
     const was = this.hold;
-    this.hold = spec ? { id: spec.id, faction: spec.faction ?? null, lod: spec.lod ?? 'perto' } : null;
+    this.hold = spec ? { id: spec.id, faction: spec.faction ?? null, lod: spec.lod ?? 'perto', gloves: spec.gloves ?? null } : null;
     p.parked = Boolean(this.hold);
     if (spec?.camera && !was) p.teleport(spec.camera.position, spec.camera.yaw, spec.camera.pitch);
     return Boolean(this.hold);
@@ -273,6 +277,7 @@ export class MatchState {
       vm.item = p.hands.item;
       vm.faction = null;
       vm.lod = 'perto';
+      vm.gloves = null;
       vm.visible = viewmodelVisible({
         enabled, firstPerson: !p.thirdPerson, alive: p.vitals.alive, noclip: s.cheats.noclip, zoomed: p.hands.zoom !== 0,
         item: vm.item, hasModel: (id) => s.weaponModels.has(id),
@@ -281,6 +286,7 @@ export class MatchState {
       vm.item = this.hold?.id ?? null;
       vm.faction = this.hold?.faction ?? null;
       vm.lod = this.hold?.lod ?? 'perto';
+      vm.gloves = this.hold?.gloves ?? null;
       vm.visible = Boolean(enabled && this.hold);
     }
     return vm;
@@ -471,6 +477,7 @@ export class MatchState {
     this.prints?.dispose();
     this.viewmodel?.dispose();
     s.weaponModels.setEnvironment(null);
+    s.luvasModels?.setAmbiente(null);
     this.reflection?.dispose();
     this.reflection = null;
     this.physicsDebug?.dispose();

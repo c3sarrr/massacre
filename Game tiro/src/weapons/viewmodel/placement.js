@@ -30,16 +30,21 @@ export function weaponNudge(id) {
 
 /**
  * Posição de uma categoria com um ajuste por cima (o `viewmodel_ajuste` do console afina os dados ao vivo).
+ * `gloveElbows`: os cotovelos dos braços de luva (sem os da categoria, os `elbows`).
  * @param {string} category
- * @param {{pos?:number[], angles?:number[], elbows?:{direita?:number[], esquerda?:number[]}}|null} [tune]
+ * @param {{pos?:number[], angles?:number[], elbows?:{direita?:number[], esquerda?:number[]},
+ *   gloveElbows?:{direita?:number[], esquerda?:number[]}}|null} [tune]
  */
 export function categoryPlacement(category, tune = null) {
   const base = VIEWMODEL.categories[category];
   if (!base) throw new Error(`categoria de viewmodel desconhecida: ${category}`);
+  const elbows = { direita: tune?.elbows?.direita ?? base.elbows.direita, esquerda: tune?.elbows?.esquerda ?? base.elbows.esquerda };
+  const luva = base.gloveElbows ?? base.elbows;
   return {
     pos: tune?.pos ?? base.pos,
     angles: tune?.angles ?? base.angles,
-    elbows: { direita: tune?.elbows?.direita ?? base.elbows.direita, esquerda: tune?.elbows?.esquerda ?? base.elbows.esquerda },
+    elbows,
+    gloveElbows: { direita: tune?.gloveElbows?.direita ?? luva.direita, esquerda: tune?.gloveElbows?.esquerda ?? luva.esquerda },
   };
 }
 
@@ -82,6 +87,11 @@ export function elbowTarget(category, side, tune = null, out = new THREE.Vector3
   return out.fromArray(categoryPlacement(category, tune).elbows[side]);
 }
 
+/** Cotovelo do braço de luva de um lado, no referencial da câmera. */
+export function gloveElbowTarget(category, side, tune = null, out = new THREE.Vector3()) {
+  return out.fromArray(categoryPlacement(category, tune).gloveElbows[side]);
+}
+
 /**
  * Mãos que a arma usa: as âncoras `maoDireita`/`maoEsquerda` (a faca só tem a direita); nenhuma na arma realista sem
  * as luvas (`hands: false`, a AK da 4.1a). Aceita a receita de massinha ou o `info(id)` da biblioteca de armas.
@@ -96,6 +106,32 @@ export function handSides(model) {
 
 /** Âncora da mão de cada lado. */
 export const HAND_ANCHOR = Object.freeze({ direita: 'maoDireita', esquerda: 'maoEsquerda' });
+
+/** O braço de luva de cada lado do viewmodel. */
+export const GLOVE_SIDE = Object.freeze({ direita: 'd', esquerda: 'e' });
+
+/**
+ * Onde vai o osso `mao` de uma luva, no referencial da câmera, dada a pose da arma: o pulso e a rotação do referencial
+ * do osso na pega (`info.pega.maos[lado]`, no referencial da raiz da arma).
+ * @param {{position:THREE.Vector3, quaternion:THREE.Quaternion}} placement
+ * @param {{posicao:THREE.Vector3, quaternion:THREE.Quaternion}} mao
+ */
+export function gloveTarget(placement, mao, out = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion() }) {
+  out.position.copy(mao.posicao).applyQuaternion(placement.quaternion).add(placement.position);
+  out.quaternion.copy(placement.quaternion).multiply(mao.quaternion);
+  return out;
+}
+
+/**
+ * A facção das luvas: a do time da partida (Massa Crua no TR, Tropa do Estúdio no CT) ou, sem time, a do boneco (Massa
+ * Crua no de referência até o criador da Fase 5).
+ * @param {'tr'|'ct'|null} team @param {string} [dollFaction]
+ */
+export function gloveFaction(team, dollFaction = 'massaCrua') {
+  if (team === 'tr') return 'massaCrua';
+  if (team === 'ct') return 'tropa';
+  return dollFaction;
+}
 
 /**
  * Facção do acento da arma na mão: as de um lado só (Glock, AK, M4A4...) ficam com o seu; as dos dois lados pegam o

@@ -60,9 +60,11 @@ const limitar = (v, a, b) => Math.min(b, Math.max(a, v));
  *   paleta ou hex; segunda cor (madeira e carbono — sem ela, sai da primeira pelo `cor2Fator`); desgaste de 0 a 1
  * @returns {{acabamento:string, metalness:number, roughness:number, color:number[], color2:number[]|null,
  *   clearcoat:number, clearcoatRoughness:number, iridescence:number, iridescenceIOR:number,
- *   iridescenceThicknessRange:number[], anisotropy:number, padrao:string, padraoId:number, varAspereza:number,
+ *   iridescenceThicknessRange:number[], anisotropy:number, sheen:number, sheenRoughness:number, sheenColor:number[],
+ *   padrao:string, padraoId:number, varAspereza:number,
  *   varCor:number, desgaste:number, gasto:{color:number[], metalness:number, roughness:number}, recursos:string[]}}
- *   cores em linear; `recursos` = os do material físico que o acabamento liga (verniz, iridescência, anisotropia)
+ *   cores em linear; `recursos` = os do material físico que o acabamento liga (verniz, iridescência, anisotropia,
+ *   tecido — o brilho de tecido)
  */
 export function acabamentoParaMaterial({ acabamento, cor, cor2 = null, desgaste = 0 }) {
   const chave = resolverAcabamento(acabamento);
@@ -76,7 +78,10 @@ export function acabamentoParaMaterial({ acabamento, cor, cor2 = null, desgaste 
     const hex2 = resolverCor(cor2);
     if (cor2 != null && !hex2) throw new Error(`cor desconhecida: ${cor2}`);
     color2 = hex2 ? hexParaLinear(hex2) : color.map((c) => limitar(c * a.cor2Fator, 0, 1));
+  } else if (a.cor2Fator) {
+    color2 = color.map((c) => limitar(c * a.cor2Fator, 0, 1)); // o fundo do padrão (o grão, a trama), da própria cor
   }
+  const brilho = a.brilhoTecido ?? null;
   const clearcoat = a.verniz ?? 0;
   const iridescence = a.iridescencia ?? 0;
   const anisotropy = a.anisotropia ?? 0;
@@ -84,6 +89,7 @@ export function acabamentoParaMaterial({ acabamento, cor, cor2 = null, desgaste 
   if (clearcoat > 0) recursos.push('verniz');
   if (iridescence > 0) recursos.push('iridescencia');
   if (anisotropy > 0) recursos.push('anisotropia');
+  if (brilho) recursos.push('tecido');
   return {
     acabamento: chave,
     metalness: a.metal,
@@ -96,6 +102,9 @@ export function acabamentoParaMaterial({ acabamento, cor, cor2 = null, desgaste 
     iridescenceIOR: a.iorIridescencia ?? 1.3,
     iridescenceThicknessRange: [...(a.filme ?? [250, 600])],
     anisotropy,
+    sheen: brilho ? brilho.intensidade : 0,
+    sheenRoughness: brilho ? brilho.aspereza : 0,
+    sheenColor: brilho ? color.map((c) => c + (1 - c) * brilho.clareia) : [0, 0, 0],
     padrao: a.padrao,
     padraoId: PADROES.indexOf(a.padrao),
     varAspereza: a.varAspereza,

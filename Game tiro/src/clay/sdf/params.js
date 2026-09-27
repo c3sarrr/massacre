@@ -6,7 +6,7 @@
 /** Formas básicas (todas aceitam pos, rot, scale e mat). */
 export const SHAPE_TYPES = Object.freeze([
   'sphere', 'ellipsoid', 'capsule', 'roundCone', 'roundBox', 'cylinder', 'torus', 'cone', 'spiral',
-  'profile', 'lathe', 'tube',
+  'profile', 'lathe', 'tube', 'tronco',
 ]);
 
 /** Limites de pontos das formas por contorno (perfil e torno) e por polilinha (tubo). */
