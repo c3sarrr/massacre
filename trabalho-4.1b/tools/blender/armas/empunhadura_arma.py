@@ -87,11 +87,13 @@ class NaArma:
         p = self.col.modelo.avaliar(pose)
         return p @ e[:3, :3].T + e[:3, 3]
 
-    def penetracao(self, pts, indices=None):
-        """A maior entrada (mm, ≥ 0) dos vértices `indices` (todos, sem eles) na arma."""
+    def penetracao(self, pts, indices=None, limite=PERTO_DA_ARMA_MM):
+        """A maior entrada (mm, ≥ 0) dos vértices `indices` (todos, sem eles) na arma. Com o `limite` (o padrão, nas
+        buscas do solver), só os vértices a até ele da superfície contam — rápido, mas um vértice mais fundo que isso
+        dentro da arma passa despercebido; a validação da pega mede sem limite (`limite=None`)."""
         pior = 0.0
         for i in range(len(pts)) if indices is None else indices:
-            d = self.arma.distancia(pts[i], PERTO_DA_ARMA_MM)
+            d = self.arma.distancia(pts[i], limite)
             if d is not None and -d > pior:
                 pior = -d
         return pior

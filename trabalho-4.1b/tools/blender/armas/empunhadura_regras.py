@@ -15,11 +15,13 @@
 #    AK no CS:GO. A palma por baixo, os dedos para a direita (o polegar para a frente), girada em volta da vertical (os
 #    dedos para a frente, o pulso para trás) e um pouco em volta do eixo do cano (a palma para cima, a base do polegar
 #    na quina de baixo à esquerda), chegando pela normal da palma até encostar; o indicador, o médio, o
-#    anelar e o mínimo fecham por baixo e sobem pelo lado direito; o polegar deita no lado esquerdo e aponta para a boca
-#    (a polpa num ponto da face esquerda — o raio que vem de fora, à frente e acima do soquete — e a falange distal na
-#    direção do `eixo`, quase paralela ao cano). Antes, o polegar só ia "o mais à esquerda possível": na face lateral
-#    todo ponto é igualmente à esquerda, e ele subia na vertical por cima do guarda-mão. A validação (`lados`) reprova a
-#    arma se a polpa do polegar não ficar do lado dele ou a de um dos quatro dedos não passar para o outro.
+#    anelar e o mínimo fecham por baixo e sobem pelo lado direito; o polegar fica reto e deitado na face esquerda,
+#    encostado nela e apontando para a frente e para cima (empunhadura_polegar.deitar_na_arma), como na pega "thumb
+#    break" — os quatro dedos por baixo do guarda-mão e o polegar esticado ao longo do lado. Primeiro o polegar ia "o mais
+#    à esquerda possível" e subia na vertical por cima do guarda-mão; depois, mirando um ponto com a polpa, dobrava em
+#    arco (MCP 35°, IP 17°) com só a ponta encostada — o usuário recusou as duas. A validação reprova a arma se a polpa
+#    do polegar não ficar do lado dele, se a de um dos quatro dedos não passar para o outro (`lados`) ou se o polegar não
+#    ficar reto e deitado (a curva, a distal encostando, a proximal perto).
 # A CMC do polegar fica na pose de pegar (a abdução palmar e a flexão no máximo da ficha) já na chegada da palma: com o
 # polegar afastado, a palma encostava com a tenar tangente à arma, e qualquer movimento do polegar levava a pele da
 # tenar 4 a 6 mm para dentro dela.
@@ -53,21 +55,23 @@ FRENTE = {
     'soquete': 'mao_e',
     'frente': True,
     'base': ((0.0, -1.0, 0.0), (-1.0, 0.0, 0.0), (0.0, 0.0, -1.0)),
-    # 35° em volta da vertical (com 25°, a base do polegar ficava atrás e ele só alcançava a face subindo em pé; com 40°,
-    # a mão andava para a frente e a ponta dele enganchava na quina da frente do guarda-mão) e 10° em volta do cano
+    # 35° em volta da vertical e −10° em volta do cano, com 20° de diagonal no plano da palma: das varreduras de
+    # 2026-09-27 com o polegar deitado (giro, diagonal e altura da palma; a última com a penetração medida sem o limite
+    # das buscas, que deixava passar um indicador 7 mm dentro da arma), a que deixa o polegar mais rente à face sem outro
+    # problema — a distal encostada e a proximal em cunha de 4 a 6,5 mm, porque a base sai da quina de baixo. Girando a
+    # palma para a direita os dedos não alcançam o lado direito; com a palma mais à esquerda a cunha cresce
     'giros': (('Z', 35.0), ('X', -10.0)),
-    'diagonal': 15.0,
+    'diagonal': 20.0,
     # o centro da palma a partir do soquete (mm), antes de encostar a palma (mais para trás, o calcanhar da mão bate na
     # curva do carregador da AK)
     'ancora': {'ponto': 'palma', 'de': 'soquete', 'mm': (0.0, 10.0, -30.0)},
     'chegada': (40.0, 60.0),
     'dedos': DEDOS4,
     'gatilho': None,
-    # a polpa do polegar na face do lado `face` (unitária, no referencial da arma): o raio que vem de fora por aquela
-    # face, `alvo` = (mm à frente, mm acima) do soquete; a falange distal apontando para `eixo` (a boca, subindo ~19°).
-    # A extensão da CMC para no limite da AAOS antes de a polpa chegar ao ponto (fica a ~15 mm dele, na mesma face): o
-    # ponto e o eixo puxam o polegar para deitar ao longo do guarda-mão, e o contato é o da malha
-    'polegar': {'face': (0.0, 1.0, 0.0), 'alvo': (40.0, 18.0), 'eixo': (1.0, 0.0, 0.35)},
+    # o polegar deitado reto na face `face` (a esquerda), encostado ao longo da falange proximal e da distal, as duas
+    # apontando para `eixo` (unitários, no referencial da arma: a boca, subindo um pouco) —
+    # empunhadura_polegar.deitar_na_arma
+    'polegar': {'deitado': True, 'face': (0.0, 1.0, 0.0), 'eixo': (1.0, 0.0, 0.6)},
     # o lado do polegar (unitário, no referencial da arma, a partir do plano do meio dela) e os dedos que vão ao outro
     'lados': {'polegar': (0.0, 1.0, 0.0), 'dedos': DEDOS4},
 }

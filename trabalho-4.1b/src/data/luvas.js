@@ -36,7 +36,13 @@ export const OSSOS_DE_DEDO = F([
 // `ladoMM` (regra do usuário de 2026-09-27, para toda arma com mão da frente): na mão da frente só o polegar fica de um
 // lado da arma e os quatro dedos do outro, como a pega da AK no CS:GO — a polpa de cada um a pelo menos esta distância
 // do plano do meio da arma, do lado certo (a mão do gatilho, quando a regra dela diz os lados, passa pela mesma conta).
-export const LIMITES_DA_PEGA = F({ penetracaoMM: 0.3, contatoMM: 1, contatoJogoMM: 0.05, ladoMM: 5 });
+// `polegarCurvaGraus` e `polegarFolgaMM` (o usuário, 2026-09-27: "o dedo tem que estar colado com a arma", sem curva):
+// o polegar da mão da frente reto e deitado na face do lado dele — a MCP mais a IP até 20° (a versão recusada fazia um
+// arco de 52°), a falange distal encostando (o trecho dela mais perto até `contatoMM`) e nenhum trecho a mais de 8 mm (a
+// cunha da base, que sai da quina de baixo do guarda-mão).
+export const LIMITES_DA_PEGA = F({
+  penetracaoMM: 0.3, contatoMM: 1, contatoJogoMM: 0.05, ladoMM: 5, polegarCurvaGraus: 20, polegarFolgaMM: 8,
+});
 export const DEDOS_DA_FRENTE = F(['indicador', 'medio', 'anelar', 'minimo']);
 // As categorias do viewmodel com regra de pega no Blender (tools/blender/armas/empunhadura_regras.py): a arma realista
 // delas sai com a pega no .glb; as outras entram com as armas delas (4.1c, 4.1d).

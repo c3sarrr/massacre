@@ -228,7 +228,7 @@ test('viewmodel: os cotovelos do rifle deixam os dois pulsos nos limites da AAOS
   }
   // as categorias sem cotovelos de luva usam os de massinha
   assert.deepEqual(categoryPlacement('pistola').gloveElbows, categoryPlacement('pistola').elbows);
-  assert.deepEqual(categoryPlacement('rifle').gloveElbows, { direita: [13.1, -8.2, 13.9], esquerda: [-5.9, -36.4, -13.7] });
+  assert.deepEqual(categoryPlacement('rifle').gloveElbows, { direita: [13.1, -8.2, 13.9], esquerda: [-9.9, -52.4, -9.7] });
   vm.dispose();
 });
 

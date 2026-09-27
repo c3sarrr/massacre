@@ -6,6 +6,9 @@
 // o indicador, o médio, o anelar e o mínimo do outro — `lados.polegarMM` e `lados.dedosMM` são a posição da polpa de
 // cada um no eixo do lado do polegar (mm, a partir do plano do meio da arma); a do polegar tem de passar de +ladoMM e a
 // de cada dedo de −ladoMM. A mão do gatilho, quando traz os lados (o polegar cruzando o punho), passa pela mesma conta.
+// E o polegar da frente reto e deitado na arma (`polegar.curvaGraus` e `polegar.trechosMM`, a folga de cada trecho da
+// falange proximal e da distal, da base para a ponta): a curva até polegarCurvaGraus, a distal encostando (o trecho
+// mais perto dela até contatoMM) e nenhum trecho além de polegarFolgaMM.
 import { DEDOS_DA_FRENTE, LIMITES_DA_PEGA } from '../../src/data/luvas.js';
 
 const fmt = (v) => v.toFixed(2).replace('.', ',');
@@ -28,6 +31,35 @@ function problemasDosLados(lado, lados, exigidos) {
         + `passar para o outro lado, a pelo menos ${m} mm`);
     }
   }
+  return problemas;
+}
+
+/** Os problemas do polegar da mão da frente: reto (a curva) e deitado na arma (a distal encostada, a proximal perto). */
+function problemasDoPolegar(lado, polegar) {
+  const L = LIMITES_DA_PEGA;
+  const t = polegar?.trechosMM;
+  if (!Array.isArray(t) || t.length < 2 || !Number.isFinite(polegar.curvaGraus)) {
+    return [`empunhadura ${lado}: a mão da frente sem a conferência do polegar deitado (a curva e a folga ao longo dele; `
+      + 'construa a arma de novo)'];
+  }
+  const problemas = [];
+  if (!(polegar.curvaGraus <= L.polegarCurvaGraus)) {
+    problemas.push(`empunhadura ${lado}: o polegar da frente com ${fmt(polegar.curvaGraus)}° de curva (a MCP mais a IP; `
+      + `máximo ${L.polegarCurvaGraus}°): tem de ficar reto, deitado na arma`);
+  }
+  const meio = t.length / 2;
+  const distal = Math.min(...t.slice(meio));
+  if (!(distal <= L.contatoMM)) {
+    problemas.push(`empunhadura ${lado}: a falange distal do polegar da frente não encosta na arma (o trecho mais perto a `
+      + `${fmt(distal)} mm; máximo ${L.contatoMM} mm)`);
+  }
+  t.forEach((mm, i) => {
+    if (!(mm <= L.polegarFolgaMM)) {
+      const falange = i < meio ? 'proximal' : 'distal';
+      problemas.push(`empunhadura ${lado}: a falange ${falange} do polegar da frente a ${fmt(mm)} mm da arma no trecho `
+        + `${(i % meio) + 1} (máximo ${L.polegarFolgaMM} mm): tem de ficar deitada nela`);
+    }
+  });
   return problemas;
 }
 
@@ -62,6 +94,7 @@ export function validarPega(relatorio, pega, marcaLuvas) {
       }
     }
     if (r.lados) problemas.push(...problemasDosLados(lado, r.lados, lado === e.frente ? DEDOS_DA_FRENTE : null));
+    if (lado === e.frente) problemas.push(...problemasDoPolegar(lado, r.polegar));
     if (pega.marca[lado] !== e.marca?.[lado]) problemas.push(`empunhadura ${lado}: a marca do .glb não é a do relatório`);
     if (marcaLuvas && pega.marca[lado] !== marcaLuvas[lado]) {
       problemas.push(`empunhadura ${lado}: a marca do rig da pega (${pega.marca[lado].slice(0, 12)}…) não é a do luvas.glb `

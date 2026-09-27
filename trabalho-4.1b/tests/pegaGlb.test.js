@@ -90,6 +90,7 @@ const REL_OK = {
     e: {
       penetracaoMM: 0.04, contatosMM: { palma: 0.04, polegar: 0.05 },
       lados: { polegarMM: 19.6, dedosMM: { indicador: -18.4, medio: -19.9, anelar: -18.7, minimo: -17.2 } },
+      polegar: { curvaGraus: 0, trechosMM: [6.48, 5.23, 4.01, 2.36, 0.2, 0.09] },
     },
     frente: 'e',
     marca: MARCA,
@@ -135,6 +136,22 @@ test('validarPega exige na mão da frente só o polegar de um lado e os quatro d
   const gatilho = structuredClone(REL_OK);
   gatilho.empunhadura.d.lados.dedosMM.medio = 3;
   assert.match(validarPega(gatilho, lerPega(gltfPega()), MARCA).join('\n'), /empunhadura d.*medio/);
+});
+
+test('validarPega exige na mão da frente o polegar reto e deitado na arma (sem a curva)', () => {
+  const semPolegar = structuredClone(REL_OK);
+  delete semPolegar.empunhadura.e.polegar;
+  assert.match(validarPega(semPolegar, lerPega(gltfPega()), MARCA).join('\n'), /polegar.*deitado/);
+  // a versão que o usuário recusou: o polegar em arco (MCP 35°, IP 17°), só com a ponta encostada
+  const curvo = structuredClone(REL_OK);
+  curvo.empunhadura.e.polegar.curvaGraus = 52;
+  assert.match(validarPega(curvo, lerPega(gltfPega()), MARCA).join('\n'), /curva/);
+  const pontaNoAr = structuredClone(REL_OK);
+  for (const i of [3, 4, 5]) pontaNoAr.empunhadura.e.polegar.trechosMM[i] = LIMITES_DA_PEGA.contatoMM + 0.5;
+  assert.match(validarPega(pontaNoAr, lerPega(gltfPega()), MARCA).join('\n'), /distal/);
+  const baseLonge = structuredClone(REL_OK);
+  baseLonge.empunhadura.e.polegar.trechosMM[0] = LIMITES_DA_PEGA.polegarFolgaMM + 1;
+  assert.match(validarPega(baseLonge, lerPega(gltfPega()), MARCA).join('\n'), /proximal/);
 });
 
 test('a AK de verdade: a pega no .glb, a marca igual à do luvas.glb e a saída aprovada', () => {
