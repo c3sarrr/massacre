@@ -77,7 +77,18 @@ O servidor de desenvolvimento só atende GET/HEAD e nunca serve arquivos ocultos
   com peças que o gerador do jogo conhece e o exportador grava a receita em `src/data/armas/<id>.js`; o jogo gera a
   malha em código (regra 4 do `CLAUDE.md` mantida: nada de GLB). As poses "em dois" da 4.3 também saem do Blender como
   dados. Caminho em `tools/blender/` (`npm run blender`); o executável vem de `BLENDER_PATH` ou de
-  `tools/blender/local.json` (fora do git).
+  `tools/blender/local.json` (fora do git). **Mudado em 2026-09-26 (redesenho das armas realistas):** o Blender
+  constrói por script os modelos realistas das armas e das luvas, que entram no jogo como `.glb` + `.webp` assados
+  (`tools/blender/armas/`, `assets/`); a receita de massinha fica só para as armas ainda não refeitas.
+- **Texturas CC0 para o Blender (decisão do Cesar, 2026-09-27):** os scripts do Blender podem pegar texturas de domínio
+  público como base dos materiais das armas e das luvas, nestas bibliotecas: cgbookcase
+  (https://www.cgbookcase.com/textures), Poly Haven (https://polyhaven.com/textures — por exemplo, plástico e borracha:
+  https://polyhaven.com/textures/plastic-rubber), ambientCG (https://ambientcg.com/list?type=substance&sort=popular) e
+  o CC0 Asset Index (https://github.com/xiaoqianran/Blender-cc0-asset-index, com a ferramenta `cc0a` que baixa cada
+  recurso com o `LICENSE.json`). Só CC0; cada textura usada registrada em `tools/blender/texturas/fontes.json`; o jogo
+  recebe só o `.webp` assado; modelos desses sites continuam fora. Regras completas no `CLAUDE.md`, seção 0.7
+  ("Texturas CC0 no Blender"). Na sessão da nuvem de 2026-09-27, a rede bloqueava cgbookcase, Poly Haven e ambientCG
+  (só o índice no GitHub respondia): é preciso liberar esses domínios no ambiente antes de baixar.
 - **Massinha saindo ao levar tiro:** já está na spec (respingos e amassados na Fase 4; dano e morte em pedaços que
   grudam no chão na Fase 5). Detalhar nessas fases: pedaços na cor do boneco saindo do ponto de impacto, grudando
   em parede/chão, e amassado no corpo onde o tiro acertou.
@@ -1093,8 +1104,12 @@ desgaste=0,5`.
 
 Git: a 4.1a está na árvore de trabalho da `fase-3.1`, junto com a 3.5 e a 4.1, sem commit, esperando o pedido.
 
-### Próxima: subfase 4.1b — Luvas, mangas e empunhadura
+### Em andamento: subfase 4.1b — Luvas, braço de massinha e empunhadura
 
-Luvas táticas de 5 dedos e a manga de tecido na cor do time, com a braçadeira, feitas no Blender como as armas; o rig
-das mãos e o solver de empunhadura (nenhum dedo atravessando a arma nem flutuando); a AK segurada em primeira pessoa
-(`docs/phases/phase-4.md`, tabela de subfases; o desenho detalhado é feito no começo do chat dela).
+Luvas táticas de 5 dedos feitas no Blender como as armas, no braço de massinha do boneco (sem manga e sem roupa, decisão
+de 2026-09-26), com a braçadeira de massa em modo de time; o rig das mãos e o solver de empunhadura (nenhum dedo
+atravessando a arma nem flutuando; a mão da frente com o polegar reto de um lado e os quatro dedos do outro, regra de
+2026-09-27); a AK segurada em primeira pessoa, com uma mão só na tela; o rebatedor da bancada. Desenho em
+`docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md`, plano em
+`docs/superpowers/plans/2026-09-26-4.1b-luvas-e-empunhadura.md` (Tarefas 0 a 13 feitas; faltam o aceite no navegador e
+o relatório, que entra aqui no lugar deste resumo).

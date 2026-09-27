@@ -15,7 +15,7 @@ novo está em `docs/superpowers/specs/2026-09-26-armas-realistas-design.md` e re
 |---|---|---|
 | 4.1 (massinha) | Oficina de armas de massinha: formas novas do SDF, receita por arma, gerador receita → malha de massinha, o Blender como editor da receita, mãos de 4 dedos, viewmodel parado, mapa `arsenal` e o primeiro lote — substituída pelo redesenho de 2026-09-26 (armas realistas); fica registrada abaixo | ✅ 2026-09-26 |
 | 4.1a | Pipeline realista e a AK-47 tipo 3 no nível final: régua e ficha, biblioteca de peças, construir, assar, exportar e validar; `GLTFLoader` no vendor e o novo `weaponModels`; material com zonas e acabamentos, reflexo do set e luz do viewmodel; a AK na bancada `arsenal` e em primeira pessoa, ainda sem mãos; comando `skin` e as três skins de exemplo; atualização das regras e da memória | ✅ 2026-09-26 |
-| 4.1b | Luvas, mangas, rig e o solver de empunhadura; a AK segurada em primeira pessoa | a fazer |
+| 4.1b | Luvas táticas realistas no braço de massinha do boneco (sem manga e sem roupa), rig de 20 ossos por braço e o solver de empunhadura dentro do `construir` da arma, com a mão da frente em "thumb break" (o polegar reto e deitado de um lado, os quatro dedos do outro); a AK segurada em primeira pessoa nas duas facções, com uma mão só na tela; os comandos `luvas` e `luvas_contato`; o rebatedor de isopor da bancada — desenho em `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md` | em andamento (P2 respondida e corrigida; falta o aceite) |
 | 4.1c | Glock-18, M4A4 e a faca — a baioneta M9 (EUA, 1986) — no caminho provado, com as empunhaduras | a fazer |
 | 4.1d | AWP (com a luneta real), Nova e P90, com as empunhaduras | a fazer |
 | 4.2 | Tiro e dano: estado da arma (munição, cadência, recarga, modo), hitscan com spread e a inaccuracy da 3.2, padrões de spray gerados como no CS:GO, recoil real (aim punch) × visual (view punch), dano por hitbox, colete, capacete, penetração de blindagem, queda por distância, wallbang por material e espessura; campo de tiro com alvos de massinha, medidor de DPS e visualizador de spray | a fazer |
@@ -26,6 +26,30 @@ novo está em `docs/superpowers/specs/2026-09-26-armas-realistas-design.md` e re
 | 4.7 | Granadas reais — fragmentação, atordoante, fumaça, molotov de garrafa com pano, incendiária e decoy — com os modelos do Blender, a física de quique do CS:GO, o arremesso com carga (curto/médio/longo) da referência e os efeitos de estúdio; a smoke bloqueia a visão e o raycast (o mesmo teste que a percepção dos bots da Fase 7 usa) | a fazer |
 | 4.8 | Sensação e aceite: passada de sensação por arma (coice do viewmodel, cadência, leitura), aceite da spec (sensação distinta, spray reproduzível, wallbang por material, smoke bloqueando raycast), desempenho e memória | a fazer |
 
+## Decisões do usuário (2026-09-26 e 2026-09-27) — luvas e empunhadura (4.1b)
+
+Desenho em `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md` (aprovado na parada da 4.1a); plano
+em `docs/superpowers/plans/2026-09-26-4.1b-luvas-e-empunhadura.md`.
+
+1. **Sem roupa por enquanto** (2026-09-26): nas próximas fases a bala fura o boneco de massinha e o tiro atravessa o
+   corpo de massa, "e muito mais"; o corpo não pode ficar escondido por roupa. Em primeira pessoa, a luva tática
+   realista (Blender) na mão e, do punho para trás, o braço de massinha do boneco, em código, na cor da massa dele.
+2. **O antebraço de massinha não pulsa** no viewmodel (sem boil), como a arma e a luva; mantém as digitais, a
+   translucidez e o brilho de massinha.
+3. **A braçadeira do time** continua, como faixa de massa no antebraço, só em modo de time.
+4. **Os nós da luva com protetor de borracha moldada** (do tipo das luvas táticas mais comuns), no lugar do reforço
+   acolchoado.
+5. **Rebatedor branco** atrás de quem olha a bancada `arsenal`: o lado do receptor da AK saía quase preto.
+6. **A mão da frente** (2026-09-27, na parada P2): em toda arma que tem mão da frente, só o polegar fica de um lado e os
+   outros quatro dedos do outro, como a AK no CS:GO — o polegar reto, deitado e encostado na arma, apontando para a
+   frente, sem curva. O `construir` reprova a arma que sair diferente.
+7. **Uma mão só na tela** (2026-09-27): nas três posições prontas do CS, só a mão da frente aparece, como na imagem de
+   referência do CS:GO; a mão do gatilho continua montada (inspeção na 4.3, terceira pessoa na Fase 5).
+8. **Texturas CC0 no Blender** (2026-09-27): os scripts do Blender podem usar texturas de domínio público de
+   cgbookcase, Poly Haven, ambientCG e do CC0 Asset Index como base dos materiais das armas e das luvas; elas chegam ao
+   jogo só assadas no `.webp`, e modelos de terceiros continuam fora (a lista e as regras ficam na seção 0.7 do
+   `CLAUDE.md`, "Texturas CC0 no Blender").
+
 ## Decisões do usuário (2026-09-26) — armas realistas
 
 O usuário reprovou as armas de massinha da 4.1: feias, sem detalhe, pulsando por causa do boil e com os dedos tortos na
@@ -35,9 +59,11 @@ plano da 4.1a em `docs/superpowers/plans/2026-09-26-4.1a-pipeline-realista-ak47.
 1. **Realismo de fábrica, tipo CS2.** A arma real em peças, medidas e materiais, limpa, com desgaste leve nas bordas;
    descartados o hiper-realismo sujo (CoD MW, Tarkov), o realismo estilizado (Valorant) e o visual de maquete.
 2. **Luva tática de 5 dedos com a manga de tecido da facção** em primeira pessoa (e nos bonecos em terceira pessoa, na
-   Fase 5).
+   Fase 5). *Mudado na 4.1b (abaixo): sem manga e sem roupa — a luva no braço de massinha do boneco.*
 3. **Exceção à regra 4 (e à paridade "100% gerado em código") só para armas e mãos:** scripts Python nossos no Blender
-   constroem os modelos e as texturas assadas, entregues como `.glb` e `.webp`. Nada é baixado de terceiros.
+   constroem os modelos e as texturas assadas, entregues como `.glb` e `.webp`. Nada é baixado de terceiros. *Mudado
+   em 2026-09-27 (abaixo): nenhum modelo de terceiros, mas texturas CC0 de bibliotecas abertas podem servir de base dos
+   materiais no Blender.*
 4. **Faca, granadas, carregadores e cápsulas, e lunetas passam a ser realistas.** As versões de massinha ficam como
    ideias de skin temática.
 5. **Animação suave em primeira pessoa**, com a opção "viewmodel em stop-motion" (a mesma animação a 12 poses/s).
