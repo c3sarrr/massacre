@@ -159,11 +159,11 @@ export function buildFresnel(set, { radius, length, emission, color }) {
 
 /**
  * Tripé C-stand em espaço de mundo: da base no chão (floorY) até o ponto de encaixe `mountWorld`.
- * A coluna fica deslocada para trás (longe do alvo) e um braço horizontal vai até a luz.
+ * A coluna fica deslocada para trás (longe do alvo) `reach` u e um braço horizontal vai até a luz (ou a placa).
  */
-export function buildCStand(set, { mountWorld, awayDir, floorY }) {
+export function buildCStand(set, { mountWorld, awayDir, floorY, reach = 70 }) {
   const away = awayDir.clone().setY(0).normalize();
-  const columnPos = mountWorld.clone().addScaledVector(away, 70).setY(floorY);
+  const columnPos = mountWorld.clone().addScaledVector(away, reach).setY(floorY);
   const top = mountWorld.y;
   const metalParts = [];
   const chromeParts = [];

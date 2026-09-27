@@ -1,7 +1,7 @@
 // Biblioteca de materiais do set: assa as texturas procedurais uma vez por renderer, entrega materiais em
 // cache (mesma chave = mesmo material, menos programas e trocas de estado) e acompanha a anisotropia da config
 // e a perda/recuperação do contexto WebGL (as texturas assadas precisam ser refeitas).
-// Mapas pedem materiais aqui: set.cardboard(), set.tape({ width }), set.cuttingMat({ size }), ...
+// Mapas pedem materiais aqui: set.cardboard(), set.tape({ width }), set.cuttingMat({ size }), set.foam(), ...
 // Materiais que leem um atlas do próprio mapa (livros, desenhos, fita com etiquetas) são criados pelo mapa com as
 // fábricas de bookMaterial.js, printMaterials.js e paperMaterials.js e entram na biblioteca por adopt().
 
@@ -10,7 +10,7 @@ import { bakeSetTextures } from './setTextures.js';
 import { cardboardMaterial, tapeMaterial, tapeSideMaterial } from './paperMaterials.js';
 import { toolMetalMaterial, wireMaterial, chromeMaterial, blackMetalMaterial } from './metalMaterials.js';
 import { balsaMaterial, beechMaterial, benchWoodMaterial, plywoodMaterial } from './woodMaterials.js';
-import { cuttingMatMaterial, plasticMaterial, fabricMaterial, diffuserMaterial } from './surfaceMaterials.js';
+import { cuttingMatMaterial, plasticMaterial, fabricMaterial, diffuserMaterial, foamMaterial } from './surfaceMaterials.js';
 import { measureMaterial } from './measureMaterials.js';
 import { paperMaterial } from './printMaterials.js';
 import { paintMaterial, floorPaintMaterial } from './paintMaterials.js';
@@ -32,6 +32,7 @@ const FACTORIES = Object.freeze({
   plastic: plasticMaterial,
   fabric: fabricMaterial,
   diffuser: diffuserMaterial,
+  foam: foamMaterial,
   measure: measureMaterial,
   paper: paperMaterial,
   paint: paintMaterial,

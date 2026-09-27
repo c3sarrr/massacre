@@ -2,7 +2,8 @@
 // animador com a luz da vitrine virada em bancada de armeiro, as armas deitadas em fileiras — a realista do Blender
 // (Fase 4.1a) e as de massinha das receitas —, a roda de modelar com a arma escolhida e o painel de fita crepe (Tab). É
 // também o banco do aceite das armas: forma, acabamento e skins, silhueta × planta, e o caminho do Blender (reler do
-// disco).
+// disco). Na 4.1b, o rebatedor de isopor atrás de quem olha a bancada (rebatedor.js), aceso pelo rim: o lado do
+// receptor das armas realistas refletia o estúdio escuro.
 
 import * as THREE from 'three';
 import { STUDIO_RIGS } from '../../data/studioRigs.js';
@@ -14,6 +15,7 @@ import { StudioRig } from '../../render/studio/studioRig.js';
 import { disposeObject3D } from '../../render/dispose.js';
 import { ArsenalBench } from './bench.js';
 import { createArsenalPanel } from './panel.js';
+import { construirRebatedor } from './rebatedor.js';
 
 const DEG = Math.PI / 180;
 
@@ -44,6 +46,16 @@ async function build({ render, config, services }) {
     disposeObject3D(scene);
     throw err;
   }
+
+  // O rebatedor: a placa de isopor atrás do olho do "Segurar" (o ponto da foto do reflexo), acesa pela luz da montagem
+  // que chega pela frente ali, assentada no tampo (y = 0) atrás do tapete; entra na foto do reflexo que o MatchState
+  // tira com o mapa pronto.
+  const olhoDoReflexo = new THREE.Vector3(ARSENAL.reflexo.x, ARSENAL.desk.mat.thickness + HULL.standEye, ARSENAL.reflexo.z);
+  const luzDoRebatedor = rigDef.lights.find((l) => l.id === ARSENAL.rebatedor.luz);
+  const rebatedor = construirRebatedor(services.set, ARSENAL.rebatedor, {
+    floorY: ARSENAL.desk.floorY, apoioY: 0, olho: olhoDoReflexo, luz: new THREE.Vector3(...luzDoRebatedor.position),
+  });
+  scene.add(rebatedor.group);
 
   // "Segurar": o viewmodel com a arma da roda (acento e nível da bancada) e a câmera parada no tapete, na altura do olho
   // do boneco; a troca de arma, de facção ou de nível no painel passa para a mão no quadro seguinte.
@@ -99,7 +111,7 @@ async function build({ render, config, services }) {
     post: { context: 'vitrine', exposure: rigDef.exposure },
     // A roda gira com a arma: a sombra acompanha a cada quadro.
     staticShadows: false,
-    reflection: new THREE.Vector3(ARSENAL.reflexo.x, ARSENAL.desk.mat.thickness + HULL.standEye, ARSENAL.reflexo.z),
+    reflection: olhoDoReflexo.clone(),
     spawn: {
       position: new THREE.Vector3(spawn.x, spawn.y, spawn.z),
       yaw: spawn.yawDeg * DEG,
@@ -127,6 +139,7 @@ async function build({ render, config, services }) {
       holding = null;
       for (const off of offs) off();
       panel.dispose();
+      rebatedor.dispose();
       rig.dispose();
       bench.dispose();
     },
