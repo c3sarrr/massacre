@@ -1,0 +1,190 @@
+/* Ferramentas de desenvolvimento: overlay de desempenho (F3), console (` / F1), cl_showpos, cl_monitor e guias de
+   toque. */
+
+/* Os painéis fixos (overlay à esquerda, cl_showpos à direita) ficam em fluxo numa linha que quebra: em tela estreita
+   o cl_showpos desce para baixo do overlay em vez de cobri-lo. O console é absoluto e fica fora desse fluxo. */
+#debug {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  gap: 4px 8px;
+  padding: calc(8px + var(--safe-t)) calc(8px + var(--safe-r)) 0 calc(8px + var(--safe-l));
+}
+
+.dbg-overlay {
+  position: relative;
+  z-index: 60;
+  display: grid;
+  gap: 4px;
+  max-width: 100%;
+  pointer-events: none !important;
+}
+
+.dbg-text {
+  margin: 0;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgb(42 35 32 / 0.78);
+  color: var(--paper);
+  font: 600 11.5px/1.45 var(--font-mono);
+  white-space: pre-wrap;
+  text-shadow: 0 1px 0 #000;
+  font-variant-numeric: tabular-nums;
+}
+
+.dbg-overlay[data-mode='compacto'] .dbg-text {
+  font-size: 12.5px;
+  color: var(--clay-yellow);
+}
+
+.dbg-graph {
+  width: 180px;
+  height: 46px;
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+
+.console {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 70;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  height: min(46vh, 460px);
+  padding: calc(8px + var(--safe-t)) calc(14px + var(--safe-r)) 10px calc(14px + var(--safe-l));
+  color: var(--ink);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 21px, rgb(47 109 181 / 0.14) 21px 22px),
+    linear-gradient(180deg, #fbf6ec, var(--paper));
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.55);
+  border-bottom: 3px solid var(--ink);
+  animation: console-in 0.18s var(--ease-out) both;
+}
+
+@keyframes console-in {
+  from { transform: translateY(-40%); opacity: 0; }
+}
+
+.console-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.console-tip { font: 700 0.75rem var(--font-ui); color: var(--ink-soft); }
+
+.console-log {
+  overflow: auto;
+  padding-right: 6px;
+  font: 600 12.5px/22px var(--font-mono);
+  user-select: text;
+  -webkit-user-select: text;
+  overscroll-behavior: contain;
+}
+
+.console-row { white-space: pre-wrap; word-break: break-word; }
+.console-row.is-cmd { color: var(--ct-blue); font-weight: 800; }
+.console-row.is-warn { color: #b3541e; }
+.console-row.is-error { color: var(--tr-red); font-weight: 800; }
+.console-row.is-hint { color: var(--ink-soft); }
+
+.console-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgb(42 35 32 / 0.08);
+}
+
+.console-prompt { font: 800 16px var(--font-mono); color: var(--alert); }
+
+.console-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font: 700 14px var(--font-mono);
+}
+
+.console-hint { min-height: 18px; margin-top: 4px; font: 600 11.5px var(--font-mono); color: var(--ink-soft); }
+
+.touch-guides {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* cl_showpos (Fase 3): jogador, item na mão, teto, precisão, passos e counter-strafe no canto superior direito, com o
+   gráfico dos últimos 4 s embaixo. Largura fixa na da linha mais longa (76 caracteres), para o painel não pular de
+   linha quando o texto muda; em tela menor que isso as linhas quebram e o gráfico encolhe junto. */
+.dbg-showpos {
+  position: relative;
+  z-index: 60;
+  width: min(100%, calc(76ch + 18px));
+  margin: 0 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgb(42 35 32 / 0.78);
+  color: var(--paper);
+  font: 600 11.5px/1.45 var(--font-mono);
+  text-shadow: 0 1px 0 #000;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none !important;
+}
+
+.dbg-showpos-text { margin: 0; font: inherit; white-space: pre-wrap; }
+
+.dbg-showpos-graph {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-top: 5px;
+  border-radius: 3px;
+  background: rgb(21 16 14 / 0.55);
+}
+
+/* Legenda do gráfico: um traço na cor de cada série (o limiar tracejado, como no gráfico). */
+.dbg-showpos-legend { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; font-size: 10.5px; }
+.dbg-showpos-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  margin-right: 5px;
+  border-top: 2px solid currentColor;
+  vertical-align: middle;
+}
+.dbg-showpos-legend .is-speed { color: var(--clay-yellow); }
+.dbg-showpos-legend .is-cap { color: rgb(246 240 228 / 0.75); }
+.dbg-showpos-legend .is-threshold { color: var(--ct-teal); }
+.dbg-showpos-legend .is-threshold::before { border-top-style: dashed; }
+.dbg-showpos-legend .is-inaccuracy { color: var(--alert); }
+.dbg-showpos-legend .is-air { color: #7FA6DB; }
+.dbg-showpos-legend .is-air::before { border-top-width: 3px; border-top-color: var(--ct-blue); }
+.dbg-showpos-legend .is-slide { color: var(--tr-orange); }
+.dbg-showpos-legend .is-slide::before { border-top-width: 3px; }
+.dbg-showpos-legend .is-walljump { color: #E88AA8; }
+.dbg-showpos-legend .is-walljump::before { width: 0; height: 9px; border-top: 0; border-left: 1.5px solid currentColor; }
+
+/* Monitor do movimento (cl_monitor, aceite da Fase 3): cápsula, FPS, memória e estação. À direita, como o cl_showpos
+   (as etiquetas do HUD de teste ficam à esquerda), com a largura da linha mais longa (62 caracteres); com os dois
+   ligados, desce para a linha de baixo. */
+.dbg-monitor {
+  position: relative;
+  z-index: 60;
+  width: min(100%, calc(62ch + 18px));
+  margin: 0 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgb(42 35 32 / 0.78);
+  color: var(--paper);
+  font: 600 11.5px/1.45 var(--font-mono);
+  text-shadow: 0 1px 0 #000;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none !important;
+}
+
+.dbg-monitor-text { margin: 0; font: inherit; white-space: pre-wrap; }

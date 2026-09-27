@@ -1,0 +1,10 @@
+node_modules/
+.claude/settings.local.json
+.claude/worktrees/
+*.log
+.DS_Store
+Thumbs.db
+# Editor de armas no Blender (Fase 4.1): o caminho do executável é da máquina; as conferências são geradas
+tools/blender/local.json
+tools/blender/conferencia/
+__pycache__/

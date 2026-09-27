@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Conferência render × foto (rascunho)</title>
+<style>
+  body { margin: 0; background: #1f1a18; color: #F6F0E4; font: 13px system-ui, sans-serif; }
+  #info { padding: 6px 8px; color: #FFD23F; font-weight: 600; }
+  .leg { padding: 0 8px 6px; color: #E8D9A8; }
+  canvas { display: block; width: 100%; height: auto; margin-bottom: 10px; }
+</style>
+<div id="info">carregando…</div>
+<div class="leg">1) render da prova com o contorno da AKM real por cima (vermelho) · 2) diferença: verde = só na foto
+  (falta no modelo), magenta = só no modelo (sobra), cinza = os dois · 3) a foto real na mesma escala</div>
+<canvas id="c1"></canvas><canvas id="c2"></canvas><canvas id="c3"></canvas>
+<script type="module">
+// Rascunho: a foto do Commons só é lida no canvas. A câmera do render é ortográfica, 1600×900, largura de 0,9 m,
+// centro em x = -0,44 m e z = -0,075 m; 1 px = 0,5625 mm. A foto usa boca do cano em x = 0 e eixo em y = 0 (mm).
+import { sourceInfo, loadImage, weaponMask, largestComponent, traceLoops, area, simplify } from './lib.js';
+const P = new URLSearchParams(location.search);
+const FILE = P.get('arquivo');
+const MM = Number(P.get('mm'));
+const RW = 1600, RH = 900, ESC = 900 / RW; // mm por px
+const CX = Number(P.get('cx') || -440), CZ = Number(P.get('cz') || -75), PREF = P.get('pref') || 'ak2';
+const EIXO = (P.get('eixox') || '-140,-80').split(',').map(Number);
+const rx = (xmm) => RW / 2 + (xmm - CX) / ESC;
+const ry = (ymm) => RH / 2 - (ymm - CZ) / ESC;
+const info = document.getElementById('info');
+
+async function run() {
+  const src = await sourceInfo(FILE);
+  const img = await loadImage(src.url);
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  g.drawImage(img, 0, 0);
+  const { mask: raw } = weaponMask(g.getImageData(0, 0, W, H), W, H);
+  const mask = largestComponent(raw, W, H);
+  const loops = traceLoops(mask, W, H).map((l) => ({ l, a: area(l) })).sort((p, q) => Math.abs(q.a) - Math.abs(p.a));
+  let minX = Infinity, maxX = -Infinity;
+  for (const [x] of loops[0].l) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); }
+  const s = MM / (maxX - minX);
+  // eixo pelo cano exposto (mesma regra da régua)
+  const centros = [];
+  for (let xm = EIXO[0]; xm <= EIXO[1]; xm += 2) {
+    const px = Math.round(maxX + xm / s);
+    let t = -1, e = -1;
+    for (let y = 0; y < H; y++) { if (mask[y * W + px]) { if (t < 0) t = y; e = y; } else if (t >= 0) break; }
+    if (t >= 0) centros.push((t + e) / 2);
+  }
+  centros.sort((a, b) => a - b);
+  const axisY = centros[centros.length >> 1];
+  const fotoEm = (xmm, ymm) => {
+    const px = Math.round(maxX + xmm / s), py = Math.round(axisY - ymm / s);
+    return px >= 0 && py >= 0 && px < W && py < H ? mask[py * W + px] : 0;
+  };
+  const [render, alfa] = await Promise.all([loadImage(`../spike/${PREF}_lado.png`), loadImage(`../spike/${PREF}_mascara.png`)]);
+  const ca = document.createElement('canvas');
+  ca.width = RW; ca.height = RH;
+  const ga = ca.getContext('2d', { willReadFrequently: true });
+  ga.drawImage(alfa, 0, 0);
+  const A = ga.getImageData(0, 0, RW, RH).data;
+  // 1) render + contorno da foto
+  const c1 = document.getElementById('c1');
+  c1.width = RW; c1.height = RH;
+  const q1 = c1.getContext('2d');
+  q1.drawImage(render, 0, 0);
+  q1.strokeStyle = '#ff3030';
+  q1.lineWidth = 2;
+  for (const lp of loops.filter((o, i) => i === 0 || Math.abs(o.a) > Math.abs(loops[0].a) * 0.002)) {
+    q1.beginPath();
+    simplify(lp.l, 0.8).forEach(([x, y], i) => {
+      const X = rx((x - maxX) * s), Y = ry(-(y - axisY) * s);
+      if (i) q1.lineTo(X, Y); else q1.moveTo(X, Y);
+    });
+    q1.closePath();
+    q1.stroke();
+  }
+  // 2) diferença e IoU
+  const c2 = document.getElementById('c2');
+  c2.width = RW; c2.height = RH;
+  const q2 = c2.getContext('2d');
+  const out = q2.createImageData(RW, RH);
+  let inter = 0, uni = 0, soFoto = 0, soModelo = 0;
+  for (let py = 0; py < RH; py++) for (let px = 0; px < RW; px++) {
+    const xmm = CX + (px - RW / 2) * ESC, ymm = CZ - (py - RH / 2) * ESC;
+    const f = fotoEm(xmm, ymm) ? 1 : 0;
+    const m = A[(py * RW + px) * 4 + 3] > 127 ? 1 : 0;
+    const k = (py * RW + px) * 4;
+    if (f && m) { inter++; out.data.set([150, 150, 150, 255], k); }
+    else if (f) { soFoto++; out.data.set([40, 220, 90, 255], k); }
+    else if (m) { soModelo++; out.data.set([230, 60, 220, 255], k); }
+    else out.data.set([28, 24, 22, 255], k);
+    if (f || m) uni++;
+  }
+  q2.putImageData(out, 0, 0);
+  // IoU com tolerância de 1 pixel da foto: a diferença que fica a até s mm da outra silhueta não conta (é o ruído
+  // do próprio contorno da foto, que tem a resolução de 1 px = s mm)
+  const Fm = new Uint8Array(RW * RH), Mm = new Uint8Array(RW * RH);
+  for (let py = 0; py < RH; py++) for (let px = 0; px < RW; px++) {
+    const i = py * RW + px;
+    Fm[i] = fotoEm(CX + (px - RW / 2) * ESC, CZ - (py - RH / 2) * ESC) ? 1 : 0;
+    Mm[i] = A[i * 4 + 3] > 127 ? 1 : 0;
+  }
+  const R = Math.max(1, Math.round(s / ESC));
+  const perto = (arr, px, py) => {
+    for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+      if (dx * dx + dy * dy > R * R) continue;
+      const x = px + dx, y = py + dy;
+      if (x >= 0 && y >= 0 && x < RW && y < RH && arr[y * RW + x]) return true;
+    }
+    return false;
+  };
+  let difTol = 0;
+  for (let py = 0; py < RH; py++) for (let px = 0; px < RW; px++) {
+    const i = py * RW + px;
+    if (Fm[i] && !Mm[i] && !perto(Mm, px, py)) difTol++;
+    else if (Mm[i] && !Fm[i] && !perto(Fm, px, py)) difTol++;
+  }
+  window.__tol = { raioPx: R, raioMM: +(R * ESC).toFixed(2), iouTol: +(1 - difTol / uni).toFixed(4) };
+  // 3) a foto na mesma escala
+  const c3 = document.getElementById('c3');
+  c3.width = RW; c3.height = RH;
+  const q3 = c3.getContext('2d');
+  q3.fillStyle = '#e9e4da';
+  q3.fillRect(0, 0, RW, RH);
+  q3.drawImage(cv, maxX + (CX - RW / 2 * ESC) / s, axisY - (CZ + RH / 2 * ESC) / s, RW * ESC / s, RH * ESC / s, 0, 0, RW, RH);
+  const mm2 = ESC * ESC;
+  window.__iou = { iou: +(inter / uni).toFixed(4), faltaMM2: Math.round(soFoto * mm2), sobraMM2: Math.round(soModelo * mm2) };
+  info.textContent = `Coincidência de silhueta (IoU): ${(inter / uni * 100).toFixed(1)} % · com tolerância de 1 px da foto `
+    + `(${window.__tol.raioMM} mm): ${(window.__tol.iouTol * 100).toFixed(1)} % · falta no modelo ${window.__iou.faltaMM2} mm² · `
+    + `sobra no modelo ${window.__iou.sobraMM2} mm² · foto: ${src.file} (${src.license}, ${src.artist})`;
+  window.__pronto = true;
+}
+run().catch((err) => { info.textContent = 'erro: ' + err.message; window.__pronto = true; });
+</script>
+</html>

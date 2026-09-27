@@ -1,0 +1,290 @@
+# Fase 4 — Armas (plano técnico)
+
+Base: PROMPT 0 seção 0.7 inteira + Fase 4 de `CLAUDE.md.md`. Desenho conversado e aprovado em 2026-09-25: oito
+subfases nesta ordem, uma por conversa — primeiro uma "fatia vertical" (uma arma de cada forma, para provar o caminho de
+modelagem em todos os tipos de peça), depois os sistemas feitos com essas armas e, por fim, o resto do arsenal no
+caminho já provado.
+
+## Estado das subfases
+
+| Subfase | Conteúdo | Estado |
+|---|---|---|
+| 4.1 | Oficina de armas: formas novas do SDF (perfil recortado, torno, tubo), receita de cada arma em `src/data/armas/`, gerador receita → malha de massinha por grupo animável, o Blender como editor da receita (importador, exportador, conferência sem janela, plantas de referência), mãos de 4 dedos com rig, viewmodel parado segurando a arma, mapa `arsenal` e o primeiro lote: Glock-18, AK-47, M4A4, AWP, Nova, P90 e a faca | em andamento |
+| 4.2 | Tiro e dano: estado da arma (munição, cadência, recarga, modo), hitscan com spread e a inaccuracy da 3.2, padrões de spray gerados como no CS:GO, recoil real (aim punch) × visual (view punch), dano por hitbox, colete, capacete, penetração de blindagem, queda por distância, wallbang por material e espessura; campo de tiro com alvos de massinha, medidor de DPS e visualizador de spray | a fazer |
+| 4.3 | Viewmodel stop-motion e efeitos: sacar, atirar, recarregar (arranca e aperta o pão de massa), inspecionar (a digital do animador), correr — poses-chave por categoria feitas no Blender e presas às âncoras de cada arma, "em dois"; cápsulas de massa amarela que quicam e grudam, amassados na massa atingida, respingos, tracers, luz de disparo, marcas nos outros materiais | a fazer |
+| 4.4 | Arsenal completo: as outras 18 armas de fogo e a faca de ouro no caminho da 4.1, com as âncoras e as poses da categoria (se não couber num chat, 4.4a e 4.4b) | a fazer |
+| 4.5 | Mira e acessórios: lunetas (anel de massinha, retícula de arame, distorção de vidro barato, poeira) da AWP, Scout, SCAR-20 e G3SG1, miras da AUG e da SG 553, rajada da FAMAS e da Glock, silenciador removível da USP-S e da M4A1-S | a fazer |
+| 4.6 | Faca: golpe leve e forte, backstab, bloqueio de frente com durabilidade, parry (devolve o tiro e atordoa), barra de carga e dash de execução — a katana do Doodle District sobre a faca do CS:GO | a fazer |
+| 4.7 | Granadas: HE, Flash, Smoke, Molotov/Incendiária e Decoy com modelos, física de quique do CS:GO, arremesso com carga (curto/médio/longo) da referência e os efeitos; a smoke bloqueia a visão e o raycast (o mesmo teste que a percepção dos bots da Fase 7 usa) | a fazer |
+| 4.8 | Sensação e aceite: passada de sensação por arma (coice do viewmodel, cadência, leitura), aceite da spec (sensação distinta, spray reproduzível, wallbang por material, smoke bloqueando raycast), desempenho e memória | a fazer |
+
+## Decisões do usuário (2026-09-25)
+
+1. **Blender gera a receita.** Cada arma é modelada no Blender por cima de plantas de referência, só com peças que o
+   gerador de massinha entende; um exportador grava a receita em `src/data/armas/<id>.js` e o jogo continua gerando a
+   malha em código (boil, digitais, costuras, skins e os amassados de tiro valem igual). A regra 4 do `CLAUDE.md` e a
+   paridade "100% gerado em código" do Doodle District ficam intactas: a receita são números, como o layout da pista.
+   Há importador de volta — o `.blend` é só área de trabalho, a receita é a fonte da verdade — e o usuário pode abrir
+   qualquer arma no Blender e mexer à mão. As poses das animações "em dois" (4.3) também saem do Blender como dados.
+   As plantas ficam fora do jogo, como os pins do Pinterest.
+2. **Estilo "fiel e gordinha".** Silhueta da arma real com espessura mínima de massa: cano, alma, miras e guarda-mato
+   engrossam e arredondam; detalhes minúsculos (rebites, frisos, dentes de trilho) viram marcas de ferramenta — cortes de
+   estilete e dedadas — em vez de peças soltas. Madeira marrom com veios riscados a palito, corpo grafite e costuras onde
+   as massas se juntam. É a leitura literal da spec ("silhueta fiel à arma real, mas esculpida à mão") e do revólver do
+   pinguim de *The Wrong Trousers* (QCG1, QCG7). Descartados: a miniatura fiel de peças finas (QPG5, QPL6 — cara de kit
+   de plástico, sem área para boil e digitais) e o brinquedo inflado (QSG2, NFS1 — foge da silhueta fiel).
+3. **Mãos de 4 dedos gordinhos** (três dedos e o polegar, grossos e arredondados, como os humanos da Aardman), na cor
+   da massa do personagem, com a braçadeira do time no antebraço (seção 0.12). A Fase 5 herda o modelo e o rig.
+4. **Cor real + acento da facção.** A base segue a arma real traduzida em massinha (grafite no metal preto, marrom com
+   veios na madeira, verde-oliva nas de polímero verde, areia nas de cor de areia, prata na Deagle); os detalhes pequenos
+   (massa de mira, gatilho, base do carregador, seletor) vêm na cor da facção: terracota e laranja nas armas da Massa
+   Crua, azul e verde-água nas da Tropa do Estúdio, amarelo-massinha (com branco-massa) nas dos dois lados. As skins da
+   Fase 11 entram por cima pelo mesmo `ClayMaterial`.
+
+## Unidades e escala
+
+A unidade é a do CS (o boneco tem 72 u; 1 u = 1 polegada na escala do boneco), então **cada arma tem o comprimento da
+arma real em polegadas**. No estúdio (a leitura da pista, 1 u = 1 mm), são miniaturas de massinha de 1 a 5 cm ao lado de
+um boneco de 7,2 cm — exatamente a escala das armas de polymer clay na palma da mão das referências (QPG3, QPG4, QPG7,
+QPG12). O boil e as digitais já escalam pelo tamanho do objeto (`ClayMaterial.setObjectSize`; o ladrilho das digitais
+cobre 96 u), então a digital do animador fica grande na arma — o que a inspeção da 4.3 vai mostrar.
+
+| Arma (primeiro lote) | Referência real | Comprimento | u |
+|---|---|---|---|
+| Glock-18 | Glock 18 | 186 mm | 7,3 |
+| AK-47 | AKM de coronha fixa de madeira | 880 mm | 34,6 |
+| M4A4 | carabina M4A1 com a coronha aberta | 840 mm | 33,1 |
+| AWP | Accuracy International AWM .338 | 1230 mm | 48,4 |
+| Nova | Benelli Nova, cano de 18,5" | 995 mm | 39,2 |
+| P90 | FN P90 | 500 mm | 19,7 |
+| Faca | espátula de modelar de aço com cabo de madeira | 200 mm | 7,9 |
+
+**Espessura mínima de massa:** nenhuma peça da arma fica mais fina que 1,2 u (1,2 mm de massa na miniatura — o dobro do
+cano real de um fuzil), exceto a lâmina da faca (0,5 u, com a borda arredondada) e os cortes (subtrações). É a regra que
+faz o "gordinha": o gerador confere e a suíte testa.
+
+**Referencial de cada arma:** +X para a boca do cano, +Y para cima, +Z para o lado direito da arma (o da janela de
+ejeção do AK e do M4); a origem fica no eixo do cano, em cima do gatilho. Vista lateral = o plano XY visto de +Z (a arma
+aponta para a direita). No Blender, Z para cima: o exportador converte (x, y, z) do Blender em (x, z, −y) do jogo.
+
+## Fonte dos números
+
+As mesmas da 3.2 (`docs/research/`): o código do CS:GO no port Kisak-Strike (o vazamento de ~2017) e o `items_game`
+final (2023), para recoil (`recoil_*` e a geração da tabela), dano (`ScaleDamage`, `CS_ARMOR_*`), penetração
+(`HandleBulletPenetration`), faca (`weapon_knife`) e granadas (`basecsgrenade_projectile`); o Doodle District
+(`sarvan-2187/doodleshooter`) para o bloqueio, o parry e o dash da katana e o arremesso com carga. Tudo vai para
+`src/data/`. As dimensões das armas reais vêm das fichas técnicas dos fabricantes (comprimentos na tabela acima) e das
+fotos laterais de domínio público ou licença livre do Wikimedia Commons (as plantas).
+
+---
+
+## 4.1 — Oficina de armas
+
+O caminho de modelagem inteiro e a fatia vertical: formas novas no SDF, receita, gerador, Blender como editor, plantas,
+mãos, viewmodel parado, a bancada `arsenal` e as sete primeiras peças.
+
+### Referências (item 13 do moodboard)
+
+Nove conjuntos novos estudados em 2026-09-25 (buscas públicas e páginas "ideas" do Pinterest; os IDs ficam em
+`docs/art/pinterest-boards.json` e na folha de contato):
+
+- **QPG** (busca "polymer clay gun miniature") e **QPL** ("plasticine gun"): armas de massinha e polymer clay feitas à mão
+  — a pistola preta fosca no tapete de corte verde (QPG1), a AK montada em etapas a partir de uma placa preta com a
+  madeira marrom por cima (QPG2), espingarda e cartuchos na palma (QPG3), a Glock com cartuchos de latão (QPG5), a PPSh
+  e o fuzil de ferrolho com madeira (QPG7, QPG8), a AK de plasticina com a madeira marrom (QPL4), a 1911 com as serrilhas
+  do ferrolho em cortes (QPL6), revólveres cinza crus no tapete de corte (QPL5, QPL8) e a pistola no alvo com cápsulas
+  (QPL7).
+- **QCG** (busca "claymation gun stop motion"): o pinguim de *The Wrong Trousers* com o revólver gordinho e simples no
+  trem (QCG1, QCG3, QCG7, QCG11) — a referência do estilo escolhido.
+- **QRF** ("clay rifle sculpture"): a AK de massa cinza crua (QRF1), revólveres de massa rosa fiéis na forma (QRF3), o
+  fuzil pintado na mão da figura sobre o tapete de corte (QRF4).
+- **QSG** ("stylized gun 3d model cartoon") e **NFS** (Nerf Snipers): o extremo "brinquedo" que foi descartado; guardados
+  como contraste.
+- **CMH** (Claymation Hands) e **QHH** (busca "claymation hands holding"): mãos de boneco com armadura de arame (CMH2,
+  CMH11, CMH20), poses de mão em massa (CMH3, CMH14, CMH16, CMH19), mãos simples de Morph (CMH15, CMH18), mãos de
+  plasticina (QHH11).
+- **CTL** (Clay Sculpting Tools): as espátulas de modelar de aço com cabo de madeira (CTL6, CTL7, CTL16) e as facas de
+  madeira (CTL12) — a faca do jogo.
+
+### Receita (`src/data/armas/<id>.js`)
+
+Um módulo por arma com `export default {…}` e o corpo em JSON puro (o exportador do Blender grava; o importador lê
+achando o primeiro `{` depois de `export default`). Campos:
+
+- `id`, `version` (formato), `refs` (IDs de pins e das plantas usadas).
+- `materials`: slot da receita → massa da paleta (`grafite`, `grafiteClaro`, `madeira`, `madeiraEscura`, `verdeOliva`,
+  `areia`, `prata`, `aco`) ou `acento`/`acento2` (resolvidos pela facção da arma em `src/data/weapons.js`).
+- `soft`: suavidade padrão da união entre peças do mesmo grupo (k da união suave, 0,25 u) e o vinco da costura
+  (`crease: {depth, width}`, 0,08 u e 0,18 u); `lumps`: calombos da massa inteira (amplitude 0,03 u, frequência 0,35/u).
+- `groups`: as partes que se mexem, cada uma vira malha própria — `corpo` (sempre) e, conforme a arma, `carregador`,
+  `ferrolho` (alavanca de manejo), `slide`, `gatilho`, `bomba` (Nova), `alavanca` (AWP), `silenciador` (4.5). Cada grupo
+  tem `pivot` (o ponto em volta do qual gira) e, se for o caso, `axis` (eixo de rotação ou de deslize).
+- `anchors`: pontos com posição e rotação no referencial da arma — `maoDireita` (empunhadura), `maoEsquerda` (apoio:
+  guarda-mão, bomba, frente da armação), `boca` (boca do cano, direção +X), `ejecao` (janela de ejeção e a direção em que
+  a cápsula sai), `mira` (centro óptico da luneta, para a 4.5) e a pose de mão de cada âncora de mão (`pose`).
+- `parts`: lista de peças; cada uma com `name`, `group`, `mat`, `shape` (as formas do SDF: `roundBox`, `cylinder`,
+  `capsule`, `sphere`, `ellipsoid`, `roundCone`, `torus`, `cone` e as novas `profile`, `lathe`, `tube`), os parâmetros
+  da forma, `pos`/`rot` (Euler XYZ do three.js) e, opcionais, `op: 'subtract'` (corte: janela de ejeção, alma do cano,
+  buraco do guarda-mato, serrilhas), `k` (suavidade própria) e `crease` (vinco próprio).
+
+### Formas novas do SDF (`src/clay/sdf/`)
+
+- **`profile`** — perfil recortado e extrudado: polígono em XY (`points`), meia-espessura `h` em Z, `corner` (filete 2D
+  nos cantos, convexos e côncavos — a massa preenche os cantos de dentro) e `round` (arredondado das arestas da
+  extrusão). O filete é feito uma vez na compilação (arcos tangentes aos dois lados, raio limitado pelos lados, 6
+  segmentos por arco) e o `corner` fica ≥ `round`, o que torna exata a distância do contorno encolhido de `round` usada
+  no "opExtrusion" arredondado de iq. Distância 2D exata ao polígono (distância aos segmentos + sinal pelo número de
+  cruzamentos), então a forma é 1-Lipschitz e entra no intervalo garantido d ± R. É a peça principal: corpo, coronha,
+  empunhadura, carregador, guarda-mão, ferrolho, lâmina.
+- **`lathe`** — sólido de revolução em volta do eixo X local: polígono no semiplano (x, ρ ≥ 0) com o mesmo filete;
+  distância exata = distância 2D ao polígono em (x, √(y² + z²)). Freios de boca, luneta, guarda-mão redondo do M4, cabo
+  e virola da faca, e as granadas da 4.7.
+- **`tube`** — cobrinha de massa por uma polilinha 3D com raio por ponto (cones arredondados encadeados; distância
+  exata = o mínimo das distâncias aos segmentos). Guarda-mato, alavanca de manejo, alavanca do ferrolho, pavio.
+- `bounds.js` ganha a função suporte de cada uma (o polígono e a revolução do polígono; o tubo, a casca das esferas das
+  pontas) e `params.js` os leitores e os limites (polígono de 3 a 256 pontos, sem lado de comprimento zero).
+
+### Gerador (`src/weapons/model/`)
+
+- `recipe.js` (puro, testado no Node): valida a receita (formas, grupos, âncoras, massas, espessura mínima) e monta uma
+  árvore SDF por grupo — as peças somadas na união suave com vinco (`smoothUnionCrease`, faixa de costura de 0,25 u entre
+  massas diferentes), os cortes numa subtração suave (`smoothSubtract`, k 0,12 u) e os calombos (`displace`). Cada massa
+  vira um `mat` (índice no array de materiais da malha).
+- `weaponModel.js`: a receita vira um `THREE.Group` com uma malha por grupo (grupos por material do `SdfMesher`, nos
+  Workers e com o cache do IndexedDB), cada grupo num `Object3D` posto no `pivot`, as âncoras como `Object3D` vazios, e
+  dois níveis: **perto** (célula de 0,14 u — viewmodel e a bancada) e **mundo** (0,35 u — arma no chão e na mão dos
+  outros, Fases 5, 8 e 9).
+- `weaponLibrary.js` (serviço `weaponModels`): guarda as malhas por (arma, nível) e os materiais por (massa, facção);
+  entrega instâncias (a geometria é compartilhada; `dispose` só na saída do serviço); pré-carrega as armas do jogador ao
+  entrar no mapa, para a troca não esperar.
+- `weaponPalette.js` em `src/data/`: as massas (cor, rugosidade, umidade, skin — a madeira usa a skin "madeira falsa" com
+  os veios; o aço é massa prata mais úmida e brilhante) e o acento de cada facção.
+
+### Blender (`tools/blender/`)
+
+- `massacre_armas.py` (roda dentro do Blender 5.2): **importar** monta a cena a partir da receita (uma coleção por grupo;
+  `profile` e `lathe` viram curvas 2D com extrusão/bisel ou parafuso; `tube`, curva 3D com bisel; as outras formas, malhas
+  geradas pelos parâmetros; cortes em arame vermelho; âncoras como Empties com a mão desenhada; a planta de referência
+  numa coleção que não exporta; propriedades `massacre_*` guardando o que o jogo precisa); **exportar** lê a cena,
+  converte os eixos, dobra escalas nos parâmetros, valida e grava a receita; **conferir** renderiza (Workbench, sem janela)
+  as vistas lateral, de cima, de frente e 3/4 com a planta por cima, em PNG; no Blender com janela, um painel "MASSACRE"
+  na barra lateral com Exportar, Recarregar e Conferir.
+- `tools/blender.mjs` + `npm run blender -- <ação> <arma>`: `abrir` (Blender com janela e a arma montada), `conferir`
+  (renders numa pasta), `ida-volta` (importa e exporta sem janela e compara com a receita — a prova do caminho). O
+  executável vem de `BLENDER_PATH`, de `tools/blender/local.json` (fora do git) ou das pastas de instalação conhecidas.
+
+### Plantas de referência (`tools/blender/refs/<id>.json`)
+
+Silhueta lateral da arma real tirada de uma foto de domínio público ou licença livre do Wikimedia Commons, sobre fundo
+claro: a página `tools/silhueta.html` (servida pelo servidor de desenvolvimento) carrega a imagem pelo CORS do Commons
+num canvas, separa a arma do fundo por limiar, segue o contorno (marching squares), simplifica (Douglas-Peucker) e escala
+pelo comprimento real em u, com a boca do cano e o eixo alinhados ao referencial da arma. Nenhum arquivo de imagem é
+baixado para o disco nem entra no projeto: só o contorno e a ficha da fonte (arquivo, autor, licença). O contorno serve
+para três coisas: guia no Blender, recorte das peças (o perfil de cada peça sai do contorno cortado nas faixas dela e
+depois engrossa pela espessura mínima) e a conferência na suíte — **a silhueta lateral do SDF (máximo em Z) contra a
+planta, com IoU ≥ 0,8** — a prova numérica do "silhueta fiel".
+
+### Mãos de 4 dedos (`src/characters/hands/` + `src/data/hands.js`)
+
+- Modelo: palma (caixa arredondada 3,4 × 3,0 × 1,5 u), três dedos de raio 0,62 u com falanges de 1,25/1,05/0,90 u,
+  polegar de raio 0,7 u e o antebraço (cone arredondado de 1,25 u no pulso a 1,65 u no cotovelo, 11 u), tudo numa árvore
+  SDF com as costuras nos nós dos dedos (a mão inteira fica com ~7 u, na medida da empunhadura da Glock). Mão direita;
+  a esquerda é a espelhada.
+- Rig: 14 ossos (antebraço, mão, 3 × 3 falanges, polegar em 3) e pesos calculados pela distância de cada vértice ao
+  segmento de cada osso (queda suave, os 4 maiores, normalizados), numa `SkinnedMesh`. O boil do `ClayMaterial` age na
+  pose de repouso (antes do skinning) e as digitais ficam no espaço do objeto em repouso: a massa dobra com o dedo e as
+  marcas vão junto.
+- Poses de mão (dados): `empunhadura` (três dedos em volta, o primeiro no gatilho), `apoio` (mão em concha por baixo),
+  `guardaMao`, `bomba`, `faca` (punho fechado) e `aberta` — ângulos de cada falange e do polegar. A pose muda só na troca
+  de pose (12/s). O Blender importa a mão como proxy nas âncoras (a 4.3 traz o rig completo para animar lá).
+- Braçadeira: faixa de massa na cor do time a 55% do antebraço (visível só com time; `cl_bracadeira` testa); cor da
+  massa do braço = a do boneco (terracota no boneco de referência; o criador da Fase 5 troca).
+
+### Viewmodel parado (`src/weapons/viewmodel/` + `src/data/viewmodel.js`)
+
+- Camada própria do pipeline (`postPipeline.addLayer`): cena com a arma e os dois braços, câmera que copia a do jogador
+  com o FOV do viewmodel (60° por padrão, 54–68 como no CS; `viewmodel_fov`) e a luz: cópias das luzes do mapa (mesmas
+  posições, cores e intensidades, sincronizadas quando o painel muda uma luz), a hemisférica e o ambiente assado — a arma
+  escurece fora do feixe da key, como o resto do set.
+- Posição por categoria (pistola, rifle, sniper, escopeta, SMG bullpup, faca) em dados (`viewmodel_offset_x/y/z` somam por
+  cima), mãos nas âncoras da arma com a pose da âncora, antebraços apontando para cotovelos fixos fora da tela.
+- Aparece em primeira pessoa com o `PlayerPawn` (sala de testes, pista); some em terceira pessoa, no noclip, morto e
+  quando o item na mão ainda não tem receita (as outras 18 armas até a 4.4, granadas até a 4.7, a bomba até a Fase 8 — o
+  HUD continua dizendo o que está na mão). Na 4.1 não anima: segura parado, com o boil "em dois".
+
+### Bancada de armas (mapa `arsenal`)
+
+A mesa do animador (a mesma luz de vitrine) virada em bancada de armeiro: as armas deitadas no tapete de corte em
+fileiras por categoria, cada uma com a etiqueta de fita crepe escrita a caneta; na frente, a plataforma giratória com a
+arma escolhida em pé num suporte de arame; atrás, a planta de cada arma desenhada a lápis em papel preso com fita (o
+contorno da referência, desenhado por nós). Painel de fita crepe (Tab): escolher a arma, facção do acento (para as dos
+dois lados), nível (perto/mundo), skin, explodir os grupos, mostrar âncoras, sobrepor a planta à silhueta, "segurar" (o
+viewmodel com a câmera parada), triângulos e tempo de geração. Console: `arsenal`, `arma <id>`. A pesquisa visual da
+bancada (quadro de ferramentas, suportes, plataforma giratória) entra antes de montá-la.
+
+### Primeiro lote
+
+| Arma | Facção (acento) | Massas | Grupos | Peças principais |
+|---|---|---|---|---|
+| Glock-18 | TR (terracota/laranja) | grafite, grafiteClaro | corpo, slide, carregador, gatilho | armação com o ângulo da empunhadura e as ondas dos dedos; slide com as serrilhas em cortes; cano aparecendo na frente; miras com os pontos em acento; base do carregador e seletor em acento |
+| AK-47 | TR | grafite, madeira, madeiraEscura | corpo, carregador, ferrolho, gatilho | receptor e tampa; coronha, guarda-mãos e empunhadura de madeira; tubo e bloco de gás; massa de mira; freio de boca inclinado; carregador curvo com a base em acento; alavanca à direita |
+| M4A4 | CT (azul/verde-água) | grafite, grafiteClaro | corpo, carregador, ferrolho, gatilho | receptores superior e inferior; trilho com os dentes em cortes; torre da massa de mira; guarda-mão redondo; abafador; tubo e coronha retrátil; carregador reto-curvo; alavanca em T; seletor em acento |
+| AWP | ambos (amarelo/branco) | verdeOliva, grafite | corpo, carregador, alavanca, gatilho | chassi com o buraco do polegar; cano longo e freio; luneta com as torres; soleira; alavanca com a bola em acento |
+| Nova | ambos | grafite, grafiteClaro | corpo, bomba, gatilho | receptor e coronha de uma peça; cano e tubo do carregador; bomba com os sulcos; massa de mira em bolinha de acento |
+| P90 | ambos | grafite, grafiteClaro | corpo, carregador, gatilho | corpo bullpup com o buraco da empunhadura e a alça da frente; carregador em cima; mira de anel; seletor em acento |
+| Faca | ambos | aco, madeira | corpo | lâmina de espátula em folha (0,5 u, borda arredondada), virola, cabo torneado de madeira |
+
+As outras 18 armas de fogo e a faca de ouro ficam para a 4.4; granadas para a 4.7.
+
+### Console e dados
+
+- `src/data/armas/*.js` (receitas) e `src/data/armas/index.js` (registro), `src/data/weaponPalette.js`,
+  `src/data/hands.js`, `src/data/viewmodel.js`, `src/data/arsenal.js`.
+- Console: `viewmodel_fov`, `viewmodel_offset_x/y/z`, `r_viewmodel 0/1`, `cl_bracadeira tr|ct|0`, `arsenal`, `arma <id>`,
+  `armas` (lista das receitas com triângulos e tempo de geração).
+
+### Testes (Node, sem navegador)
+
+- SDF: `profile`, `lathe` e `tube` contra a distância por força bruta ao contorno amostrado; filete (raio, tangência,
+  cantos côncavos); caixa envolvente e intervalo garantidos; malha fechada no marching cubes.
+- Receitas: todas as sete validam; grupos, âncoras e massas por arma; espessura mínima; acento pela facção; silhueta
+  lateral × planta com IoU ≥ 0,8; o comprimento real na tabela; árvores determinísticas (a mesma chave de cache).
+- Mãos: pesos normalizados, cada vértice dos dedos puxado pelo seu osso, poses dentro dos limites das juntas, espelho da
+  esquerda.
+- Viewmodel: posição por categoria, mãos nas âncoras, cotovelo, quando aparece e some.
+- Blender: `npm run blender -- ida-volta <arma>` nas sete (fora da suíte do Node, porque precisa do Blender).
+
+### Aceite da 4.1
+
+- As sete peças geradas no jogo a partir das receitas, na bancada e na mão, com costura, boil, digitais, veios na
+  madeira e o acento certo; silhueta × planta com IoU ≥ 0,8; espessura mínima respeitada.
+- O caminho do Blender: `abrir`, `conferir` e `ida-volta` funcionando nas sete; exportar depois de uma edição no Blender
+  muda a arma no jogo.
+- Mãos de 4 dedos com rig, segurando cada uma das sete em primeira pessoa na sala de testes e na pista; somem em
+  terceira pessoa, no noclip e morto.
+- Sem erros do jogo no console, sem vazamento em 3 ciclos menu ↔ arsenal e menu ↔ pista, arquivos abaixo de 600 linhas,
+  números em `src/data/`, item 13 do moodboard.
+
+---
+
+## 4.2 a 4.8 — escopo (o desenho detalhado de cada uma é feito no começo do chat dela)
+
+- **4.2 Tiro e dano.** Pesquisa no código do CS:GO: `FireBullet`, a tabela de recoil gerada por arma
+  (`recoil_angle`, `recoil_angle_variance`, `recoil_magnitude`, `recoil_magnitude_variance`, `recoil_seed` com o
+  gerador uniforme do Source), `weapon_recoil_*` (a 3.2 já anotou as variáveis), `ScaleDamage` e as constantes de
+  blindagem, `HandleBulletPenetration` e os materiais (papelão fino, balsa, massinha, metal de ferramenta com espessura e
+  densidade). Hitboxes dos alvos (cabeça, peito e braços, estômago, pernas) no formato que a Fase 5 vai reusar nos
+  personagens. O campo de tiro é um mapa novo, com pesquisa no Pinterest no começo da subfase.
+- **4.3 Viewmodel stop-motion e efeitos.** Poses-chave por categoria no Blender (o rig da mão completo no importador),
+  presas às âncoras; o balanço e a inércia do viewmodel; os efeitos usando o sistema de impressão da 3.5 onde couber
+  (amassado na massinha) e deformação de vértices nas peças de massa perto do impacto (seção 0.9).
+- **4.4 Arsenal completo.** As outras 18: USP-S, P250, Five-SeveN, Desert Eagle, MAC-10, MP9, UMP-45, XM1014, Galil AR,
+  FAMAS, M4A1-S, AUG, SG 553, SSG 08, SCAR-20, G3SG1, Negev, M249; e a faca de ouro (skin ouro sobre a faca).
+- **4.5 Mira e acessórios**, **4.6 Faca**, **4.7 Granadas** e **4.8 Sensação e aceite** como na tabela do começo.
+
+## Aceite da Fase 4 (PROMPT, Fase 4)
+
+- [ ] Cada arma tem sensação distinta.
+- [ ] Padrões de spray reproduzíveis.
+- [ ] Wallbang varia por material.
+- [ ] A smoke bloqueia a visão de verdade (inclusive o raycast dos bots).

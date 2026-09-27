@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Ver fotos (rascunho)</title>
+<style>
+  body { margin: 0; background: #e9e4da; font: 12px system-ui, sans-serif; }
+  figure { margin: 6px; } img { width: 100%; height: auto; display: block; background: #fff; }
+  figcaption { color: #2A2320; padding: 2px 0 8px; }
+</style>
+<div id="lista"></div>
+<script>
+// Rascunho: só visualiza as fotos do Commons (nada é salvo). ?a=Titulo1|Titulo2...
+const titulos = new URLSearchParams(location.search).get('a').split('|');
+(async () => {
+  const u = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=url|size&iiurlwidth=1200&titles='
+    + encodeURIComponent(titulos.join('|'));
+  const j = await (await fetch(u)).json();
+  for (const p of Object.values(j.query.pages)) {
+    const ii = p.imageinfo?.[0];
+    if (!ii) continue;
+    const f = document.createElement('figure');
+    f.innerHTML = `<img src="${ii.thumburl || ii.url}"><figcaption>${p.title} · ${ii.width}×${ii.height}</figcaption>`;
+    document.getElementById('lista').appendChild(f);
+  }
+  window.__pronto = true;
+})();
+</script>
+</html>

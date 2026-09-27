@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Régua de fidelidade — MASSACRE</title>
+<style>
+  body { margin: 0; background: #1f1a18; color: #F6F0E4; font: 12px system-ui, sans-serif; }
+  #info, #ferramentas { padding: 6px 8px; color: #E8D9A8; }
+  #ferramentas button { margin-right: 6px; }
+  canvas { display: block; margin: 4px 0 14px; cursor: crosshair; }
+  pre { margin: 0 8px 12px; padding: 8px; background: #2A2320; max-height: 40vh; overflow: auto; }
+</style>
+<div id="info">carregando…</div>
+<div id="ferramentas">
+  <button id="fechar" type="button">Fechar peça</button>
+  <button id="linha" type="button">Guardar linha aberta</button>
+  <button id="desfazer" type="button">Desfazer ponto</button>
+  <button id="limpar" type="button">Limpar pontos</button>
+  <button id="copiar" type="button">Copiar JSON</button>
+  <span id="pontos">0 pontos</span>
+</div>
+<pre id="saida"></pre>
+<div id="faixas"></div>
+<script type="module">
+// Régua de fidelidade (Fase 4.1a; desenho em docs/superpowers/specs/2026-09-26-armas-realistas-design.md, seção 3.3).
+// A foto do Commons é lida só no canvas (nada vai para o disco); a escala sai do comprimento oficial (?mm=); boca do
+// cano em x = 0 e eixo do cano em y = 0 pelo centro do cano exposto (?eixox=a,b em mm; sem ele, o meio da boca, que
+// erra quando a boca tem quebra-chamas oblíquo); grade em mm (linhas a cada 10, rótulos a cada 50) em faixas ampliadas
+// (?pxmm= e ?faixa=); perfis de cima e de baixo a cada mm; contorno e buracos simplificados; média de cor por retângulo
+// em mm (?cores=nome:x0,y0,x1,y1;…, só os pixels da arma); clique nas faixas para marcar o contorno de uma peça. A saída
+// é o JSON no formato da ficha, para completar (medidas oficiais com a fonte, correção de cor) e gravar em
+// tools/blender/refs/<id>.json. Exemplo:
+//   tools/regua.html?arma=ak47&arquivo=File:AK-47%20assault%20rifle.jpg&mm=870&eixox=-130,-80
+import { sourceInfo, loadImage, weaponMask, largestComponent, traceLoops, area, simplify } from './regua/lib.js';
+
+const P = new URLSearchParams(location.search);
+const ARMA = P.get('arma') || 'arma';
+const FILE = P.get('arquivo');
+const MM = Number(P.get('mm'));
+const MIRROR = P.get('espelhar') === '1';
+const PX = Number(P.get('pxmm') || 2.8);
+const FAIXA = Number(P.get('faixa') || 220);
+const info = document.getElementById('info');
+const saida = document.getElementById('saida');
+const r1 = (v) => Math.round(v * 10) / 10;
+const hex2 = (v) => Math.round(v).toString(16).padStart(2, '0');
+const srgbParaLinear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+
+const marcados = { atual: [], pecas: {}, linhas: {} };
+
+async function run() {
+  if (!FILE || !(MM > 0)) throw new Error('use ?arquivo=File:… e ?mm=<comprimento oficial>');
+  const src = await sourceInfo(FILE);
+  const img = await loadImage(src.url);
+  const W = img.naturalWidth;
+  const H = img.naturalHeight;
+  const cv = document.createElement('canvas');
+  cv.width = W;
+  cv.height = H;
+  const g = cv.getContext('2d', { willReadFrequently: true });
+  if (MIRROR) {
+    g.translate(W, 0);
+    g.scale(-1, 1);
+  }
+  g.drawImage(img, 0, 0);
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const pixels = g.getImageData(0, 0, W, H);
+  const { mask: raw, mode } = weaponMask(pixels, W, H);
+  const mask = largestComponent(raw, W, H);
+  const loops = traceLoops(mask, W, H).map((l) => ({ l, a: area(l) }));
+  loops.sort((p, q) => Math.abs(q.a) - Math.abs(p.a));
+  const outer = loops[0];
+  let minX = Infinity;
+  let maxX = -Infinity;
+  for (const [x] of outer.l) {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+  }
+  const s = MM / (maxX - minX); // mm por pixel da foto
+  let top = Infinity;
+  let bottom = -Infinity;
+  const band = (maxX - minX) * 0.01;
+  for (const [x, y] of outer.l) {
+    if (x >= maxX - band) {
+      top = Math.min(top, y);
+      bottom = Math.max(bottom, y);
+    }
+  }
+  let axisY = (top + bottom) / 2;
+  let eixo = null;
+  if (P.has('eixox')) {
+    // Centro da primeira faixa de pixels (de cima) em cada coluna pedida: o cano exposto.
+    const [a, b] = P.get('eixox').split(',').map(Number);
+    const centros = [];
+    for (let xm = a; xm <= b; xm += 2) {
+      const px = Math.round(maxX + xm / s);
+      let t = -1;
+      let e = -1;
+      for (let y = 0; y < H; y++) {
+        if (mask[y * W + px]) {
+          if (t < 0) t = y;
+          e = y;
+        } else if (t >= 0) break;
+      }
+      if (t >= 0) centros.push({ c: (t + e) / 2, d: (e - t + 1) * s });
+    }
+    centros.sort((p, q) => p.c - q.c);
+    const med = centros[centros.length >> 1];
+    axisY = med.c;
+    eixo = { medidoEntreX: [a, b], canoMedidoMM: r1(med.d * 10) / 10, amostras: centros.length };
+  }
+  const toMM = (x, y) => [(x - maxX) * s, -(y - axisY) * s];
+  const perfil = [];
+  for (let xm = -MM; xm <= 0; xm += 1) {
+    const px = Math.min(W - 1, Math.max(0, Math.round(maxX + xm / s)));
+    let t = -1;
+    let bt = -1;
+    for (let y = 0; y < H; y++) {
+      if (mask[y * W + px]) {
+        if (t < 0) t = y;
+        bt = y;
+      }
+    }
+    if (t >= 0) perfil.push([xm, r1(toMM(px, t)[1]), r1(toMM(px, bt)[1])]);
+  }
+  const contorno = simplify(outer.l, 1.0).map(([x, y]) => toMM(x, y).map(r1));
+  const buracos = loops.slice(1)
+    .filter((h) => Math.abs(h.a) > Math.abs(outer.a) * 0.002 && Math.sign(h.a) !== Math.sign(outer.a))
+    .map((h) => simplify(h.l, 1.0).map(([x, y]) => toMM(x, y).map(r1)));
+
+  // Média de cor por retângulo (só os pixels da arma), em sRGB e em linear.
+  const cores = {};
+  for (const item of (P.get('cores') || '').split(';').filter(Boolean)) {
+    const [nome, ret] = item.split(':');
+    const [x0, y0, x1, y1] = ret.split(',').map(Number);
+    const soma = [0, 0, 0];
+    const lin = [0, 0, 0];
+    let n = 0;
+    for (let py = Math.round(axisY - y1 / s); py <= Math.round(axisY - y0 / s); py++) {
+      for (let px = Math.round(maxX + x0 / s); px <= Math.round(maxX + x1 / s); px++) {
+        if (px < 0 || py < 0 || px >= W || py >= H || !mask[py * W + px]) continue;
+        const k = (py * W + px) * 4;
+        for (let c = 0; c < 3; c++) {
+          soma[c] += pixels.data[k + c];
+          lin[c] += srgbParaLinear(pixels.data[k + c] / 255);
+        }
+        n++;
+      }
+    }
+    if (!n) continue;
+    cores[nome] = {
+      foto: { srgb: `#${soma.map((v) => hex2(v / n)).join('')}`, linear: lin.map((v) => Math.round((v / n) * 1000) / 1000) },
+      pixels: n,
+    };
+  }
+
+  const ficha = () => ({
+    formato: 2,
+    arma: ARMA,
+    variante: P.get('variante') || '',
+    unidade: 'mm',
+    referencial: 'boca do cano em x = 0; eixo do cano em y = 0 (centro do cano exposto); +X para a boca, +Y para cima; lado direito da arma',
+    fotos: [{
+      lado: MIRROR ? 'direito (espelhada)' : 'direito', arquivo: src.file, pagina: src.page, autor: src.artist, licenca: src.license,
+      pixels: [W, H], mmPorPixel: Math.round(s * 10000) / 10000, eixo,
+    }],
+    contorno, buracos, pecas: marcados.pecas, linhas: marcados.linhas, cores,
+    medidasDaFoto: {
+      comprimento: MM,
+      alturaTotal: r1(Math.max(...perfil.map((p) => p[1])) - Math.min(...perfil.map((p) => p[2]))),
+    },
+    perfil,
+  });
+  const mostrar = () => {
+    saida.textContent = JSON.stringify(ficha(), null, 1);
+    document.getElementById('pontos').textContent = `${marcados.atual.length} pontos marcados`;
+  };
+  window.__ficha = ficha;
+  info.textContent = `${src.file} · ${src.license} · ${src.artist} · ${W}×${H} px · ${mode} · 1 px = ${s.toFixed(3)} mm · `
+    + `buracos ${buracos.length}${eixo ? ` · cano ${eixo.canoMedidoMM} mm` : ''}`;
+
+  // Faixas ampliadas com a grade; o clique marca um ponto (mm) da peça atual.
+  const cont = document.getElementById('faixas');
+  const faixas = [];
+  for (let x0 = -MM; x0 < 0; x0 += FAIXA) {
+    const x1 = Math.min(0, x0 + FAIXA);
+    let yMin = Infinity;
+    let yMax = -Infinity;
+    for (const [xm, t, b] of perfil) {
+      if (xm >= x0 && xm <= x1) {
+        yMin = Math.min(yMin, b);
+        yMax = Math.max(yMax, t);
+      }
+    }
+    yMin = Math.floor((yMin - 12) / 10) * 10;
+    yMax = Math.ceil((yMax + 12) / 10) * 10;
+    const c = document.createElement('canvas');
+    c.width = Math.round((x1 - x0 + 24) * PX);
+    c.height = Math.round((yMax - yMin) * PX);
+    const q = c.getContext('2d');
+    const X = (xm) => (xm - x0 + 12) * PX;
+    const Y = (ym) => (yMax - ym) * PX;
+    const desenhar = () => {
+      q.fillStyle = '#e9e4da';
+      q.fillRect(0, 0, c.width, c.height);
+      q.imageSmoothingQuality = 'high';
+      q.drawImage(cv, maxX + (x0 - 12) / s, axisY - yMax / s, c.width / PX / s, c.height / PX / s, 0, 0, c.width, c.height);
+      for (let xm = Math.ceil((x0 - 12) / 10) * 10; xm <= x1 + 12; xm += 10) {
+        const major = xm % 50 === 0;
+        q.strokeStyle = major ? 'rgba(0,120,255,0.75)' : 'rgba(0,120,255,0.28)';
+        q.lineWidth = major ? 1.2 : 0.7;
+        q.beginPath();
+        q.moveTo(X(xm) + 0.5, 0);
+        q.lineTo(X(xm) + 0.5, c.height);
+        q.stroke();
+        if (major) {
+          q.fillStyle = '#0050d0';
+          q.font = 'bold 12px system-ui';
+          q.fillText(String(xm), X(xm) + 2, 12);
+        }
+      }
+      for (let ym = yMin; ym <= yMax; ym += 10) {
+        const major = ym % 50 === 0;
+        q.strokeStyle = ym === 0 ? 'rgba(255,40,40,0.9)' : major ? 'rgba(0,160,80,0.75)' : 'rgba(0,160,80,0.28)';
+        q.lineWidth = ym === 0 || major ? 1.2 : 0.7;
+        q.beginPath();
+        q.moveTo(0, Y(ym) + 0.5);
+        q.lineTo(c.width, Y(ym) + 0.5);
+        q.stroke();
+        if (major || ym === 0) {
+          q.fillStyle = '#007a3c';
+          q.font = 'bold 12px system-ui';
+          q.fillText(String(ym), 2, Y(ym) - 2);
+        }
+      }
+      // Pontos da peça atual e das guardadas que caem nesta faixa.
+      const riscar = (pts, cor, fechar) => {
+        if (!pts.length) return;
+        q.strokeStyle = cor;
+        q.fillStyle = cor;
+        q.lineWidth = 1.5;
+        q.beginPath();
+        pts.forEach(([xm, ym], i) => (i ? q.lineTo(X(xm), Y(ym)) : q.moveTo(X(xm), Y(ym))));
+        if (fechar) q.closePath();
+        q.stroke();
+        for (const [xm, ym] of pts) q.fillRect(X(xm) - 2, Y(ym) - 2, 4, 4);
+      };
+      for (const pts of Object.values(marcados.pecas)) riscar(pts, 'rgba(210,54,47,0.9)', true);
+      for (const pts of Object.values(marcados.linhas)) riscar(pts, 'rgba(242,143,59,0.9)', false);
+      riscar(marcados.atual, 'rgba(108,63,181,0.95)', false);
+    };
+    c.addEventListener('click', (ev) => {
+      const r = c.getBoundingClientRect();
+      const xm = x0 - 12 + (ev.clientX - r.left) / PX;
+      const ym = yMax - (ev.clientY - r.top) / PX;
+      marcados.atual.push([r1(xm), r1(ym)]);
+      for (const f of faixas) f();
+      mostrar();
+    });
+    faixas.push(desenhar);
+    desenhar();
+    const h = document.createElement('div');
+    h.textContent = `faixa x ${x0} … ${x1} mm, y ${yMin} … ${yMax} mm`;
+    cont.appendChild(h);
+    cont.appendChild(c);
+  }
+  const guardar = (onde) => {
+    if (marcados.atual.length < 2) return;
+    const nome = prompt('Nome (sem acento, camelCase):');
+    if (!nome) return;
+    marcados[onde][nome] = marcados.atual;
+    marcados.atual = [];
+    for (const f of faixas) f();
+    mostrar();
+  };
+  document.getElementById('fechar').onclick = () => guardar('pecas');
+  document.getElementById('linha').onclick = () => guardar('linhas');
+  document.getElementById('desfazer').onclick = () => {
+    marcados.atual.pop();
+    for (const f of faixas) f();
+    mostrar();
+  };
+  document.getElementById('limpar').onclick = () => {
+    marcados.atual = [];
+    for (const f of faixas) f();
+    mostrar();
+  };
+  document.getElementById('copiar').onclick = () => navigator.clipboard.writeText(saida.textContent);
+  mostrar();
+  window.__pronto = true;
+}
+run().catch((err) => {
+  info.textContent = `erro: ${err.message}`;
+  window.__pronto = true;
+});
+</script>
+</html>
