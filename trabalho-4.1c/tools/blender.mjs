@@ -16,6 +16,9 @@
 // Luvas (Fase 4.1b; tools/blender/armas/luvas.py, a ficha em tools/blender/refs/luvas.json): o alvo `luvas` nas mesmas
 // quatro ações (construir, validar, conferir, abrir); `todas` no construir e no validar começa pelas luvas.
 //
+// Peças da biblioteca (Fase 4.1c; tools/blender/armas/provas_pecas.py):
+//   npm run blender -- provar pecas           constrói cada peça nova sozinha e confere as medidas (reprova com código 1)
+//
 // Prepara o contexto que o Blender não sabe calcular sozinho — a paleta das massas, o acento da facção, a planta de
 // referência, a mão de massinha em cada pose (o próprio rig do jogo, src/characters/hands/) e, para abrir e conferir,
 // a prévia do jogo (tools/blender/previa.mjs: a malha que o jogo gera, com as mãos e a câmera do viewmodel) — em
@@ -38,6 +41,7 @@ import { LUVAS } from '../src/data/luvas.js';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = join(ROOT, 'tools', 'blender', 'massacre_armas.py');
 const SCRIPT_REAIS = join(ROOT, 'tools', 'blender', 'armas', 'principal.py');
+const SCRIPT_PROVAS = join(ROOT, 'tools', 'blender', 'armas', 'provas_pecas.py');
 const TMP = join(tmpdir(), 'massacre-blender');
 
 function blenderExe() {
@@ -434,6 +438,14 @@ async function principal() {
   const { ARMAS } = await import('../src/data/armas/index.js');
   const { ARMAS_REAIS } = await import('../src/data/armasReais.js');
   const real = (id) => Boolean(ARMAS_REAIS[id]);
+  if (acao === 'provar') {
+    if (alvo !== 'pecas') throw new Error('uso: npm run blender -- provar pecas');
+    const linha = rodarSemJanela([], SCRIPT_PROVAS).split('\n').find((l) => l.startsWith('MASSACRE-PROVAS '));
+    const r = JSON.parse(linha.slice('MASSACRE-PROVAS '.length));
+    for (const [peca, d] of Object.entries(r.medidas)) console.log(`${peca}: ${JSON.stringify(d)}`);
+    console.log(`peças: ${Object.keys(r.medidas).length} provadas, nenhum problema`);
+    return;
+  }
   if (acao === 'construir' || (acao === 'validar' && alvo && !alvo.endsWith('.js'))) {
     if (!alvo) throw new Error(`uso: npm run blender -- ${acao} <luvas|${Object.keys(ARMAS_REAIS).join('|')}|todas>`);
     let falhas = 0;
