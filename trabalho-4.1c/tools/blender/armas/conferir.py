@@ -1,6 +1,7 @@
 # Renders da conferência das armas realistas (Fase 4.1a; desenho, seção 4.7): lado, cima, frente, 3/4 dos dois lados,
 # perto do receptor e a vista aproximada da primeira pessoa (a câmera no olho do boneco com o FOV do viewmodel — 60
-# horizontais em 4:3 = 75,2° em 16:9 — e a arma na posição da categoria `rifle`), no modelo alto com os materiais de
+# horizontais em 4:3 = 75,2° em 16:9 — e a arma na posição da categoria `rifle`); desde a 4.1c, pelo tamanho de cada
+# arma (vistas_da_arma), com o lado esquerdo e o de perto pelos dois lados, no modelo alto com os materiais de
 # fábrica, em tools/blender/conferencia/<id>/ (fora do git). A sobreposição da silhueta com a foto (sobreposicao.png)
 # sai do validar.py. Desde a 4.1b, as luvas na pega (a luva de jogo pelo modelo das luvas, na pose e no encaixe que o
 # construir guardou nos rigs): as vistas de perto de cada mão pelos dois lados, por baixo e por trás, e a primeira
@@ -15,29 +16,52 @@ from . import estudio, luvas, maos, maos_correcoes, maos_rig
 from .unidades import S
 
 
-def conferir(ctx, pasta, amostras=160):
-    sc = bpy.context.scene
-    alto = bpy.data.collections['alto']
-    for col in sc.collection.children:
-        col.hide_render = col is not alto
+def vistas_da_arma(ctx, arma=None):
+    """As câmeras da conferência pelo tamanho da arma (desde a 4.1c; eram as da AK): lado (a direita, a boca à direita) e
+    o lado esquerdo (a boca à esquerda, o lado que a primeira pessoa mostra), cima e frente ortográficas pela caixa do
+    contorno da ficha, os três quartos dos dois lados na distância proporcional ao comprimento, a de perto no ponto
+    `PERTO_MM` do script da arma (x, y da ficha; sem ele, o centro) e a primeira pessoa com o `OLHO_M` do script (o olho
+    do boneco em metros no referencial do Blender; sem ele, a da AK)."""
     xs = [p[0] for p in ctx['ficha']['contorno']]
     ys = [p[1] for p in ctx['ficha']['contorno']]
     cx, cy = (min(xs) + max(xs)) / 2 * S, (min(ys) + max(ys)) / 2 * S
     comp = (max(xs) - min(xs)) * S
-    fundo = estudio.montar((cx, 0.0, cy))
-    dispositivo = estudio.render(1600, 900, amostras)
+    alt = (max(ys) - min(ys)) * S
     c = (cx, 0.0, cy)
-    receptor = (-0.50, 0.0, -0.01)
-    olho = (-0.78, 0.114, 0.079)  # 9 u atrás, 4,5 u à esquerda e 3,1 u acima da origem (o pino do gatilho)
-    vistas = {
-        'lado': estudio.camera('lado', (cx, -1.5, cy), c, orto=comp * 1.04),
-        'cima': estudio.camera('cima', (cx, 0.0, cy + 1.5), c, orto=comp * 1.04),
-        'frente': estudio.camera('frente', (0.9, 0.0, cy), (0.0, 0.0, cy), orto=0.45),
-        'tres_direita': estudio.camera('tres_direita', (cx + 0.27, -0.72, cy + 0.29), c, 50),
-        'tres_esquerda': estudio.camera('tres_esquerda', (cx + 0.27, 0.72, cy + 0.29), c, 50),
-        'perto': estudio.camera('perto', (receptor[0] + 0.08, -0.24, receptor[2] + 0.07), receptor, 55),
-        'primeira_pessoa': estudio.camera('primeira_pessoa', olho, (olho[0] + 1.0, olho[1] - 0.02, olho[2] - 0.03), 23.4),
+    k = comp / 0.87  # a escala da AK (870 mm), em que as distâncias foram acertadas na 4.1a
+    px, py = getattr(arma, 'PERTO_MM', (-500.0, -10.0)) if arma is not None else (-500.0, -10.0)
+    perto = (px * S, 0.0, py * S)
+    olho = getattr(arma, 'OLHO_M', (-0.78, 0.114, 0.079)) if arma is not None else (-0.78, 0.114, 0.079)
+    return c, comp, {
+        'lado': ('lado', (cx, -1.5, cy), c, None, comp * 1.04),
+        'lado_esquerdo': ('lado_esquerdo', (cx, 1.5, cy), c, None, comp * 1.04),
+        'cima': ('cima', (cx, 0.0, cy + 1.5), c, None, comp * 1.04),
+        'frente': ('frente', (max(xs) * S + 0.9, 0.0, cy), (0.0, 0.0, cy), None, max(alt, comp * 0.3) * 1.5),
+        'tres_direita': ('tres_direita', (cx + 0.27 * k, -0.72 * k, cy + 0.29 * k), c, 50, None),
+        'tres_esquerda': ('tres_esquerda', (cx + 0.27 * k, 0.72 * k, cy + 0.29 * k), c, 50, None),
+        'perto': ('perto', (perto[0] + 0.08 * k, -0.24 * k, perto[2] + 0.07 * k), perto, 55, None),
+        'perto_esquerda': ('perto_esquerda', (perto[0] + 0.08 * k, 0.24 * k, perto[2] + 0.07 * k), perto, 55, None),
+        'primeira_pessoa': ('primeira_pessoa', olho, (olho[0] + 1.0, olho[1] - 0.02, olho[2] - 0.03), 23.4, None),
     }
+
+
+def conferir(ctx, pasta, amostras=160, arma=None):
+    sc = bpy.context.scene
+    alto = bpy.data.collections['alto']
+    for col in sc.collection.children:
+        col.hide_render = col is not alto
+    c, _comp, defs = vistas_da_arma(ctx, arma)
+    fundo = estudio.montar(c)
+    dispositivo = estudio.render(1600, 900, amostras)
+    vistas = {nome: estudio.camera(n, pos, alvo, lente or 50, orto=orto) for nome, (n, pos, alvo, lente, orto) in defs.items()}
+    # A área em mm da ficha de cada vista ortográfica de lado (a régua sobrepõe o render à foto por ela: ?janela=).
+    janelas = {}
+    for nome in ('lado', 'lado_esquerdo'):
+        _n, pos, _alvo, _lente, orto = defs[nome]
+        meia_l, meia_a = orto / 2 / S, orto * 900 / 1600 / 2 / S
+        janelas[nome] = [pos[0] / S - meia_l, pos[0] / S + meia_l, pos[2] / S - meia_a, pos[2] / S + meia_a]
+    with open(os.path.join(pasta, 'vistas.json'), 'w', encoding='utf-8') as f:
+        json.dump({'janelas': janelas, 'espelhada': {'lado': False, 'lado_esquerdo': True}}, f, indent=1)
     arquivos = []
     for nome, cam in vistas.items():
         sc.camera = cam

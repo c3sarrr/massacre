@@ -161,7 +161,7 @@ def revalidar(ctx):
 
 def acao_conferir(ctx):
     bpy.ops.wm.open_mainfile(filepath=os.path.join(ctx['conferencia'], f"{ctx['id']}.blend"))
-    arquivos, dispositivo = conferir.conferir(ctx, ctx['conferencia'])
+    arquivos, dispositivo = conferir.conferir(ctx, ctx['conferencia'], arma=importlib.import_module(f"armas.{ctx['id']}"))
     print('MASSACRE-CONFERIR', json.dumps(arquivos, ensure_ascii=False))
     print('MASSACRE-DISPOSITIVO', dispositivo)
 

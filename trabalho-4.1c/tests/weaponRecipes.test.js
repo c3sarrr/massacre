@@ -33,7 +33,10 @@ const TABLE = {
 };
 
 const plan = (id) => plantaDoArquivo(JSON.parse(readFileSync(new URL(`../tools/blender/refs/${id}.json`, import.meta.url), 'utf8')));
-const COM_PLANTA = IDS.filter((x) => x !== 'knife');
+// As de massinha que ainda têm a planta da 4.1 (formato 1) em tools/blender/refs/: as refeitas na 4.1c (a Glock, a M4A4 e
+// a faca) ganharam a ficha no formato 2, da arma real, e a receita delas sai na Tarefa 12 do plano da 4.1c.
+const COM_PLANTA = IDS.filter((x) => x !== 'knife'
+  && JSON.parse(readFileSync(new URL(`../tools/blender/refs/${x}.json`, import.meta.url), 'utf8')).formato !== 2);
 
 test('receitas: as seis estão no registro, validam e são das armas da tabela', () => {
   assert.deepEqual(Object.keys(ARMAS).sort(), [...IDS].sort());

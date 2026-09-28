@@ -440,14 +440,36 @@ def materiais_das_luvas(pintura):
     }
 
 
+# Aspereza do material do Blender por acabamento de fábrica (os de src/data/acabamentos.js que as armas usam de fábrica).
+ASPEREZA_DE_FABRICA = {'oxidado': 0.34, 'fosfatizado': 0.55, 'anodizado': 0.42, 'escovado': 0.22, 'cromado': 0.08}
+PLASTICOS = {'polimero': (0.65, 0.35), 'borracha': (0.7, 0.0), 'fosco': (0.85, 0.0), 'acetinado': (0.5, 0.0), 'cerakote': (0.7, 0.2)}
+
+
+def material_de_zona(nome, z):
+    """O material do modelo alto de uma zona da pintura de fábrica, pelo acabamento dela: os metálicos pelo aço (com a
+    aspereza do acabamento), os plásticos pelo polímero (com o pontilhado), a madeira pela madeira."""
+    a = z['acabamento']
+    if a == 'madeira':
+        return mat_madeira(nome, linear(z['cor']), linear(z.get('cor2') or z['cor']))
+    if a in PLASTICOS:
+        rug, relevo = PLASTICOS[a]
+        return mat_plastico(nome, linear(z['cor']), rug, relevo=relevo)
+    rug = ASPEREZA_DE_FABRICA.get(a, 0.34)
+    cor = linear(z['cor'])
+    return mat_aco(nome, cor, rug, gasto=tuple(min(1.0, c * 1.1 + 0.3) for c in cor))
+
+
 def materiais_de_fabrica(fabrica):
-    """Os materiais do modelo alto a partir da pintura de fábrica (zonas → cores do contexto)."""
+    """Os materiais do modelo alto a partir da pintura de fábrica (zonas → cores do contexto): um por zona, com o nome
+    da zona (M['corpo'], M['guarnicao']…, desde a 4.1c), e os nomes da AK (aço, madeira) quando as zonas dela existem."""
     z = fabrica['zonas']
-    aco = linear(z['corpo']['cor'])
-    return {
-        'aco': mat_aco('aço oxidado', aco, 0.34, gasto=(0.32, 0.32, 0.34)),
-        'aco_detalhes': mat_aco('aço dos detalhes', linear(z['detalhes']['cor']), 0.34, gasto=(0.36, 0.36, 0.38)),
-        'aco_carregador': mat_aco('aço do carregador', linear(z['carregador']['cor']), 0.34, gasto=(0.36, 0.37, 0.39)),
-        'aco_polido': mat_aco('aço polido', linear(z['interno']['cor']), 0.22, gasto=(0.6, 0.6, 0.6)),
-        'madeira': mat_madeira('madeira', linear(z['guarnicao']['cor']), linear(z['guarnicao'].get('cor2') or z['guarnicao']['cor'])),
-    }
+    M = {zona: material_de_zona(f'{zona} de fábrica', d) for zona, d in z.items()}
+    if {'corpo', 'detalhes', 'carregador', 'interno', 'guarnicao'} <= set(z):
+        M.update({
+            'aco': mat_aco('aço oxidado', linear(z['corpo']['cor']), 0.34, gasto=(0.32, 0.32, 0.34)),
+            'aco_detalhes': mat_aco('aço dos detalhes', linear(z['detalhes']['cor']), 0.34, gasto=(0.36, 0.36, 0.38)),
+            'aco_carregador': mat_aco('aço do carregador', linear(z['carregador']['cor']), 0.34, gasto=(0.36, 0.37, 0.39)),
+            'aco_polido': mat_aco('aço polido', linear(z['interno']['cor']), 0.22, gasto=(0.6, 0.6, 0.6)),
+            'madeira': mat_madeira('madeira', linear(z['guarnicao']['cor']), linear(z['guarnicao'].get('cor2') or z['guarnicao']['cor'])),
+        })
+    return M
