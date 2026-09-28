@@ -251,11 +251,11 @@ function hashEntradas(id, def, ficha) {
 
 /** Contexto de uma arma realista para o principal.py: ficha validada, pintura de fábrica, orçamento, pastas, hash. */
 async function contextoReal(id, { forcar = false } = {}) {
-  const { ARMAS_REAIS, orcamentoDaArma, soquetesDaArma } = await import('../src/data/armasReais.js');
+  const { ARMAS_REAIS, classeDaArma, medidasDaArma, orcamentoDaArma, soquetesDaArma, zonasDaArma } = await import('../src/data/armasReais.js');
   const { validarFicha } = await import('../src/weapons/model/ficha.js');
   const def = ARMAS_REAIS[id];
   if (!def) throw new Error(`${id} não é uma arma realista (tem: ${Object.keys(ARMAS_REAIS).join(', ')})`);
-  const ficha = validarFicha(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', `${id}.json`), 'utf8')));
+  const ficha = validarFicha(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', `${id}.json`), 'utf8')), classeDaArma(id));
   // A pega (Fase 4.1b, D5): o solver refaz o rig das luvas dentro do construir da arma, então a ficha e as pinturas das
   // luvas entram no contexto e no hash — mudar as luvas refaz a pega de todas as armas.
   const { validarFichaLuvas } = await import('../src/characters/hands/fichaLuvas.js');
@@ -264,7 +264,9 @@ async function contextoReal(id, { forcar = false } = {}) {
     pinturas: LUVAS.pinturas,
   };
   const ctx = {
-    id, raiz: ROOT, ficha, fabrica: def.fabrica, pecas: def.pecas, zonas: def.zonas, soquetes: soquetesDaArma(id),
+    id, raiz: ROOT, ficha, fabrica: def.fabrica, pecas: def.pecas, zonas: zonasDaArma(id), soquetes: soquetesDaArma(id),
+    // As medidas-chave da classe (Fase 4.1c, D3): o validar.py mede cada uma pelo nome.
+    classe: classeDaArma(id), medidas: medidasDaArma(id),
     orcamento: orcamentoDaArma(id), saida: join(ROOT, def.pasta), conferencia: join(ROOT, 'tools', 'blender', 'conferencia', id),
     categoria: def.categoria, luvas, hash: hashEntradas(id, def, { ficha, luvas }), forcar,
   };

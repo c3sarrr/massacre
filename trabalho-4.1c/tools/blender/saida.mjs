@@ -8,7 +8,7 @@
 
 import { readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ARMAS_REAIS, LODS_REAIS, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
+import { ARMAS_REAIS, LODS_REAIS, medidasDaArma, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
 import { CATEGORIAS_COM_PEGA, LUVAS } from '../../src/data/luvas.js';
 import { lerPega } from '../../src/characters/hands/pega.js';
 import { validarPega } from './saidaPega.mjs';
@@ -133,6 +133,22 @@ export function ladoWebp(buf) {
   throw new Error('.webp sem o bloco da imagem');
 }
 
+/**
+ * As medidas-chave do relatório contra as da classe da arma (Fase 4.1c; plano da 4.1c, D3): cada uma presente e a ±1 %
+ * do alvo da ficha, e nenhuma fora da lista.
+ * @returns {string[]}
+ */
+export function problemasDasMedidas(relatorio, medidas) {
+  const p = [];
+  const tem = relatorio?.medidas ?? {};
+  for (const m of medidas) if (!tem[m]) p.push(`o relatório não tem a medida ${m}`);
+  for (const [m, d] of Object.entries(tem)) {
+    if (!medidas.includes(m)) p.push(`medida ${m} fora das da classe`);
+    if (!(Math.abs(d.erro) <= 0.01)) p.push(`medida ${m}: ${d.mm} mm contra ${d.alvo} mm (erro ${d.erro >= 0 ? '+' : ''}${(d.erro * 100).toFixed(2)} %)`);
+  }
+  return p;
+}
+
 /** Arquivos que a construção grava para uma arma (pasta do registro). */
 export function arquivosDaArma(id) {
   return {
@@ -194,9 +210,7 @@ export function validarSaida(id, raiz) {
   const relatorio = JSON.parse(readFileSync(join(pasta, arqs.relatorio), 'utf8'));
   if (relatorio.arma !== id) problemas.push(`relatório de ${relatorio.arma}, esperava ${id}`);
   if (!relatorio.aprovado) problemas.push(`o Blender reprovou: ${(relatorio.problemas ?? []).join('; ')}`);
-  for (const [m, d] of Object.entries(relatorio.medidas ?? {})) {
-    if (!(Math.abs(d.erro) <= 0.01)) problemas.push(`medida ${m}: ${d.mm} mm contra ${d.alvo} mm (erro ${(d.erro * 100).toFixed(2)} %)`);
-  }
+  problemas.push(...problemasDasMedidas(relatorio, medidasDaArma(id)));
   if (!(relatorio.silhueta?.iouTolerancia >= 0.98)) problemas.push(`silhueta: ${relatorio.silhueta?.iouTolerancia} com tolerância (mínimo 0,98)`);
   for (const lod of LODS_REAIS) {
     const t = relatorio.lods?.[lod]?.triangulos;

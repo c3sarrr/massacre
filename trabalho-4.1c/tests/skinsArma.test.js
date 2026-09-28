@@ -82,7 +82,8 @@ test('skins nomeadas: as três de exemplo, com zonas, acabamentos e cores que ex
 test('registro das armas realistas: a AK-47 com zonas, peças, soquetes, orçamento e pintura de fábrica', () => {
   assert.deepEqual(ZONAS, ['corpo', 'guarnicao', 'carregador', 'detalhes', 'interno']);
   assert.deepEqual(LODS_REAIS, ['perto', 'mundo', 'longe']);
-  assert.deepEqual(PECAS_MOVEIS, ['ferrolho', 'carregador', 'gatilho', 'cao', 'seletor']);
+  // A alavanca de manejo e a tampa da janela de ejeção da M4 entraram na 4.1c (plano da 4.1c, D5).
+  assert.deepEqual(PECAS_MOVEIS, ['ferrolho', 'carregador', 'gatilho', 'cao', 'seletor', 'alavanca', 'tampa']);
   const ak = ARMAS_REAIS.ak47;
   assert.equal(ak.categoria, VIEWMODEL.weapons.ak47.category);
   assert.equal(ak.pasta, 'assets/armas/ak47/');

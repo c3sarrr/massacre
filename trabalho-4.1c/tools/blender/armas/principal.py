@@ -57,13 +57,12 @@ def _validar(ctx, arma, lods, jogo):
     triângulos, peças, zonas), os soquetes, as texturas gravadas e as UVs dos dois conjuntos (perto e mundo; o longe
     usa as do mundo)."""
     pecas_jogo = _malhas(jogo)
-    canos = [o for o in pecas_jogo if o.name.split('.')[0] == 'cano']
     soquetes_def = arma.soquetes(ctx['ficha'])
     nomes_soq = [o.name[len('soquete_'):] for o in bpy.data.collections['soquetes'].objects]
     perto = _pecas(lods['perto'])
     uv = assar.sobreposicao_uv(perto) + assar.sobreposicao_uv(_pecas(lods['mundo']))
     densidade = assar.densidade_texel(perto, ctx['orcamento']['textura'])
-    return validar.relatorio_e_problemas(ctx, ctx['ficha'], lods, soquetes_def, nomes_soq, canos, pecas_jogo, _lados(ctx),
+    return validar.relatorio_e_problemas(ctx, ctx['ficha'], lods, soquetes_def, nomes_soq, pecas_jogo, _lados(ctx),
                                          uv, densidade, ctx['conferencia'])
 
 
