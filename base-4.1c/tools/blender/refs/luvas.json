@@ -1,0 +1,148 @@
+{
+  "formato": 1,
+  "id": "luvas",
+  "descricao": "Luva tática de 5 dedos na mão de um adulto médio (Fase 4.1b). Unidades: mm e graus. Referencial da mão direita: origem no centro da junta do pulso, +X para as pontas dos dedos, +Y para o lado do polegar, +Z para as costas da mão (a esquerda é a direita espelhada).",
+  "fontes": {
+    "ansur2": {
+      "titulo": "ANSUR II (levantamento antropométrico do Exército dos EUA, 2012) — medidas da mão, média de homens e mulheres, N = 6 068 (tabela do benchmark Sota2)",
+      "url": "https://www.sota2.com/research/sota/hand-anthropometry-on-ansur-ii-combined-male-and-female"
+    },
+    "buryanov": {
+      "titulo": "Buryanov A., Kotiuk V. (2010). Proportions of Hand Segments. Int. J. Morphol. 28(3):755–758 — tabela I: comprimentos entre as juntas em radiografias de 66 adultos",
+      "url": "https://scielo.conicyt.cl/scielo.php?script=sci_arttext&pid=S0717-95022010000300015&lng=en&nrm=iso&tlng=en"
+    },
+    "greiner": {
+      "titulo": "Greiner T. M. (1991). Hand Anthropometry of U.S. Army Personnel. Natick TR-92/011 (DTIC ADA244533) — médias dos 1 003 homens",
+      "url": "https://archive.org/details/DTIC_ADA244533"
+    },
+    "ansur2Explorador": {
+      "titulo": "ANSUR II (2012) no Data Explorer do OPEN Design Lab (Penn State) — medianas dos dois sexos da circunferência do antebraço flexionado e da do pulso, lidas no navegador em 2026-09-26",
+      "url": "https://tools.openlab.psu.edu/tools/data-explorer"
+    },
+    "aaos": {
+      "titulo": "American Academy of Orthopaedic Surgeons — amplitude normal de movimento das juntas da mão, do pulso e do antebraço (pronação e supinação), conferida no navegador em 2026-09-27",
+      "url": "https://goniometer.io/rom-chart.pdf"
+    },
+    "cooney": {
+      "titulo": "Cooney W. P., Lucca M. J., Chao E. Y., Linscheid R. L. (1981). The kinesiology of the thumb trapeziometacarpal joint. J Bone Joint Surg 63:1371–81 — a CMC do polegar com 53° de flexão-extensão, 42° de abdução-adução e 17° de rotação axial (citado e conferido em Halilaj et al., 2013, PMC3594374)",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3594374/"
+    },
+    "referencias": {
+      "titulo": "Referências visuais da luva tática: busca do Pinterest de 2026-09-26 e os boards QGL, QFH e QTG (moodboard, seção 15)",
+      "url": "https://www.pinterest.com/search/pins/?q=tactical%20gloves%20knuckle%20protection%20close%20up"
+    }
+  },
+  "mao": {
+    "fonte": "ansur2",
+    "comprimento": { "mm": 189.3, "nota": "da prega do pulso à ponta do médio" },
+    "largura": { "mm": 85, "nota": "nos nós, do indicador ao mínimo" },
+    "palma": { "mm": 113.9, "nota": "da prega do pulso à prega da base do médio" },
+    "circunferencia": { "mm": 203.9, "nota": "em volta dos nós, sem o polegar" },
+    "pulso": { "mm": 169, "nota": "circunferência do pulso" }
+  },
+  "ossos": {
+    "fonte": "buryanov",
+    "polegar": { "metacarpo": 46.22, "proximal": 31.57, "distal": 21.67, "polpa": 5.67 },
+    "indicador": { "metacarpo": 68.12, "proximal": 39.78, "media": 22.38, "distal": 15.82, "polpa": 3.84 },
+    "medio": { "metacarpo": 64.6, "proximal": 44.63, "media": 26.33, "distal": 17.4, "polpa": 3.95 },
+    "anelar": { "metacarpo": 58, "proximal": 41.37, "media": 25.65, "distal": 17.3, "polpa": 3.95 },
+    "minimo": { "metacarpo": 53.69, "proximal": 32.74, "media": 18.11, "distal": 15.96, "polpa": 3.73 }
+  },
+  "juntas": {
+    "fonte": "greiner",
+    "nota": "Médias dos homens como publicadas; o script multiplica os comprimentos por mao.comprimento / pontaAoPulso.medio e as larguras e circunferências por mao.largura / larguraDaMao (a mão da ficha).",
+    "larguraDaMao": 90.4,
+    "pontaAoPulso": { "polegar": 137.9, "indicador": 185.2, "medio": 194.5, "anelar": 185, "minimo": 159.9 },
+    "dobras": { "polegarIndicador": 69.1, "indicadorMedio": 110.4, "medioAnelar": 109.9, "anelarMinimo": 96.6, "nota": "altura da dobra entre dois dedos acima da prega do pulso (crotch height)" },
+    "cotoveloAoPulso": 290,
+    "pulso": { "largura": 65.8, "circunferencia": 174.3 },
+    "polegar": { "ip": { "largura": 24, "circunferencia": 72.3 } },
+    "indicador": { "pip": { "largura": 23, "circunferencia": 68.4 }, "dip": { "circunferencia": 57.4 } },
+    "medio": { "pip": { "largura": 22.5, "circunferencia": 69.6 }, "dip": { "largura": 19.8, "circunferencia": 57.8 } },
+    "anelar": { "pip": { "largura": 21.4, "circunferencia": 64.9 }, "dip": { "largura": 18.5, "circunferencia": 53.8 } },
+    "minimo": { "pip": { "largura": 19.2, "circunferencia": 57.8 }, "dip": { "largura": 17.4, "circunferencia": 49.2 } }
+  },
+  "antebraco": {
+    "fonte": "ansur2Explorador",
+    "circunferenciaFlexionado": { "mm": 285, "nota": "mediana dos dois sexos: cotovelo a 90°, punho cerrado, a fita na prega do cotovelo" },
+    "pulso": { "mm": 165, "nota": "mediana dos dois sexos da circunferência do pulso no estilóide, a mesma base" }
+  },
+  "limites": {
+    "fonte": "aaos",
+    "mcp": [0, 90],
+    "pip": [0, 100],
+    "dip": [0, 90],
+    "abertura": [-20, 20],
+    "polegar": { "cmcAbducao": [0, 70], "cmcFlexao": [-20, 15], "mcp": [0, 50], "ip": [0, 80] },
+    "pulso": { "flexao": 80, "extensao": 70, "radial": 20, "ulnar": 30 },
+    "antebraco": { "pronacao": 80, "supinacao": 80 }
+  },
+  "rotacaoDoPolegar": {
+    "fonte": "cooney",
+    "cmc": [0, 17],
+    "nota": "A rotação axial do metacarpo do polegar na CMC (17° de amplitude), contada do repouso para a pronação que acompanha a flexão e a oposição (a polpa virando para os dedos; a rotação vem passiva, pela tensão dos ligamentos oblíquos). Sem ela o polegar do punho deita sobre os dedos com a polpa de lado."
+  },
+  "repouso": {
+    "nota": "Mão relaxada, que dobra bem tanto para abrir quanto para fechar (desenho da 4.1b, seção 3.1).",
+    "mcp": 15,
+    "pip": 20,
+    "dip": 10,
+    "abertura": 5,
+    "polegarAbducao": 40,
+    "polegarMcp": 10,
+    "polegarIp": 15
+  },
+  "luva": {
+    "nota": "Decisões de desenho conferidas nas referências (moodboard, seção 15): tecido elástico nas costas e nos lados, couro sintético na palma e nas pontas, almofadas nas falanges, protetor de borracha moldada nos nós, tira de velcro no punho com o puxador.",
+    "tecido": 1.2,
+    "couro": 1,
+    "almofada": 3,
+    "protetor": 7,
+    "tira": 38,
+    "punho": 45,
+    "folgaPunho": 2
+  },
+  "deducoes": {
+    "polegar": {
+      "cmc": [20, 22, -10],
+      "anguloNaPalma": 25,
+      "pronacao": 80,
+      "porque": "A base do polegar (CMC, no trapézio) fica ~20 mm à frente do pulso, ~22 mm para o lado do polegar e abaixo do plano da palma. Com o polegar deitado no plano da mão a 25° do eixo, a ponta cai a 134 mm do pulso — a medida de Greiner (137,9 × 189,3/194,5 = 134,2). A rotação de 80° em volta dele põe a unha de lado, virada para fora da mão, e a polpa de frente para o indicador, como na mão relaxada (e a flexão do polegar leva a ponta para a palma e o mínimo)."
+    },
+    "espessuraDaMao": {
+      "mm": 29,
+      "raio": 12,
+      "porque": "A circunferência nos nós (203,9) com a largura (85) numa seção de retângulo arredondado de raio 12 mm dá 28–29 mm de espessura; uma elipse daria 41 mm, grossa demais para a mão nos nós."
+    },
+    "pulso": {
+      "espessura": 38,
+      "raio": 18,
+      "porque": "A largura do pulso de Greiner na escala da ficha (65,8 × 85/90,4 = 61,9) e a circunferência do ANSUR II (169) numa seção de retângulo arredondado de raio 18 mm (o mesmo modelo da espessura da mão) dão 38 mm de espessura; uma elipse daria 45, grossa demais."
+    },
+    "folgaEntreDedos": {
+      "mm": 1,
+      "porque": "Os quatro nós repartem a largura da mão (85) na proporção das larguras nas PIP, com 1 mm entre um dedo e o outro na linha dos nós."
+    },
+    "leque": {
+      "fator": 0.42,
+      "porque": "Os metacarpos saem juntos do carpo e abrem em leque até os nós: a base de cada um fica a 0,42 da distância lateral do nó dele ao eixo da mão (as bases do indicador ao mínimo somam ~27 mm entre os centros, contra os 65 dos nós), da anatomia do carpo."
+    },
+    "arco": {
+      "mm": { "indicador": -2, "medio": 0, "anelar": -1.5, "minimo": -4 },
+      "porque": "O arco transverso da palma: os nós do indicador, do anelar e sobretudo do mínimo ficam um pouco abaixo (para o lado da palma) do nó do médio, que é o mais alto; da anatomia, conferido nas vistas de frente para as pontas."
+    },
+    "convergencia": {
+      "graus": { "indicador": -4, "medio": 0, "anelar": 4, "minimo": 9 },
+      "porque": "Os dedos fecham apontando para a base do polegar (a 'cascata' dos dedos): os eixos de flexão da PIP e da DIP de cada um inclinam um pouco para o médio; a MCP dobra reta (com as falanges esticadas e a MCP a 90°, a 'mesa', os dedos ficam lado a lado: inclinada, a da MCP levava o mínimo 13 mm por cima do anelar). Da anatomia, conferido nas vistas do punho fechado e da mesa."
+    },
+    "antebraco": {
+      "divisao": 0.5,
+      "porque": "O antebraço tem o comprimento do cotovelo ao pulso de Greiner (290 × 189,3/194,5 = 282 mm); o osso `antebraco` vai do cotovelo à metade e a `torcao` da metade ao pulso, para a torção do punho se repartir ao longo do antebraço sem torcer a malha num ponto só."
+    },
+    "perfilDoAntebraco": {
+      "circunferenciaNoCotovelo": 291.9,
+      "expoente": 1.3,
+      "porque": "A razão entre o antebraço flexionado e o pulso nas medianas do ANSUR II (285/165 = 1,727) aplicada ao pulso da ficha (169) dá 291,9 mm na prega do cotovelo. Entre os dois a circunferência cresce como t^1,3 (t = distância do pulso sobre os 282 mm do antebraço): quase reta no terço do pulso, onde só passam tendões, e abrindo no do cotovelo, onde ficam os ventres dos músculos — na boca do punho da luva (45 mm) dá 180,3 mm, 6,7 % acima do pulso. A seção é o retângulo arredondado do pulso na escala da circunferência."
+    }
+  }
+}
