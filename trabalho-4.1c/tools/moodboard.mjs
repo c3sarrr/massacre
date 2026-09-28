@@ -97,6 +97,12 @@ const BOARDS = [
   { id: 'QCK', label: 'Busca: cerakote rifle colors', url: 'https://www.pinterest.com/search/pins/?q=cerakote%20rifle%20colors', phase: '4.1a' },
   { id: 'QRL', label: 'Busca: rocket league car paint finish', url: 'https://www.pinterest.com/search/pins/?q=rocket%20league%20car%20paint%20finish', phase: '4.1a' },
   { id: 'QMP', label: 'Busca: fantastic mr fox miniature props', url: 'https://www.pinterest.com/search/pins/?q=fantastic%20mr%20fox%20miniature%20props', phase: '4.1a' },
+  { id: 'QMR', label: 'Busca: m4a1 carbine rail carry handle', url: 'https://www.pinterest.com/search/pins/?q=m4a1%20carbine%20rail%20carry%20handle', phase: '4.1c' },
+  { id: 'QRS', label: 'Busca: knights armament ras m4', url: 'https://www.pinterest.com/search/pins/?q=knights%20armament%20ras%20m4', phase: '4.1c' },
+  { id: 'QTM', label: 'Busca: m4 carbine a2 front sight', url: 'https://www.pinterest.com/search/pins/?q=m4%20carbine%20a2%20front%20sight', phase: '4.1c' },
+  { id: 'QRA', label: 'Busca: m4 quad rail ras handguard', url: 'https://www.pinterest.com/search/pins/?q=m4%20quad%20rail%20ras%20handguard', phase: '4.1c' },
+  { id: 'QPD', label: 'Busca: first person pistol two hands', url: 'https://www.pinterest.com/search/pins/?q=first%20person%20pistol%20two%20hands', phase: '4.1c' },
+  { id: 'QBN', label: 'Busca: m9 bayonet', url: 'https://www.pinterest.com/search/pins/?q=m9%20bayonet', phase: '4.1c' },
 ];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

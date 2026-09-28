@@ -30,6 +30,9 @@
 // é o JSON no formato da ficha, para completar (medidas oficiais com a fonte, correção de cor) e gravar em
 // tools/blender/refs/<id>.json. Exemplo:
 //   tools/regua.html?arma=ak47&arquivo=File:AK-47%20assault%20rifle.jpg&mm=870&eixox=-130,-80
+// Desde a 4.1c (plano da 4.1c, D2 e D4): ?lado=direito|esquerdo diz o lado da arma na foto (com ?espelhar=1 a foto do
+// lado esquerdo fica com a boca em +X) e a foto sai marcada como a do contorno; ?faca=1 troca o referencial para o da
+// faca (a ponta da lâmina em x = 0, o eixo do cabo em y = 0 — o ?eixox= mede o centro do cabo nas colunas pedidas).
 import { sourceInfo, loadImage, weaponMask, largestComponent, traceLoops, area, simplify } from './regua/lib.js';
 
 const P = new URLSearchParams(location.search);
@@ -37,6 +40,8 @@ const ARMA = P.get('arma') || 'arma';
 const FILE = P.get('arquivo');
 const MM = Number(P.get('mm'));
 const MIRROR = P.get('espelhar') === '1';
+const LADO = P.get('lado') || 'direito';
+const FACA = P.get('faca') === '1';
 const PX = Number(P.get('pxmm') || 2.8);
 const FAIXA = Number(P.get('faixa') || 220);
 const info = document.getElementById('info');
@@ -158,10 +163,12 @@ async function run() {
     arma: ARMA,
     variante: P.get('variante') || '',
     unidade: 'mm',
-    referencial: 'boca do cano em x = 0; eixo do cano em y = 0 (centro do cano exposto); +X para a boca, +Y para cima; lado direito da arma',
+    referencial: FACA
+      ? 'ponta da lâmina em x = 0; eixo do cabo em y = 0 (centro do cabo); +X para a ponta, +Y para o dorso (o gume para baixo)'
+      : 'boca do cano em x = 0; eixo do cano em y = 0 (centro do cano exposto); +X para a boca, +Y para cima',
     fotos: [{
-      lado: MIRROR ? 'direito (espelhada)' : 'direito', arquivo: src.file, pagina: src.page, autor: src.artist, licenca: src.license,
-      pixels: [W, H], mmPorPixel: Math.round(s * 10000) / 10000, eixo,
+      lado: LADO, espelhada: MIRROR, contorno: true, arquivo: src.file, pagina: src.page, autor: src.artist, licenca: src.license,
+      pixels: [W, H], mmPorPixel: Math.round(s * 10000) / 10000, eixo, usos: ['contorno'],
     }],
     contorno, buracos, pecas: marcados.pecas, linhas: marcados.linhas, cores,
     medidasDaFoto: {
