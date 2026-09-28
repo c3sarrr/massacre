@@ -112,8 +112,9 @@ def _lamina(ficha, M):
     for lado in (-1, 1):
         a, b = sorted((lado * (e / 2 - su['profundidade']), lado * (e / 2 + 2.0)))
         P.cortar(lam, P.prisma('sulco', canal, 'XZ', a, b, mat, 'corpo', chanfro=0))
+    # o furo do corta-arame: o contorno da máscara sem a escada de pixels (simplificado e arredondado)
     for b in ficha['buracos']:
-        P.cortar(lam, P.prisma('furo do corta-arame', b, 'XZ', -e, e, mat, 'corpo', chanfro=0))
+        P.cortar(lam, P.prisma('furo do corta-arame', P.suavizar(P.simplificar(b, 0.2, 0.8), 2), 'XZ', -e, e, mat, 'corpo', chanfro=0))
     P.gravacao('país', 'U.S.A.', -171.0, -2.0, 2.8, 'direita', -e / 2, 0.12, lam)
     P.gravacao('lote', '0188', -168.0, -6.5, 2.4, 'direita', -e / 2, 0.12, lam)
     return lam

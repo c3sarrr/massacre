@@ -1,6 +1,6 @@
 # A frente da M4A4 (a carabina M4A1) — Fase 4.1c (desenho em docs/superpowers/specs/2026-09-28-4.1c-glock-m4a4-m9-
 # design.md, seção 3.2): o anel delta, o guarda-mão de trilhos de quatro lados (o tipo RAS: os quatro trilhos MIL-STD-1913
-# da biblioteca, os furos de ventilação da metade de baixo e a numeração das fendas), a torre da massa de mira A2 (as
+# da biblioteca e os furos de ventilação da metade de baixo), a torre da massa de mira A2 (as
 # orelhas com a massa, a janela, os pinos cônicos, o ressalto da baioneta e o zarelho), o cano com o degrau do lançador e
 # o quebra-chamas A2 (cinco fendas, o fundo fechado). Em mm no referencial da ficha (tools/blender/refs/m4a4.json);
 # lado direito da arma = -Y do Blender. O resto da arma está em m4a4.py.
@@ -33,7 +33,7 @@ def _anel_delta(ficha, M):
 def _guarda_mao(ficha, M):
     """O guarda-mão de trilhos (alumínio anodizado, zona guarnição): o corpo octogonal, os quatro trilhos (o de cima na
     altura do trilho do receptor, o de baixo com os dentes em -26, os dos lados na metade de cima), os oito furos de
-    ventilação de cada lado da metade de baixo e a numeração das fendas nos trilhos dos lados (só no modelo alto)."""
+    ventilação de cada lado da metade de baixo."""
     pt, L = ficha['pontos'], ficha['vistaDeCima']['larguras']
     mat = M['guarnicao']
     t = pt['trilhoGuardaMao']
@@ -45,20 +45,13 @@ def _guarda_mao(ficha, M):
              (-lado, cima - 4.0)]
     corpo = P.prisma('guarda-mão', secao, 'YZ', X_ANEL, X_FIM_GM, mat, 'guarnicao', chanfro=1.0)
     x0, x1 = t['x']
-    # as fendas onde a foto as mostra (em cima e embaixo; as dos lados no passo das de cima)
+    # as fendas onde a foto as mostra (em cima e embaixo; as dos lados no passo das de cima). A numeração das fendas
+    # (R14 … R28 na foto) fica de fora: gravada no trilho, o booleano dela com o das fendas apagava fendas dos lados
     for nome, giro, y, z, fs in (('trilho de cima do guarda-mão', 0, 0.0, t['topo'], t['fendas']),
                                  ('trilho de baixo do guarda-mão', 180, 0.0, t['fundo'], t['fendasBaixo']),
                                  ('trilho esquerdo do guarda-mão', 90, w, Y_TRILHO_LADO, t['fendas']),
                                  ('trilho direito do guarda-mão', -90, -w, Y_TRILHO_LADO, t['fendas'])):
-        trilho, _c = PS.trilho_picatinny(nome, x0, x1, mat, 'guarnicao', 'base', y=y, z=z, giro=giro, altura=h + 0.8,
-                                         fendas=list(fs))
-        if giro in (90, -90) and trilho is not None:
-            # a numeração das fendas (a cada duas), deitada na face do trilho, como na foto (R14 … R28 do lado direito)
-            face = 'esquerda' if giro > 0 else 'direita'
-            letra = 'L' if giro > 0 else 'R'
-            for i, xc in enumerate(list(trilho['fendas'])[1::2]):
-                P.gravacao(f'número da fenda {letra}{14 + 2 * i}', f'{letra}{14 + 2 * i}', xc + 3.4, Y_TRILHO_LADO - 3.0, 2.6, face,
-                           w if giro > 0 else -w, 0.15, trilho, rotacao=90.0)
+        PS.trilho_picatinny(nome, x0, x1, mat, 'guarnicao', 'base', y=y, z=z, giro=giro, altura=h + 0.8, fendas=list(fs))
     # os furos de ventilação: recortes de 6 mm na parede da metade de baixo (o guarda-mão é oco; o fundo escuro)
     f = pt['furosGuardaMao']
     for s in (-1, 1):

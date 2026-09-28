@@ -1,6 +1,6 @@
 {
  "silhueta": {
-  "iouBruto": 0.9737,
+  "iouBruto": 0.97357,
   "iouTolerancia": 0.99391,
   "raioToleranciaPx": 1,
   "mmPorPx": 0.5
@@ -30,7 +30,7 @@
  },
  "lods": {
   "perto": {
-   "triangulos": 7574
+   "triangulos": 7622
   },
   "mundo": {
    "triangulos": 1424
@@ -42,7 +42,7 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 3.512,
+   "medianaPxPorMm": 3.537,
    "minimo": 1.0,
    "maximo": 1.0
   }
@@ -62,27 +62,27 @@
  "arma": "knife",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-28T03:27:29",
+ "gerado": "2026-09-28T04:04:02",
  "entradas": {
-  "hash": "abcce7f8f3e91d1637f0c2064930582408e57531528d175734b0a56c007c9697"
+  "hash": "52a00dfbe1855dd8d90f8c0171382d5e3c1f62a097cd7fee8acd0001711626cb"
  },
  "origemMM": [
   -177.6,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.3922,
+  "mundo": 0.3805,
   "longe": 0.2705
  },
  "facesEscondidasRemovidas": 3,
  "arquivos": {
-  "knife.glb": 116940,
-  "knife_m.webp": 645954,
-  "knife_mundo_m.webp": 70992,
-  "knife_mundo_n.webp": 69312,
-  "knife_n.webp": 678370
+  "knife.glb": 114776,
+  "knife_m.webp": 658390,
+  "knife_mundo_m.webp": 70880,
+  "knife_mundo_n.webp": 69864,
+  "knife_n.webp": 687304
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 113.1
+ "segundos": 175.3
 }

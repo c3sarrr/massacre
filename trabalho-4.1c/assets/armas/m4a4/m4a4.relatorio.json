@@ -1,6 +1,6 @@
 {
  "silhueta": {
-  "iouBruto": 0.97397,
+  "iouBruto": 0.97398,
   "iouTolerancia": 0.98409,
   "raioToleranciaPx": 1,
   "mmPorPx": 0.5
@@ -40,21 +40,21 @@
  },
  "lods": {
   "perto": {
-   "triangulos": 33590
+   "triangulos": 34272
   },
   "mundo": {
    "triangulos": 5700
   },
   "longe": {
-   "triangulos": 1419
+   "triangulos": 1418
   }
  },
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.082,
-   "minimo": 0.975,
-   "maximo": 1.021
+   "medianaPxPorMm": 2.195,
+   "minimo": 0.959,
+   "maximo": 1.024
   }
  },
  "soquetes": [
@@ -85,27 +85,27 @@
  "arma": "m4a4",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-28T03:23:07",
+ "gerado": "2026-09-28T04:11:51",
  "entradas": {
-  "hash": "cd7f55dcd599c098a89143b8f23a511b01658fffe0269a862d928af3e08e215f"
+  "hash": "91c4f8a9061a5d6eabb29906c4a98b889e2980cce7ceb3457b69015078dc415c"
  },
  "origemMM": [
   -504.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.4609,
-  "longe": 0.2641
+  "mundo": 0.4516,
+  "longe": 0.2634
  },
- "facesEscondidasRemovidas": 1439,
+ "facesEscondidasRemovidas": 1421,
  "arquivos": {
-  "m4a4.glb": 398064,
-  "m4a4_m.webp": 2614406,
-  "m4a4_mundo_m.webp": 292294,
-  "m4a4_mundo_n.webp": 276394,
-  "m4a4_n.webp": 2636166
+  "m4a4.glb": 405776,
+  "m4a4_m.webp": 2612326,
+  "m4a4_mundo_m.webp": 292010,
+  "m4a4_mundo_n.webp": 274542,
+  "m4a4_n.webp": 2638426
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 293.9
+ "segundos": 467.5
 }

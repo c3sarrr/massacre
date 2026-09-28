@@ -321,9 +321,23 @@ def _coronha_e_tubo(ficha, M):
     pc, pt, tn, L = ficha['pecas'], ficha['pontos'], ficha['tornos'], ficha['vistaDeCima']['larguras']
     pol, corpo, det = M['guarnicao'], M['corpo'], M['detalhes']
     lc = L['coronha']['mm'] / 2
-    cor = P.prisma('coronha', P.simplificar(pc['coronha']), 'XZ', -lc, lc, pol, 'guarnicao', chanfro=3.0, seg=3)
-    # embaixo do tubo a coronha é o braço da trava, mais estreito (o afinamento no Y por altura)
-    P.afinar(cor, lambda _x, z: 1.0 if z > -18.0 else (0.5 if z < -24.0 else 1.0 - 0.5 * (-18.0 - z) / 6.0))
+    cor = P.prisma('coronha', P.simplificar(pc['coronha']), 'XZ', -lc, lc, pol, 'guarnicao', chanfro=2.0, seg=3)
+    # A seção: na frente da soleira, o alto é a luva redonda em volta do tubo (o meio dela no eixo do tubo, um pouco
+    # acima) e embaixo o braço da trava, chato e mais estreito; a soleira de trás tem a largura toda. Os laços do
+    # fatiar dão vértices ao afinamento.
+    soleira = min(p[0] for p in pc['coronha']) + 42.0  # a frente da soleira (a parte alta de trás)
+    alto_luva = max(p[1] for p in pc['coronha'] if p[0] > soleira + 10.0)
+    fundo_luva = -18.5  # onde a luva encontra o braço da trava (a foto da NSWC)
+    meio, raio = (alto_luva + fundo_luva) / 2, (alto_luva - fundo_luva) / 2
+
+    def secao(x, z):
+        luva = math.sqrt(max(0.0, 1.0 - ((z - meio) / raio) ** 2))
+        largura = max(luva, 0.5 if z < -5.0 else 0.0, 0.3)
+        t = min(1.0, max(0.0, (x - soleira) / 10.0))
+        return 1.0 + (largura - 1.0) * t
+    P.fatiar(cor, 'Z', [-16.0, -12.0, -8.0, -4.0, 0.0, 4.0, 8.0, 12.0, 16.0, 19.0, 22.0])
+    P.fatiar(cor, 'X', [soleira, soleira + 5.0, soleira + 10.0])
+    P.afinar(cor, secao)
     for b in ficha['buracos']:
         if max(p[0] for p in b) < pt['frenteDaCoronha']:
             P.cortar(cor, P.prisma('fenda da bandoleira', b, 'XZ', -lc - 2, lc + 2, pol, 'guarnicao', chanfro=0))
