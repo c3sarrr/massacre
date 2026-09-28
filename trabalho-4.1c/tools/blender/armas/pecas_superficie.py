@@ -120,7 +120,8 @@ def relevo(nome, alvo, u, v, passo, raio, altura, mat=None, zona=None, peca=None
     textura de punho). A grade (u0, u1, passo) × (v0, v1, passo) em mm é levada à superfície por `raio(a, b)` → (origem,
     direção) em mm no Blender: o raio que acha a superfície para o ponto (a, b) da grade; cada vértice fica no ponto
     achado mais `altura(a, b)` mm pela normal. Os pontos que não acham a superfície (fora da peça) ficam de fora com as
-    faces deles. Devolve o objeto (ou None no modelo de jogo)."""
+    faces deles, como os pontos em que `altura` devolve None (fora da região). Devolve o objeto (ou None no modelo de
+    jogo)."""
     if P.nivel() == 'jogo' or alvo is None:
         return None
     arvore = _bvh_do(alvo)
@@ -133,6 +134,9 @@ def relevo(nome, alvo, u, v, passo, raio, altura, mat=None, zona=None, peca=None
         a = u0 + (u1 - u0) * i / nu
         for j in range(nv + 1):
             b = v0 + (v1 - v0) * j / nv
+            h = altura(a, b)
+            if h is None:  # fora da região do relevo (o painel da textura de punho)
+                continue
             origem, direcao = raio(a, b)
             o = Vector(v3(*origem))
             d = Vector(direcao).normalized()
@@ -141,7 +145,7 @@ def relevo(nome, alvo, u, v, passo, raio, altura, mat=None, zona=None, peca=None
                 continue
             if normal.dot(d) > 0:
                 normal = -normal
-            grade[i, j] = bm.verts.new(ponto + normal * (altura(a, b) * S))
+            grade[i, j] = bm.verts.new(ponto + normal * (h * S))
     for i in range(nu):
         for j in range(nv):
             q = [grade.get(k) for k in ((i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1))]

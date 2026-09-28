@@ -475,8 +475,10 @@ def assar_grupos(grupos, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=
     m = np.stack([ao, aspereza] + [arrays[k][..., 0] for k in ('borda', 'cor')], axis=2)
     # Os canais de dados só modulam o material (no oxidado, ±16 % de aspereza e ±6 % de cor): degraus de 4/255 na
     # aspereza e na cor e de 2/255 na sombra de contato não aparecem no jogo e cortam cerca de 30 % do WebP sem perdas
-    # (a `_m` da AK fica em 2,97 MB). A borda (o desgaste) fica inteira.
-    for canal, passo in ((0, 2.0), (1, 4.0), (3, 4.0)):
+    # (a `_m` da AK fica em 2,97 MB). A borda (o desgaste) também em degraus de 4/255 desde a 4.1c: é a rampa larga do
+    # gasto nas quinas, que o shader corta pelo desgaste da skin; inteira, os dentes dos trilhos da M4 a punham em 1,13
+    # MB (a `_m` da M4 de 3,29 para 2,61 MB).
+    for canal, passo in ((0, 2.0), (1, 4.0), (2, 4.0), (3, 4.0)):
         m[..., canal] = np.round(m[..., canal] * 255.0 / passo) * passo / 255.0
     # O WebP sem perdas pode trocar o RGB dos pixels de alfa 0: a variação de cor (o alfa) fica em 1/255 no mínimo.
     m[..., 3] = np.maximum(m[..., 3], 1.0 / 255.0)

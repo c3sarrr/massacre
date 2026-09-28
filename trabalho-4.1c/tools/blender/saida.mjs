@@ -8,8 +8,8 @@
 
 import { readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ARMAS_REAIS, LODS_REAIS, medidasDaArma, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
-import { CATEGORIAS_COM_PEGA, LUVAS } from '../../src/data/luvas.js';
+import { ARMAS_REAIS, LODS_REAIS, armaComPega, medidasDaArma, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
+import { LUVAS } from '../../src/data/luvas.js';
 import { lerPega } from '../../src/characters/hands/pega.js';
 import { validarPega } from './saidaPega.mjs';
 
@@ -216,9 +216,9 @@ export function validarSaida(id, raiz) {
     const t = relatorio.lods?.[lod]?.triangulos;
     if (resumo.lods[lod] && t !== resumo.lods[lod].triangulos) problemas.push(`${lod}: o relatório diz ${t} triângulos e o .glb tem ${resumo.lods[lod].triangulos}`);
   }
-  // A pega das luvas (Fase 4.1b): nas categorias com regra, os nós e o clipe no .glb, a seção do relatório e a marca
-  // igual à do luvas.glb (se as luvas já foram construídas).
-  if (CATEGORIAS_COM_PEGA.includes(a.categoria)) {
+  // A pega das luvas (Fase 4.1b): nas armas com a regra (armaComPega), os nós e o clipe no .glb, a seção do relatório e
+  // a marca igual à do luvas.glb (se as luvas já foram construídas).
+  if (armaComPega(id)) {
     try {
       const glbLuvas = join(raiz, LUVAS.pasta, 'luvas.glb');
       const marcaLuvas = existsSync(glbLuvas)

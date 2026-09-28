@@ -66,6 +66,39 @@ def suavizar(pts, it=2):
     return pts
 
 
+def simplificar(pts, tol=0.15, minimo=0.6):
+    """Tira a escada de pixels de um contorno traçado na foto sem arredondar as quinas de verdade (o Chaikin arredonda):
+    Douglas-Peucker fechado com `tol` mm (1 px da foto) e depois junta no meio os lados mais curtos que `minimo` mm — a
+    escada de 0,1-0,4 mm fazia o chanfro de 1 segmento sair com faces de área zero nas diagonais do punho."""
+    def dp(seq):
+        (ax, ay), (bx, by) = seq[0], seq[-1]
+        dx, dy = bx - ax, by - ay
+        n = math.hypot(dx, dy) or 1e-9
+        pior, k = -1.0, 0
+        for i in range(1, len(seq) - 1):
+            d = abs((seq[i][0] - ax) * dy - (seq[i][1] - ay) * dx) / n
+            if d > pior:
+                pior, k = d, i
+        if pior <= tol:
+            return [seq[0], seq[-1]]
+        return dp(seq[:k + 1])[:-1] + dp(seq[k:])
+    pts = [tuple(p) for p in pts]
+    # parte o anel no ponto mais longe do primeiro, para o Douglas-Peucker ter duas pontas fixas
+    k = max(range(len(pts)), key=lambda i: math.dist(pts[0], pts[i]))
+    anel = dp(pts[:k + 1])[:-1] + dp(pts[k:] + [pts[0]])[:-1]
+    mudou = True
+    while mudou and len(anel) > 3:
+        mudou = False
+        for i in range(len(anel)):
+            a, b = anel[i], anel[(i + 1) % len(anel)]
+            if math.dist(a, b) < minimo:
+                anel[i] = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+                del anel[(i + 1) % len(anel)]
+                mudou = True
+                break
+    return anel
+
+
 def reamostrar(poli, n):
     """n pontos igualmente espaçados ao longo de uma polilinha."""
     comp = [0.0]
@@ -479,8 +512,9 @@ def _grupo_arestas_vivas():
 
 def acabar(ob):
     """Chanfro, solda e normais pelo nível: o alto usa os segmentos da peça (no mínimo 3); o de jogo, 1 segmento nos
-    chanfros finos (< 1 mm) e 2 nos outros. A solda (0,001 mm) junta os vértices repetidos que os chanfros deixam onde se
-    encontram numa parede fina (cabeça de pino) ou tocam as faces de um booleano — sem ela sobram faces de área zero.
+    chanfros finos (< 1 mm) e 2 nos outros. A solda (0,005 mm) junta os vértices repetidos que os chanfros deixam onde se
+    encontram numa parede fina (cabeça de pino) ou tocam as faces de um booleano — sem ela sobram faces de área zero; na
+    armação da Glock (4.1c) o chanfro deixava, nas quinas dos rebaixos, remendos de 0,6 a 1,1 µm, que 0,001 mm não pegava.
     Arestas vivas acima de ANGULO_VIVO e normais ponderadas por área, mantendo as vivas. Peça com `chanfro_peso`
     (marcar_chanfro) chanfra só as arestas marcadas; os cortes feitos com `depois_do_chanfro` vão para depois do chanfro
     na pilha."""
@@ -501,7 +535,7 @@ def acabar(ob):
             ob.modifiers.move(ob.modifiers.find(nome), len(ob.modifiers) - 1)
     s = ob.modifiers.new('solda', 'WELD')
     s.mode = 'ALL'
-    s.merge_threshold = 0.001 * S
+    s.merge_threshold = 0.005 * S
     vivas = ob.modifiers.new('arestas vivas', 'NODES')
     vivas.node_group = _grupo_arestas_vivas()
     w = ob.modifiers.new('normais', 'WEIGHTED_NORMAL')

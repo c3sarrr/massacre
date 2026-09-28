@@ -62,3 +62,45 @@ test('ficha da Glock-18: contorno, peças, alturas e o que só se vê de cima', 
   assert.ok(f.pontos.janela.x0 < f.pontos.janela.x1 && f.pontos.janela.y1 > f.pontos.janela.y0);
   for (const [nome, cor] of Object.entries(f.cores)) assert.match(cor.fabrica, /^#[0-9A-F]{6}$/, nome);
 });
+
+test('ficha da M4A4: a M4A1 de 14,5 pol., válida como fuzil, com as medidas do TM e o contorno composto', () => {
+  const f = ler('m4a4');
+  assert.deepEqual(problemasDaFicha(f, 'fuzil'), []);
+  assert.match(f.variante, /M4A1/);
+  assert.equal(f.medidas.comprimento.mm, 838.2);
+  assert.equal(f.medidas.cano.mm, 368.3);
+  for (const m of ['comprimento', 'cano']) assert.match(f.medidas[m].fonte, /TM 9-1005-319-23&P/);
+  assert.equal(f.medidas.fechada.mm, 755.7, 'a coronha fechada dá a escala');
+  const foto = fotoDoContorno(f);
+  assert.equal(foto.arquivo, 'File:PEO M4 Carbine RAS noBG.png');
+  assert.ok(f.fotos.some((p) => p.arquivo === 'File:M4A1 Carbine.jpg' && p.usos.some((u) => /alça/.test(u))), 'a alça da foto da planta da 4.1');
+  assert.ok(f.fotos.some((p) => p.lado === 'esquerdo' && p.usos.includes('seletor')), 'o seletor vem do lado esquerdo');
+  const c = conferirContorno(f);
+  assert.ok(Math.abs((c.y1 - c.y0) - f.medidas.alturaComCarregador.mm) <= 0.5);
+  for (const p of ['coronha', 'receptorInferior', 'receptorSuperior', 'alca', 'guardaMao', 'torre', 'quebraChamas', 'carregador', 'gatilho']) {
+    assert.ok(f.pecas[p], p);
+  }
+  // as fendas dos trilhos no passo da foto: o do receptor a 1,5 % da norma (10,008 mm); o do guarda-mão da foto fica
+  // 2,4 % abaixo dela (a posição das fendas vem da foto, a largura e o fundo da norma)
+  const passo = (xs) => (xs[xs.length - 1] - xs[0]) / (xs.length - 1);
+  assert.ok(Math.abs(passo(f.pontos.trilho.fendas) - 10.008) / 10.008 < 0.015);
+  assert.ok(Math.abs(passo(f.pontos.trilhoGuardaMao.fendas) - 10.008) / 10.008 < 0.035);
+  assert.equal(f.vistaDeCima.larguras.trilho.mm, 21.2);
+  assert.ok(Math.abs(f.pontos.massaDeMira[0] - f.pontos.miraTras[0] - f.medidas.raioDeMira.mm) < 0.5, 'o raio de mira pelos pontos');
+});
+
+test('ficha da faca: a baioneta M9, válida como faca, com a lâmina, a espessura e o furo do corta-arame', () => {
+  const f = ler('knife');
+  assert.deepEqual(problemasDaFicha(f, 'faca'), []);
+  assert.match(f.variante, /M9/);
+  assert.equal(f.medidas.comprimento.mm, 311.2);
+  assert.match(f.medidas.comprimento.fonte, /NMAH/);
+  assert.ok(Math.abs(f.medidas.lamina.foto - f.medidas.lamina.mm) / f.medidas.lamina.mm <= 0.01, 'a lâmina da foto a ±1 %');
+  assert.equal(f.medidas.espessuraLamina.mm, 5.84);
+  const c = conferirContorno(f);
+  assert.ok(Math.abs((c.y1 - c.y0) - f.medidas.alturaGuarda.mm) / f.medidas.alturaGuarda.mm <= 0.02, 'a guarda com a argola');
+  assert.equal(f.buracos.length, 1, 'o furo do corta-arame');
+  const s = f.pontos.serrilha;
+  assert.ok(Math.abs((s.x[1] - s.x[0]) - 76.2) < 5, 'uns três polegadas de dentes (a patente)');
+  for (const p of ['lamina', 'guarda', 'cabo', 'pomo']) assert.ok(f.pecas[p], p);
+});

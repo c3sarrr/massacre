@@ -91,11 +91,17 @@ def construir(ctx):
     fontes = _malhas(alto)
     _etapa(t0, 'peças móveis e soquetes')
     # A pega (Fase 4.1b): as luvas refeitas pelo mesmo script e o solver na arma de jogo (o perto, peças em repouso).
-    mao, bracos = empunhadura_pega.montar_luvas(ctx, _colecao('luvas'))
-    pega, rel_pega, problemas_pega = empunhadura_pega.resolver(ctx, mao, bracos, perto, soqs,
-                                                               getattr(arma, 'EMPUNHADURA', None))
-    empunhadura_pega.guardar(bracos, pega)
-    _etapa(t0, f"empunhadura ({rel_pega['segundos']} s)")
+    # Só nas categorias que já têm a regra (src/data/luvas.js, CATEGORIAS_COM_PEGA; a pistola e a faca entram na 4.1c
+    # depois da P1): nas outras a arma sai sem a pega, como no jogo, que monta as luvas só onde ela existe.
+    com_pega = ctx.get('pega', True)
+    if com_pega:
+        mao, bracos = empunhadura_pega.montar_luvas(ctx, _colecao('luvas'))
+        pega, rel_pega, problemas_pega = empunhadura_pega.resolver(ctx, mao, bracos, perto, soqs,
+                                                                   getattr(arma, 'EMPUNHADURA', None))
+        empunhadura_pega.guardar(bracos, pega)
+        _etapa(t0, f"empunhadura ({rel_pega['segundos']} s)")
+    else:
+        rel_pega, problemas_pega = None, []
     assar.uv_automatico(lista_perto, orc['textura'], 8)
     assar.assar_conjunto(fontes, lista_perto, orc['textura'], 8, ctx['saida'], f"{ctx['id']}_n", f"{ctx['id']}_m")
     _etapa(t0, f"UV e assar o perto ({orc['textura']} px)")
@@ -112,8 +118,9 @@ def construir(ctx):
     rel, problemas = _validar(ctx, arma, lods, jogo)
     problemas += problemas_pega
     _etapa(t0, 'validar')
+    if rel_pega is not None:
+        rel['empunhadura'] = rel_pega
     rel.update({
-        'empunhadura': rel_pega,
         'arma': ctx['id'], 'versao': 1, 'blender': bpy.app.version_string, 'gerado': time.strftime('%Y-%m-%dT%H:%M:%S'),
         'entradas': {'hash': ctx['hash']}, 'origemMM': list(arma.ORIGEM_MM),
         'dizimacao': {'mundo': round(razao_mundo, 4), 'longe': round(razao_longe, 4)},
@@ -125,7 +132,8 @@ def construir(ctx):
         exportar.gravar_relatorio(ctx['saida'], ctx['id'], rel)
         print('MASSACRE-REPROVADO', json.dumps(problemas, ensure_ascii=False))
         sys.exit(1)
-    objetos_pega = empunhadura_pega.objetos_da_saida(mao, bracos, pega, rel_pega['marca'], _colecao('pega'))
+    objetos_pega = (empunhadura_pega.objetos_da_saida(mao, bracos, pega, rel_pega['marca'], _colecao('pega'))
+                    if com_pega else None)
     exportar.exportar(ctx, arma.ORIGEM_MM, lods, soqs, ctx['saida'], objetos_pega)
     _etapa(t0, 'exportar')
     tamanhos = {nome: os.path.getsize(os.path.join(ctx['saida'], nome)) for nome in sorted(os.listdir(ctx['saida']))
@@ -148,11 +156,13 @@ def revalidar(ctx):
     for nivel in ('perto', 'mundo', 'longe'):
         lods[nivel] = {o.name[len(nivel) + 1:]: o for o in bpy.data.collections[nivel].objects if o.type == 'MESH'}
     rel, problemas = _validar(ctx, arma, lods, bpy.data.collections['jogo'])
-    mao, bracos = empunhadura_pega.luvas_da_blend(ctx)
-    soqs = list(bpy.data.collections['soquetes'].objects)
-    _pega, rel_pega, problemas_pega = empunhadura_pega.resolver(ctx, mao, bracos, lods['perto'], soqs,
-                                                                getattr(arma, 'EMPUNHADURA', None))
-    problemas += problemas_pega
+    rel_pega = None
+    if ctx.get('pega', True):
+        mao, bracos = empunhadura_pega.luvas_da_blend(ctx)
+        soqs = list(bpy.data.collections['soquetes'].objects)
+        _pega, rel_pega, problemas_pega = empunhadura_pega.resolver(ctx, mao, bracos, lods['perto'], soqs,
+                                                                    getattr(arma, 'EMPUNHADURA', None))
+        problemas += problemas_pega
     print('MASSACRE-VALIDACAO', json.dumps({'silhueta': rel['silhueta'], 'medidas': rel['medidas'],
                                             'empunhadura': rel_pega, 'problemas': problemas}, ensure_ascii=False))
     if problemas:

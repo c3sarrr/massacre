@@ -85,14 +85,14 @@ const nova = (extra = {}) => {
 };
 
 test('weaponModels: as duas origens, os níveis de cada uma e o info da AK no formato da 4.1', async () => {
-  const { lib, conta } = nova();
+  const { lib } = nova();
   assert.equal(lib.source('ak47'), 'glb');
-  assert.equal(lib.source('glock'), 'massinha');
+  assert.equal(lib.source('awp'), 'massinha');
   assert.equal(lib.source('usps'), null);
-  assert.ok(lib.ids.includes('ak47') && lib.ids.includes('glock'));
+  assert.ok(lib.ids.includes('ak47') && lib.ids.includes('awp'));
   assert.equal(lib.ids.filter((id) => id === 'ak47').length, 1, 'a realista vale sobre a receita de massinha do mesmo id');
   assert.deepEqual(lib.lods('ak47'), ['perto', 'mundo', 'longe']);
-  assert.deepEqual(lib.lods('glock'), ['perto', 'mundo']);
+  assert.deepEqual(lib.lods('awp'), ['perto', 'mundo']);
   assert.equal(lib.info('ak47'), null, 'antes de carregar');
   const info = await lib.describe('ak47');
   assert.equal(info.source, 'glb');
@@ -108,14 +108,13 @@ test('weaponModels: as duas origens, os níveis de cada uma e o info da AK no fo
   assert.equal(info.iou, 0.991);
   assert.ok(info.bounds.max[0] > info.bounds.min[0]);
   assert.equal(lib.info('ak47'), info);
-  const glock = lib.info('glock');
-  assert.equal(glock.source, 'massinha');
-  assert.equal(glock.hands, true);
-  assert.ok(glock.recipe && glock.anchors.maoDireita);
-  const buscas = conta.json;
-  assert.equal((await lib.describe('knife')).plan, null, 'a faca não tem planta');
-  assert.equal(conta.json, buscas, 'e nada é buscado para ela (sem 404 no console)');
-  await assert.rejects(lib.describe('glock'), /sem .*tools\/blender\/refs\/glock\.json/, 'a planta que a receita aponta, e a falha aparece');
+  const awp = lib.info('awp');
+  assert.equal(awp.source, 'massinha');
+  assert.equal(awp.hands, true);
+  assert.ok(awp.recipe && awp.anchors.maoDireita);
+  // as três da 4.1c são realistas (a Glock, a M4A4 e a faca M9 do Blender)
+  for (const id of ['glock', 'm4a4', 'knife']) assert.equal(lib.source(id), 'glb', id);
+  await assert.rejects(lib.describe('awp'), /sem .*tools\/blender\/refs\/awp\.json/, 'a planta que a receita aponta, e a falha aparece');
 });
 
 test('weaponModels: instância glb com as peças móveis, as âncoras, os materiais de zona e tudo dividido', async () => {
@@ -166,7 +165,7 @@ test('weaponModels: skin e ambiente', async () => {
   const matCc = cc.getObjectByName('perto_base').material;
   assert.notEqual(matCc, matFab);
   assert.equal(matCc.userData.acabamento, 'cromado');
-  assert.throws(() => lib.setSkin('glock', skinPorNome('ak47', 'fabrica')), /skins de acabamento só nas armas realistas/);
+  assert.throws(() => lib.setSkin('awp', skinPorNome('ak47', 'fabrica')), /skins de acabamento só nas armas realistas/);
   const env = new THREE.Texture();
   lib.setEnvironment(env, 0.9);
   assert.equal(matFab.envMap, env);
@@ -216,7 +215,7 @@ test('weaponModels: o relatório do console tem as duas origens', async () => {
   const ak = linhas.filter((r) => r.id === 'ak47');
   assert.deepEqual(ak.map((r) => r.lod), ['perto', 'mundo', 'longe']);
   assert.ok(ak.every((r) => r.source === 'glb' && r.state === 'pronta' && r.triangles > 0));
-  assert.ok(linhas.some((r) => r.id === 'glock' && r.source === 'massinha'));
+  assert.ok(linhas.some((r) => r.id === 'awp' && r.source === 'massinha'));
   assert.equal(ZONAS.length, 5);
 });
 

@@ -255,7 +255,7 @@ function hashEntradas(id, def, ficha) {
 
 /** Contexto de uma arma realista para o principal.py: ficha validada, pintura de fábrica, orçamento, pastas, hash. */
 async function contextoReal(id, { forcar = false } = {}) {
-  const { ARMAS_REAIS, classeDaArma, medidasDaArma, orcamentoDaArma, soquetesDaArma, zonasDaArma } = await import('../src/data/armasReais.js');
+  const { ARMAS_REAIS, armaComPega, classeDaArma, medidasDaArma, orcamentoDaArma, soquetesDaArma, zonasDaArma } = await import('../src/data/armasReais.js');
   const { validarFicha } = await import('../src/weapons/model/ficha.js');
   const def = ARMAS_REAIS[id];
   if (!def) throw new Error(`${id} não é uma arma realista (tem: ${Object.keys(ARMAS_REAIS).join(', ')})`);
@@ -271,8 +271,10 @@ async function contextoReal(id, { forcar = false } = {}) {
     id, raiz: ROOT, ficha, fabrica: def.fabrica, pecas: def.pecas, zonas: zonasDaArma(id), soquetes: soquetesDaArma(id),
     // As medidas-chave da classe (Fase 4.1c, D3): o validar.py mede cada uma pelo nome.
     classe: classeDaArma(id), medidas: medidasDaArma(id),
+    // A pega das luvas só nas categorias que já têm a regra no solver (src/data/luvas.js).
+    pega: armaComPega(id),
     orcamento: orcamentoDaArma(id), saida: join(ROOT, def.pasta), conferencia: join(ROOT, 'tools', 'blender', 'conferencia', id),
-    categoria: def.categoria, luvas, hash: hashEntradas(id, def, { ficha, luvas }), forcar,
+    categoria: def.categoria, luvas, hash: hashEntradas(id, def, { ficha, luvas, pega: armaComPega(id) }), forcar,
   };
   mkdirSync(TMP, { recursive: true });
   const arquivo = join(TMP, `${id}-real.json`);

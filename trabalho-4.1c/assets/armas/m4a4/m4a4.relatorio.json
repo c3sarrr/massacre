@@ -1,0 +1,111 @@
+{
+ "silhueta": {
+  "iouBruto": 0.97397,
+  "iouTolerancia": 0.98409,
+  "raioToleranciaPx": 1,
+  "mmPorPx": 0.5
+ },
+ "medidas": {
+  "comprimento": {
+   "mm": 838.3,
+   "alvo": 838.2,
+   "erro": 0.00012
+  },
+  "cano": {
+   "mm": 368.3,
+   "alvo": 368.3,
+   "erro": 0.0
+  },
+  "raioDeMira": {
+   "mm": 361.0,
+   "alvo": 361,
+   "erro": 0.0
+  },
+  "alturaSemCarregador": {
+   "mm": 220.3,
+   "alvo": 220.3,
+   "erro": 0.0
+  },
+  "alturaComCarregador": {
+   "mm": 257.46,
+   "alvo": 257.5,
+   "erro": -0.00014
+  }
+ },
+ "malha": {
+  "bordasAbertas": 0,
+  "facesDegeneradas": 0,
+  "pecasComProblema": [],
+  "facesNaoTrianguladas": 0
+ },
+ "lods": {
+  "perto": {
+   "triangulos": 33590
+  },
+  "mundo": {
+   "triangulos": 5700
+  },
+  "longe": {
+   "triangulos": 1419
+  }
+ },
+ "uv": {
+  "sobreposicao": 0,
+  "densidadeTexel": {
+   "medianaPxPorMm": 2.082,
+   "minimo": 0.975,
+   "maximo": 1.021
+  }
+ },
+ "soquetes": [
+  "boca",
+  "carregador",
+  "ejecao",
+  "mao_d",
+  "mao_e",
+  "mira_frente",
+  "mira_tras"
+ ],
+ "pecas": [
+  "base",
+  "ferrolho",
+  "alavanca",
+  "tampa",
+  "carregador",
+  "gatilho",
+  "seletor"
+ ],
+ "zonas": [
+  "corpo",
+  "guarnicao",
+  "carregador",
+  "detalhes",
+  "interno"
+ ],
+ "arma": "m4a4",
+ "versao": 1,
+ "blender": "5.2.2 LTS",
+ "gerado": "2026-09-28T03:23:07",
+ "entradas": {
+  "hash": "cd7f55dcd599c098a89143b8f23a511b01658fffe0269a862d928af3e08e215f"
+ },
+ "origemMM": [
+  -504.0,
+  0.0
+ ],
+ "dizimacao": {
+  "mundo": 0.4609,
+  "longe": 0.2641
+ },
+ "facesEscondidasRemovidas": 1439,
+ "arquivos": {
+  "m4a4.glb": 398064,
+  "m4a4_m.webp": 2614406,
+  "m4a4_mundo_m.webp": 292294,
+  "m4a4_mundo_n.webp": 276394,
+  "m4a4_n.webp": 2636166
+ },
+ "aprovado": true,
+ "problemas": [],
+ "segundos": 293.9
+}

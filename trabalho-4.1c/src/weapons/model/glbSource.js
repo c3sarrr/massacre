@@ -5,13 +5,13 @@
 // conjunto é pedido; os materiais por (arma, conjunto, skin), guardando a de fábrica e as duas últimas usadas. Tudo
 // marcado `userData.shared` (o dispose das cenas não toca); sai no `forget` (recarga) e no `dispose`. Os carregadores
 // são injetados: no navegador, o GLTFLoader do vendor e o TextureLoader; no Node, falsos.
-// Fase 4.1b: nas categorias com regra de pega (CATEGORIAS_COM_PEGA), o `info.pega` (pegaDoGltf: a marca do rig, os dedos
-// do clipe `empunhadura` e o referencial do osso `mao` de cada lado) e `hands: true` — o viewmodel segura com as luvas.
+// Fase 4.1b: nas armas com a regra de pega (armaComPega: a categoria em CATEGORIAS_COM_PEGA, sem `pega: false`), o
+// `info.pega` (pegaDoGltf: a marca do rig, os dedos do clipe `empunhadura` e o referencial do osso `mao` de cada lado) e
+// `hands: true` — o viewmodel segura com as luvas.
 // Sem a pega no .glb (construído antes das luvas) a arma aparece sem braços, com o erro no log.
 
 import * as THREE from 'three';
-import { ARMAS_REAIS, LODS_REAIS, TEXTURAS_DO_LOD } from '../../data/armasReais.js';
-import { CATEGORIAS_COM_PEGA } from '../../data/luvas.js';
+import { ARMAS_REAIS, LODS_REAIS, TEXTURAS_DO_LOD, armaComPega } from '../../data/armasReais.js';
 import { VIEWMODEL } from '../../data/viewmodel.js';
 import { pegaDoGltf } from '../../characters/hands/pega.js';
 import { FABRICA, chaveDaSkin, skinDeFabrica } from '../skins/skin.js';
@@ -149,9 +149,9 @@ export class GlbSource {
     return p;
   }
 
-  /** A pega das luvas da arma (null na categoria sem regra de pega, ou com o erro no log se o .glb não a tem). */
+  /** A pega das luvas da arma (null na arma sem regra de pega, ou com o erro no log se o .glb não a tem). */
   #pega(id, gltf) {
-    if (!CATEGORIAS_COM_PEGA.includes(this.#categoria(id))) return null;
+    if (!armaComPega(id)) return null;
     try {
       return pegaDoGltf(gltf, id);
     } catch (e) {

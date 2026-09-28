@@ -29,18 +29,24 @@ def vistas_da_arma(ctx, arma=None):
     alt = (max(ys) - min(ys)) * S
     c = (cx, 0.0, cy)
     k = comp / 0.87  # a escala da AK (870 mm), em que as distâncias foram acertadas na 4.1a
+    # numa arma curta e alta (a pistola) a altura manda: os três quartos pela maior das duas e a de perto com um mínimo
+    # (a 55 mm da AK, a pistola ficava a 6 cm da serrilha)
+    kt = max(comp, alt * 2.4) / 0.87
+    kp = max(k, 0.45)
     px, py = getattr(arma, 'PERTO_MM', (-500.0, -10.0)) if arma is not None else (-500.0, -10.0)
     perto = (px * S, 0.0, py * S)
     olho = getattr(arma, 'OLHO_M', (-0.78, 0.114, 0.079)) if arma is not None else (-0.78, 0.114, 0.079)
+    # a janela ortográfica de lado cobre o comprimento e a altura (a pistola é mais alta que 9/16 do comprimento)
+    orto = max(comp, alt * 1600 / 900) * 1.04
     return c, comp, {
-        'lado': ('lado', (cx, -1.5, cy), c, None, comp * 1.04),
-        'lado_esquerdo': ('lado_esquerdo', (cx, 1.5, cy), c, None, comp * 1.04),
+        'lado': ('lado', (cx, -1.5, cy), c, None, orto),
+        'lado_esquerdo': ('lado_esquerdo', (cx, 1.5, cy), c, None, orto),
         'cima': ('cima', (cx, 0.0, cy + 1.5), c, None, comp * 1.04),
         'frente': ('frente', (max(xs) * S + 0.9, 0.0, cy), (0.0, 0.0, cy), None, max(alt, comp * 0.3) * 1.5),
-        'tres_direita': ('tres_direita', (cx + 0.27 * k, -0.72 * k, cy + 0.29 * k), c, 50, None),
-        'tres_esquerda': ('tres_esquerda', (cx + 0.27 * k, 0.72 * k, cy + 0.29 * k), c, 50, None),
-        'perto': ('perto', (perto[0] + 0.08 * k, -0.24 * k, perto[2] + 0.07 * k), perto, 55, None),
-        'perto_esquerda': ('perto_esquerda', (perto[0] + 0.08 * k, 0.24 * k, perto[2] + 0.07 * k), perto, 55, None),
+        'tres_direita': ('tres_direita', (cx + 0.27 * kt, -0.72 * kt, cy + 0.29 * kt), c, 50, None),
+        'tres_esquerda': ('tres_esquerda', (cx + 0.27 * kt, 0.72 * kt, cy + 0.29 * kt), c, 50, None),
+        'perto': ('perto', (perto[0] + 0.08 * kp, -0.24 * kp, perto[2] + 0.07 * kp), perto, 55, None),
+        'perto_esquerda': ('perto_esquerda', (perto[0] + 0.08 * kp, 0.24 * kp, perto[2] + 0.07 * kp), perto, 55, None),
         'primeira_pessoa': ('primeira_pessoa', olho, (olho[0] + 1.0, olho[1] - 0.02, olho[2] - 0.03), 23.4, None),
     }
 

@@ -147,8 +147,9 @@ def juntar_pecas(colecao_origem, colecao_destino, prefixo, pivos, filtro=None):
         tri.keep_custom_normals = True
         with bpy.context.temp_override(object=alvo, active_object=alvo):
             bpy.ops.object.modifier_apply(modifier='triangular')
-        (px, py), extras = pivos[peca]
-        bpy.context.scene.cursor.location = ficha(px, py)
+        # o pivô é (x, y) da ficha ou (x, y, lado): a dobradiça da tampa da janela da M4 fica na face direita
+        pivo, extras = pivos[peca]
+        bpy.context.scene.cursor.location = ficha(*pivo)
         bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
         for chave in list(alvo.keys()):
             del alvo[chave]
