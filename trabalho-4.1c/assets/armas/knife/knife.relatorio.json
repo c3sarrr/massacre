@@ -1,0 +1,88 @@
+{
+ "silhueta": {
+  "iouBruto": 0.97357,
+  "iouTolerancia": 0.99391,
+  "raioToleranciaPx": 1,
+  "mmPorPx": 0.5
+ },
+ "medidas": {
+  "comprimento": {
+   "mm": 311.14,
+   "alvo": 311.2,
+   "erro": -0.00019
+  },
+  "lamina": {
+   "mm": 177.74,
+   "alvo": 177.8,
+   "erro": -0.00033
+  },
+  "espessuraLamina": {
+   "mm": 5.88,
+   "alvo": 5.84,
+   "erro": 0.00601
+  }
+ },
+ "malha": {
+  "bordasAbertas": 0,
+  "facesDegeneradas": 0,
+  "pecasComProblema": [],
+  "facesNaoTrianguladas": 0
+ },
+ "lods": {
+  "perto": {
+   "triangulos": 7622
+  },
+  "mundo": {
+   "triangulos": 1424
+  },
+  "longe": {
+   "triangulos": 380
+  }
+ },
+ "uv": {
+  "sobreposicao": 0,
+  "densidadeTexel": {
+   "medianaPxPorMm": 3.537,
+   "minimo": 1.0,
+   "maximo": 1.0
+  }
+ },
+ "soquetes": [
+  "mao_d",
+  "ponta"
+ ],
+ "pecas": [
+  "base"
+ ],
+ "zonas": [
+  "corpo",
+  "guarnicao",
+  "detalhes"
+ ],
+ "arma": "knife",
+ "versao": 1,
+ "blender": "5.2.2 LTS",
+ "gerado": "2026-09-28T04:04:02",
+ "entradas": {
+  "hash": "52a00dfbe1855dd8d90f8c0171382d5e3c1f62a097cd7fee8acd0001711626cb"
+ },
+ "origemMM": [
+  -177.6,
+  0.0
+ ],
+ "dizimacao": {
+  "mundo": 0.3805,
+  "longe": 0.2705
+ },
+ "facesEscondidasRemovidas": 3,
+ "arquivos": {
+  "knife.glb": 114776,
+  "knife_m.webp": 658390,
+  "knife_mundo_m.webp": 70880,
+  "knife_mundo_n.webp": 69864,
+  "knife_n.webp": 687304
+ },
+ "aprovado": true,
+ "problemas": [],
+ "segundos": 175.3
+}
