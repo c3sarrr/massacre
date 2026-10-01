@@ -12,7 +12,7 @@ import bmesh
 import bpy
 import numpy as np
 
-from . import estudio
+from . import canonica, estudio
 from .unidades import S
 
 
@@ -276,12 +276,14 @@ def _suavizar(canal):
 
 
 def _juntar_copias(objetos, nome):
-    """Uma cópia juntada das peças, com os modificadores aplicados (mantém as UVs e os materiais): o alvo único do assar
-    (as peças de jogo) e a fonte única (o modelo alto — uma árvore de raios em vez de uma por peça)."""
+    """Uma cópia juntada das peças, com os modificadores aplicados (mantém as UVs e os materiais) e na forma canônica
+    (canonica.canonizar: o Cycles triangula cada polígono pela ordem dos cantos): o alvo único do assar (as peças de
+    jogo) e a fonte única (o modelo alto — uma árvore de raios em vez de uma por peça)."""
     dg = bpy.context.evaluated_depsgraph_get()
     copias = []
     for ob in objetos:
-        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+        me = canonica.canonizar(bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True,
+                                                                depsgraph=dg))
         c = bpy.data.objects.new(f'{nome}.{ob.name}', me)
         c.matrix_world = ob.matrix_world.copy()
         bpy.context.scene.collection.objects.link(c)

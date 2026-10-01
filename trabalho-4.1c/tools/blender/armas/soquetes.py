@@ -12,6 +12,7 @@ import bpy
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
+from . import canonica
 from .unidades import S, ficha
 
 
@@ -27,12 +28,14 @@ def soquete(colecao, nome, x, y, lado=0.0, rot=(0.0, 0.0, 0.0)):
 
 
 def _aplicadas(objetos, colecao, nome):
-    """Cópias das peças com os modificadores aplicados (normais personalizadas preservadas), cada uma só com o material
-    da zona dela: o booleano deixa na lista da malha avaliada o material do cortador, sem face nenhuma."""
+    """Cópias das peças com os modificadores aplicados (normais personalizadas preservadas), na forma canônica (a mesma
+    malha em toda construção: canonica.canonizar), cada uma só com o material da zona dela: o booleano deixa na lista
+    da malha avaliada o material do cortador, sem face nenhuma."""
     dg = bpy.context.evaluated_depsgraph_get()
     copias = []
     for ob in objetos:
-        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+        me = canonica.canonizar(bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True,
+                                                                depsgraph=dg))
         zona = ob.data.materials[0]
         me.materials.clear()
         me.materials.append(zona)
