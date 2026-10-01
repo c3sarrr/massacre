@@ -10,6 +10,7 @@ import math
 
 import bpy
 
+from . import texturas
 from .unidades import S
 
 
@@ -127,95 +128,84 @@ def mat_aco(nome, cor, rug, gasto=(0.30, 0.30, 0.31), borda=0.9):
     return m
 
 
-def mat_madeira(nome, claro, escuro):
-    """Madeira laminada envernizada: veio fino e alongado ao longo de X, contraste baixo, verniz."""
+def mat_madeira(nome, claro, escuro, veio):
+    """Madeira envernizada (a goma-laca das coronhas da época) com o veio de uma madeira de verdade (revisão crítica da
+    P1 da 4.1c): a luminância da lâmina de cerejeira CC0 (texturas.py, fontes.json), normalizada — 0,5 na média, os
+    extremos a 2,5 desvios — e projetada em caixa no referencial do objeto com o veio ao longo de X (1 m de textura =
+    1 m de peça, a medida dela), vai para o canal A (o veio no jogo, na cor da skin) e pinta o modelo alto com a mesma
+    conta do jogo (`veio` de src/data/acabamentos.js: a mistura para a cor escura de `claro` a `escuro` no canal, até
+    `peso`, e o brilho que acompanha o canal). Os veios escuros ficam um pouco mais ásperos (o poro). A peça cortada em
+    outra direção gira o veio pelo atributo `giro_veio` da malha (radianos em volta do Y do Blender, nos vértices: o
+    punho da AK, com o veio ao longo do eixo dele) — atributo da malha e não propriedade do objeto, que o assar perde ao
+    juntar as fontes numa só. Antes eram anéis de onda a cada 4 mm em contraste alto: listras iguais de desenho
+    animado."""
     m, n, l, b = novo_mat(nome)
+    img, reg = texturas.imagem('cherry_veneer', 'cherry_veneer_diff_2k.jpg')
+    media, desvio = texturas.luminancia(img)
     tc = n.new('ShaderNodeTexCoord')
     mp = n.new('ShaderNodeMapping')
-    mp.inputs['Scale'].default_value = (0.25, 7.0, 7.0)
-    # O centro dos anéis fica longe das peças, embaixo e à direita (a tora de onde a tábua saiu): nas faces o veio corre
-    # ao longo do comprimento, em linhas quase retas. Com o centro no eixo do cano (a origem), perto dele o veio virava
-    # listras em pé nos lados do guarda-mão e manchas derretidas nas faces de cima.
-    mp.inputs['Location'].default_value = (0.0, 1.3, 1.9)
+    mp.inputs['Scale'].default_value = (1000.0 / reg['mm'][0], 1000.0 / reg['mm'][1], 1000.0 / reg['mm'][0])
     l.new(tc.outputs['Object'], mp.inputs['Vector'])
-    w = n.new('ShaderNodeTexWave')
-    w.wave_type = 'RINGS'
-    w.rings_direction = 'X'
-    w.inputs['Scale'].default_value = 34.0
-    w.inputs['Distortion'].default_value = 14.0
-    w.inputs['Detail'].default_value = 3.0
-    w.inputs['Detail Roughness'].default_value = 0.7
-    l.new(mp.outputs['Vector'], w.inputs['Vector'])
-    r = ruido(n, 60.0, 3.0)
-    l.new(mp.outputs['Vector'], r.inputs['Vector'])
-    mx = n.new('ShaderNodeMath')
-    mx.operation = 'MULTIPLY_ADD'
-    l.new(w.outputs['Fac'], mx.inputs[0])
-    mx.inputs[1].default_value = 0.55
-    l.new(r.outputs['Fac'], mx.inputs[2])
-    rp = n.new('ShaderNodeValToRGB')
-    rp.color_ramp.elements[0].position = 0.35
-    rp.color_ramp.elements[0].color = (*escuro, 1)
-    rp.color_ramp.elements[1].position = 1.0
-    rp.color_ramp.elements[1].color = (*claro, 1)
-    l.new(mx.outputs['Value'], rp.inputs['Fac'])
-    l.new(rp.outputs['Color'], b.inputs['Base Color'])
-    # Verniz acetinado (goma-laca das coronhas da época): com 0,6 de camada e rugosidade 0,18 a face de cima da coronha e
-    # dos guarda-mãos virava uma faixa branca sob a luz principal do estúdio.
+    giro = n.new('ShaderNodeAttribute')
+    giro.attribute_type = 'GEOMETRY'
+    giro.attribute_name = 'giro_veio'
+    rot = n.new('ShaderNodeCombineXYZ')
+    l.new(giro.outputs['Fac'], rot.inputs['Y'])
+    l.new(rot.outputs['Vector'], mp.inputs['Rotation'])
+    tx = n.new('ShaderNodeTexImage')
+    tx.image = img
+    tx.projection = 'BOX'
+    tx.projection_blend = 0.25
+    tx.interpolation = 'Cubic'
+    l.new(mp.outputs['Vector'], tx.inputs['Vector'])
+    bw = n.new('ShaderNodeRGBToBW')
+    l.new(tx.outputs['Color'], bw.inputs['Color'])
+    g = n.new('ShaderNodeMapRange')
+    g.clamp = True
+    g.inputs['From Min'].default_value = media - 2.5 * desvio
+    g.inputs['From Max'].default_value = media + 2.5 * desvio
+    l.new(bw.outputs['Val'], g.inputs['Value'])
+    a = g.outputs['Result']
+    escurece = n.new('ShaderNodeMapRange')
+    escurece.interpolation_type = 'SMOOTHSTEP'
+    escurece.inputs['From Min'].default_value = veio['escuro']
+    escurece.inputs['From Max'].default_value = veio['claro']
+    escurece.inputs['To Min'].default_value = veio['peso']
+    escurece.inputs['To Max'].default_value = 0.0
+    l.new(a, escurece.inputs['Value'])
+    cor = mistura_cor(n, l, escurece.outputs['Result'], claro, escuro)
+    brilho = n.new('ShaderNodeVectorMath')
+    brilho.operation = 'SCALE'
+    l.new(cor, brilho.inputs[0])
+    l.new(faixa(n, l, a, 1.0 - veio['brilho'], 1.0 + veio['brilho']), sock(brilho.inputs, 'Scale', 'VALUE'))
+    l.new(brilho.outputs['Vector'], b.inputs['Base Color'])
+    # Verniz acetinado: com 0,6 de camada e rugosidade 0,18 a face de cima da coronha e dos guarda-mãos virava uma faixa
+    # branca sob a luz principal do estúdio.
     b.inputs['Roughness'].default_value = 0.5
     b.inputs['Coat Weight'].default_value = 0.45
     b.inputs['Coat Roughness'].default_value = 0.3
     bev, borda_m = mascara_borda(n, l, 2.0)
     l.new(bev.outputs['Normal'], b.inputs['Normal'])
-    rr = ruido_mm(n, l, 8.0)
-    canal(n, l, 'canal_aspereza', rr.outputs['Fac'])
-    veio = n.new('ShaderNodeMath')
-    veio.operation = 'MULTIPLY'
-    l.new(mx.outputs['Value'], veio.inputs[0])
-    veio.inputs[1].default_value = 1 / 1.55
-    canal(n, l, 'canal_cor', veio.outputs['Value'])
+    canal(n, l, 'canal_aspereza', faixa(n, l, a, 0.8, 0.2))
+    canal(n, l, 'canal_cor', a)
     canal(n, l, 'canal_borda', borda_m.outputs['Result'])
     return m
 
 
-def mat_plastico(nome, cor, rug, relevo=0.0, pontilhado_mm=0.7, quadriculado=False):
-    """Polímero/baquelite: pontilhado em relevo (relevo > 0, grão de `pontilhado_mm`) ou quadriculado a 45°
-    (quadriculado=True)."""
+def mat_plastico(nome, cor, rug):
+    """Polímero moldado (e as pinturas foscas e acetinadas; correções da P1 da 4.1c): a aspereza do acabamento com uma
+    ondulação leve de 3 mm (o brilho do molde nunca é igual em tudo), a cor lisa com a variação larga e fraca do lote,
+    e o grão fino do molde num relevo `fino` de 0,12 mm (só nas renders do modelo alto; no jogo é o padrão `molde`). A
+    textura das regiões do punho (o pontilhado, o quadriculado) é o relevo moldado (relevo.py). Antes era um ruído de
+    0,7 mm em relevo na peça inteira, com aspereza 0,65 igual em tudo: a lixa que lia como impressão 3D."""
     m, n, l, b = novo_mat(nome)
-    r = ruido_mm(n, l, 25.0, 3.0)
-    l.new(mistura_cor(n, l, faixa(n, l, r.outputs['Fac'], 0.0, 0.35), cor, tuple(c * 0.7 for c in cor)), b.inputs['Base Color'])
-    b.inputs['Roughness'].default_value = rug
+    r = ruido_mm(n, l, 40.0, 2.0)
+    l.new(mistura_cor(n, l, faixa(n, l, r.outputs['Fac'], 0.0, 0.12), cor, tuple(c * 0.85 for c in cor)), b.inputs['Base Color'])
+    ondulacao = ruido_mm(n, l, 3.0, 2.0)
+    l.new(faixa(n, l, ondulacao.outputs['Fac'], rug - 0.035, rug + 0.035), b.inputs['Roughness'])
     bev, borda_m = mascara_borda(n, l, 1.2)
-    altura = None
-    if quadriculado:
-        tc = n.new('ShaderNodeTexCoord')
-        onda = []
-        for ang in (45.0, -45.0):
-            mp = n.new('ShaderNodeMapping')
-            mp.inputs['Rotation'].default_value = (math.radians(90), math.radians(ang), 0)
-            l.new(tc.outputs['Object'], mp.inputs['Vector'])
-            w = n.new('ShaderNodeTexWave')
-            w.wave_type = 'BANDS'
-            w.inputs['Scale'].default_value = 420.0
-            w.inputs['Distortion'].default_value = 0.0
-            l.new(mp.outputs['Vector'], w.inputs['Vector'])
-            onda.append(w)
-        mul = n.new('ShaderNodeMath')
-        mul.operation = 'MULTIPLY'
-        l.new(onda[0].outputs['Fac'], mul.inputs[0])
-        l.new(onda[1].outputs['Fac'], mul.inputs[1])
-        altura = mul.outputs['Value']
-    elif relevo > 0:
-        altura = ruido_mm(n, l, pontilhado_mm).outputs['Fac']
-    if altura is not None:
-        bp = n.new('ShaderNodeBump')
-        bp.inputs['Strength'].default_value = 0.55 if quadriculado else relevo
-        bp.inputs['Distance'].default_value = 0.0003 if quadriculado else 0.0004
-        l.new(altura, bp.inputs['Height'])
-        l.new(bev.outputs['Normal'], bp.inputs['Normal'])
-        l.new(bp.outputs['Normal'], b.inputs['Normal'])
-    else:
-        l.new(bev.outputs['Normal'], b.inputs['Normal'])
+    grao = ruido_mm(n, l, 0.12, 1.0)
+    l.new(_relevo(n, l, grao.outputs['Fac'], 0.1, 0.02, bev.outputs['Normal'], fino=True), b.inputs['Normal'])
     canal(n, l, 'canal_aspereza', ruido_mm(n, l, 6.0).outputs['Fac'])
     canal(n, l, 'canal_cor', r.outputs['Fac'])
     canal(n, l, 'canal_borda', borda_m.outputs['Result'])
@@ -442,34 +432,37 @@ def materiais_das_luvas(pintura):
 
 # Aspereza do material do Blender por acabamento de fábrica (os de src/data/acabamentos.js que as armas usam de fábrica).
 ASPEREZA_DE_FABRICA = {'oxidado': 0.34, 'fosfatizado': 0.55, 'anodizado': 0.42, 'escovado': 0.22, 'cromado': 0.08}
-PLASTICOS = {'polimero': (0.65, 0.35), 'borracha': (0.7, 0.0), 'fosco': (0.85, 0.0), 'acetinado': (0.5, 0.0), 'cerakote': (0.7, 0.2)}
+# A aspereza dos não metálicos (a mesma de src/data/acabamentos.js): o polímero moldado acetinado desde as correções da
+# P1 da 4.1c (era 0,65, com o pontilhado em relevo na peça inteira).
+PLASTICOS = {'polimero': 0.45, 'borracha': 0.68, 'fosco': 0.85, 'acetinado': 0.5, 'cerakote': 0.7}
 
 
-def material_de_zona(nome, z):
+def material_de_zona(nome, z, veio):
     """O material do modelo alto de uma zona da pintura de fábrica, pelo acabamento dela: os metálicos pelo aço (com a
-    aspereza do acabamento), os plásticos pelo polímero (com o pontilhado), a madeira pela madeira."""
+    aspereza do acabamento), os plásticos e as pinturas pelo polímero moldado, a madeira pela madeira (com a conta do
+    `veio` do jogo, do contexto)."""
     a = z['acabamento']
     if a == 'madeira':
-        return mat_madeira(nome, linear(z['cor']), linear(z.get('cor2') or z['cor']))
+        return mat_madeira(nome, linear(z['cor']), linear(z.get('cor2') or z['cor']), veio)
     if a in PLASTICOS:
-        rug, relevo = PLASTICOS[a]
-        return mat_plastico(nome, linear(z['cor']), rug, relevo=relevo)
+        return mat_plastico(nome, linear(z['cor']), PLASTICOS[a])
     rug = ASPEREZA_DE_FABRICA.get(a, 0.34)
     cor = linear(z['cor'])
     return mat_aco(nome, cor, rug, gasto=tuple(min(1.0, c * 1.1 + 0.3) for c in cor))
 
 
-def materiais_de_fabrica(fabrica):
+def materiais_de_fabrica(fabrica, veio):
     """Os materiais do modelo alto a partir da pintura de fábrica (zonas → cores do contexto): um por zona, com o nome
     da zona (M['corpo'], M['guarnicao']…, desde a 4.1c), e os nomes da AK (aço, madeira) quando as zonas dela existem."""
     z = fabrica['zonas']
-    M = {zona: material_de_zona(f'{zona} de fábrica', d) for zona, d in z.items()}
+    M = {zona: material_de_zona(f'{zona} de fábrica', d, veio) for zona, d in z.items()}
     if {'corpo', 'detalhes', 'carregador', 'interno', 'guarnicao'} <= set(z):
         M.update({
             'aco': mat_aco('aço oxidado', linear(z['corpo']['cor']), 0.34, gasto=(0.32, 0.32, 0.34)),
             'aco_detalhes': mat_aco('aço dos detalhes', linear(z['detalhes']['cor']), 0.34, gasto=(0.36, 0.36, 0.38)),
             'aco_carregador': mat_aco('aço do carregador', linear(z['carregador']['cor']), 0.34, gasto=(0.36, 0.37, 0.39)),
             'aco_polido': mat_aco('aço polido', linear(z['interno']['cor']), 0.22, gasto=(0.6, 0.6, 0.6)),
-            'madeira': mat_madeira('madeira', linear(z['guarnicao']['cor']), linear(z['guarnicao'].get('cor2') or z['guarnicao']['cor'])),
+            'madeira': mat_madeira('madeira', linear(z['guarnicao']['cor']), linear(z['guarnicao'].get('cor2') or z['guarnicao']['cor']),
+                                   veio),
         })
     return M

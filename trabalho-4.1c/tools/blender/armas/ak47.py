@@ -449,8 +449,16 @@ def construir(ficha, M):
 
     # --- Punho de madeira liso (tipo 3) com o parafuso de baixo; a espiga do guarda-mato por cima dele, o guarda-mato com
     # o rebite, o gatilho, a caixa do retém com o eixo e o retém pendurado
-    punho = P.perfil_suave('punho', pc['punho'], 'XZ', -15, 15, madeira, 'guarnicao', chanfro=6.0)
+    # sem os degraus de 2 a 3 mm da régua (ondas; P1 da 4.1c): média gaussiana de 8 mm abaixo da mão e acima do pé
+    c = pc['punho'] + pc['punho'][:1]
+    c = P.reamostrar(c, int(sum(math.dist(a, b) for a, b in zip(c, c[1:])) / 0.5))[:-1]
+    c = P.suavizar_trecho(c, lambda x, y: (min(1.0, max(0.0, ((-95.0 if x < -600.0 else -80.0) - y) / 6.0))
+                                           * min(1.0, max(0.0, (y + 141.0) / 4.0))), sigma=8.0)
+    punho = P.perfil_suave('punho', P.simplificar(c), 'XZ', -15, 15, madeira, 'guarnicao', chanfro=6.0)
     punho['chanfro'] = (6.5, 5)
+    # o veio ao longo do eixo do punho (90° menos os 27,8° do soquete mao_d), num atributo da malha (o assar junta as fontes)
+    giro = punho.data.attributes.new('giro_veio', 'FLOAT', 'POINT')
+    giro.data.foreach_set('value', [math.radians(90.0 - 27.8)] * len(punho.data.vertices))
     # O pé do punho é plano (y = -147,5 entre x = -616,6 e -602,4): o parafuso entra reto por ele, cabeça rente (0,2 mm).
     parafuso = P.torno('parafuso do punho', [(-0.2, 0), (-0.2, 3.4), (2.4, 3.4), (2.4, 0)], det, 'detalhes', eixo='Z', seg=20,
                        centro=(-609.5, 0, -147.5))

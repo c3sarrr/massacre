@@ -18,6 +18,8 @@ test('AK-47 tipo 3: a saída do Blender passa em todas as validações', () => {
   assert.ok(bytes > 0);
   assert.equal(relatorio.aprovado, true);
   assert.ok(relatorio.silhueta.iouTolerancia >= 0.98);
+  // sem relevo moldado (a madeira e o metal da AK): o _n sem o canal alfa vale, o jogo lê liso
+  assert.deepEqual(relatorio.relevos, {});
   for (const d of Object.values(relatorio.medidas)) assert.ok(Math.abs(d.erro) <= 0.01);
   assert.deepEqual(Object.keys(resumo.lods), ['perto', 'mundo', 'longe']);
 });

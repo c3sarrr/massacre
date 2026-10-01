@@ -2,8 +2,9 @@
 # seções 4.3 e 4.4; plano da 4.1a, D3): UV automático por peça com um empacotamento só (a mesma textura para a arma
 # inteira), conferência de densidade de texel e de sobreposição, e o assar no Cycles na GPU — normal em espaço tangente
 # (convenção OpenGL), sombra de contato com todas as peças juntas, e os canais dos materiais de fábrica por emissão
-# (canal_aspereza, canal_borda, canal_cor). Empacota `_n` (RGB) e `_m` (R sombra, G aspereza, B borda, A cor) e grava em
-# WebP sem perdas (qualidade 100 no Blender = VP8L). As luvas (Fase 4.1b) desdobram pelas costuras (`uv_por_costuras`)
+# (canal_aspereza, canal_borda, canal_cor). Empacota `_n` (RGB a normal, A o relevo moldado — correções da P1 da 4.1c:
+# o tipo da textura do molde, 1 − 32·id/255, relevo.py) e `_m` (R sombra, G aspereza, B borda, A cor) e grava em WebP
+# sem perdas (qualidade 100 no Blender = VP8L). As luvas (Fase 4.1b) desdobram pelas costuras (`uv_por_costuras`)
 # e conferem a densidade por ilha de UV (`densidade_por_ilha`: são uma malha só, base e peças juntas).
 import math
 
@@ -305,8 +306,9 @@ def _ligar_imagem(alvo, img):
     return nos
 
 
-def _emitir_canal(fontes, canal):
-    """Liga o `canal` de cada material de fábrica das fontes numa emissão na saída; devolve como desfazer."""
+def _emitir_canal(fontes, canal, neutro=0.5):
+    """Liga o `canal` de cada material de fábrica das fontes numa emissão na saída (o `neutro` no material que não tem o
+    canal: 1 no relevo, o liso); devolve como desfazer."""
     desfazer = []
     vistos = set()
     for ob in fontes:
@@ -321,7 +323,7 @@ def _emitir_canal(fontes, canal):
             em = nt.nodes.new('ShaderNodeEmission')
             no = nt.nodes.get(canal)
             if no is None:
-                em.inputs['Color'].default_value = (0.5, 0.5, 0.5, 1)
+                em.inputs['Color'].default_value = (neutro, neutro, neutro, 1)
             else:
                 nt.links.new(no.outputs[0], em.inputs['Color'])
             nt.links.new(em.outputs['Emission'], saida.inputs['Surface'])
@@ -414,8 +416,9 @@ def assar_grupos(grupos, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=
     pegava a base embaixo (manchas tortas nos cantos). O relevo e os canais usam `amostras_aa` por pixel
     (antisserrilhado: o detalhe menor que o texel vira a média dele, não ruído); a sombra de contato, `amostras_ao`; a
     sombra e a aspereza passam pelo filtro binomial e os canais de dados são quantizados em degraus que não aparecem.
-    Os relevos `fino` das fontes (o grão, a trama, o pontilhado das luvas) ficam fora: com um período de poucos texels,
-    viravam moiré e ruído no WebP; no jogo eles vêm do shader."""
+    Os relevos `fino` das fontes (o grão, a trama, o pontilhado das luvas, o relevo moldado das armas) ficam fora: com
+    um período de poucos texels, viravam moiré e ruído no WebP; no jogo eles vêm do shader — o do molde pelo tipo que o
+    canal `canal_relevo` grava no alfa do _n."""
     sc = bpy.context.scene
     estudio.gpu()
     sc.render.bake.use_selected_to_active = True
@@ -444,7 +447,7 @@ def assar_grupos(grupos, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=
     arrays = {}
 
     def assar(tipo, chave, fundo, amostras=1, canal=None):
-        desfazer = _emitir_canal(todas_as_fontes, canal) if canal else []
+        desfazer = _emitir_canal(todas_as_fontes, canal, fundo[0]) if canal else []
         sc.cycles.samples = amostras
         if tipo == 'NORMAL':
             sc.render.bake.normal_space = 'TANGENT'
@@ -467,7 +470,8 @@ def assar_grupos(grupos, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=
 
     assar('NORMAL', 'normal', (0.5, 0.5, 1.0, 1.0), amostras_aa)
     assar('AO', 'ao', (1.0, 1.0, 1.0, 1.0), amostras_ao)
-    for chave, canal, neutro in (('aspereza', 'canal_aspereza', 0.5), ('borda', 'canal_borda', 0.0), ('cor', 'canal_cor', 0.5)):
+    for chave, canal, neutro in (('aspereza', 'canal_aspereza', 0.5), ('borda', 'canal_borda', 0.0), ('cor', 'canal_cor', 0.5),
+                                 ('relevo', 'canal_relevo', 1.0)):
         assar('EMIT', chave, (neutro, neutro, neutro, 1.0), amostras_aa, canal)
     n = arrays['normal'][..., :3]
     ao = _suavizar(arrays['ao'][..., 0])
@@ -482,8 +486,10 @@ def assar_grupos(grupos, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=
         m[..., canal] = np.round(m[..., canal] * 255.0 / passo) * passo / 255.0
     # O WebP sem perdas pode trocar o RGB dos pixels de alfa 0: a variação de cor (o alfa) fica em 1/255 no mínimo.
     m[..., 3] = np.maximum(m[..., 3], 1.0 / 255.0)
+    # O relevo moldado no alfa do _n: o tipo (1 − 32·id/255) nunca chega a 0, então o RGB da normal fica intacto no WebP.
+    relevo = np.clip(arrays['relevo'][..., :1], 0.5, 1.0)
     caminhos = {
-        nome_n: _gravar_webp(pasta, nome_n, np.concatenate([n, np.ones((lado_px, lado_px, 1), np.float32)], axis=2), False),
+        nome_n: _gravar_webp(pasta, nome_n, np.concatenate([n, relevo], axis=2), True),
         nome_m: _gravar_webp(pasta, nome_m, m, True),
     }
     for no, forca in religar:

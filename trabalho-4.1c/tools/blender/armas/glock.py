@@ -239,8 +239,12 @@ def _armacao(ficha, M, ls):
     lp = L['punho']['mm'] / 2
     lg = L['guardaPo']['mm'] / 2
     lm = L['guardaMato']['mm'] / 2
-    # o contorno do punho vem da foto com a escada de pixels nas diagonais: simplificado antes do chanfro
-    a = P.prisma('armação', P.simplificar(pc['armacao']), 'XZ', -lp, lp, pol, 'guarnicao', chanfro=1.0)
+    # o contorno vem da foto com a escada de pixels: no punho (abaixo do guarda-mato, entrando em 4 mm), a média gaussiana
+    # ao longo da borda tira o zigue-zague que virava degraus de impressão 3D na frente curva (correções da P1); depois,
+    # simplificado antes do chanfro
+    def no_punho(_x, y):
+        return (Y_PUNHO_TEXTURA - 2.0 - y) / 4.0
+    a = P.prisma('armação', P.simplificar(P.suavizar_trecho(pc['armacao'], no_punho)), 'XZ', -lp, lp, pol, 'guarnicao', chanfro=1.0)
     a['chanfro'] = (1.2, 4)
     # A largura por região: o alto (guarda-pó, alavancas) na do guarda-pó, alargando na rampa até a do punho; o guarda-mato
     # estreito na frente do punho.
@@ -306,14 +310,14 @@ def _armacao(ficha, M, ls):
         x, z = pt[chave]
         for lado in (-1, 1):
             P.pino(nome, x, z, pt[raio], det, 'detalhes', lado=lado, de=face - 0.4, ate=face + 0.15)
-    _textura_do_punho(ficha, a, lp)
     return a
 
 
-def _textura_do_punho(ficha, armacao, lp):
-    """Textura de 3ª geração, só no modelo alto (vai para o relevo assado): o painel de pontilhado de cada lado, recuado
-    das bordas da frente e de trás do punho (sem entrar no rebaixo do botão do retém), e as nervuras horizontais na frente
-    (abaixo do guarda-mato) e atrás (fotos da Glock 18C e da 35)."""
+def relevos(ficha):
+    """As texturas do molde do punho de 3ª geração (fotos da Glock 18C e da 35 no Commons; o relevo moldado, relevo.py,
+    no lugar das folhas de geometria que viravam escada na frente curva do punho): o painel de pontilhado de cada lado,
+    recuado das bordas da frente e de trás (fora o rebaixo do botão do retém), e o quadriculado nas faces da frente do
+    punho (abaixo do guarda-mato, sobre as ondas dos dedos) e nas das costas."""
     tx = ficha['vistaDeCima']['detalhes']['texturaPunho']
     c = ficha['contorno']
     bt = ficha['pontos']['botaoRetem']
@@ -321,28 +325,21 @@ def _textura_do_punho(ficha, armacao, lp):
     rec = tx['painelRecuo']
     painel = [(_na_borda(c, z1, False) + rec, z1), (_na_borda(c, z0, False) + rec, z0),
               (_na_borda(c, z0, True) - rec, z0), (_na_borda(c, z1, True) - rec, z1)]
-    xs = [p[0] for p in painel]
-    grao = PS.pontilhado(0.7, 0.4, 0.15)
+    botao = [(bt['x'][0] - 2.5, bt['y'][0] - 2.5), (bt['x'][1] + 2.5, bt['y'][0] - 2.5), (bt['x'][1] + 2.5, bt['y'][1] + 2.5),
+             (bt['x'][0] - 2.5, bt['y'][1] + 2.5)]
 
-    def no_painel(u, v):
-        if not _dentro(painel, u, v):
-            return None
-        if bt['x'][0] - 2.5 <= u <= bt['x'][1] + 2.5 and bt['y'][0] - 2.5 <= v <= bt['y'][1] + 2.5:
-            return None
-        return grao(u, v)
-    for lado in (-1, 1):
-        PS.relevo('pontilhado do punho', armacao, (min(xs) - 1, max(xs) + 1), (z0, z1), 0.1,
-                  lambda u, v, s=lado: ((u, s * (lp + 20.0), v), (0, -s, 0)), no_painel)
-    nerv = tx['nervuras']
-
-    def nervuras(_u, v):
-        f = (v / nerv) - math.floor(v / nerv)
-        return 0.22 if f < 0.5 else 0.0
-    # frente (abaixo do guarda-mato, de fora para trás) e costas (de trás para a frente)
-    for nome, x_fora, sinal, alto in (('nervuras da frente do punho', -110.0, -1, Y_PUNHO_TEXTURA),
-                                      ('nervuras das costas do punho', -225.0, 1, z1)):
-        PS.relevo(nome, armacao, (-lp + 3.0, lp - 3.0), (z0, alto), 0.12,
-                  lambda u, v, xf=x_fora, s=sinal: ((xf, u, v), (s, 0, 0)), nervuras)
+    def faixa(alto, frente):
+        """Da linha do meio do punho até 3 mm além da borda da frente (ou das costas), de z0 a `alto`: as faces viradas
+        para a frente (ou para trás), e as das ondas dos dedos que já olham mais para baixo, levam o quadriculado."""
+        zs = [z0 + (alto - z0) * k / 40 for k in range(41)]
+        meio = [((_na_borda(c, z, False) + _na_borda(c, z, True)) / 2, z) for z in zs]
+        borda = [(_na_borda(c, z, frente) + (3.0 if frente else -3.0), z) for z in zs]
+        return meio + borda[::-1]
+    return [
+        {'tipo': 'pontilhado', 'zona': 'guarnicao', 'normal': 'lado', 'poligono': painel, 'excluir': [botao]},
+        {'tipo': 'quadriculado', 'zona': 'guarnicao', 'normal': 'frente_cima', 'poligono': faixa(Y_PUNHO_TEXTURA, True)},
+        {'tipo': 'quadriculado', 'zona': 'guarnicao', 'normal': 'frente_cima', 'poligono': faixa(z1, False)},
+    ]
 
 
 def _gatilho(ficha, M):

@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.dirname(AQUI))
 
 import bpy  # noqa: E402
 
-from armas import (assar, conferir, empunhadura_pega, exportar, lod, luvas, materiais, pecas, soquetes,  # noqa: E402
-                   validar, zonas)
+from armas import (assar, conferir, empunhadura_pega, exportar, lod, luvas, materiais, pecas, relevo,  # noqa: E402
+                   soquetes, validar, zonas)
 
 
 def _colecao(nome):
@@ -74,7 +74,10 @@ def construir(ctx):
     orc = ctx['orcamento']
     os.makedirs(ctx['saida'], exist_ok=True)
     os.makedirs(ctx['conferencia'], exist_ok=True)
-    M = materiais.materiais_de_fabrica(ctx['fabrica'])
+    M = materiais.materiais_de_fabrica(ctx['fabrica'], ctx['veio'])
+    # O relevo moldado (correções da P1 da 4.1c): as regiões de textura do molde que o script da arma declara, nos
+    # materiais de zona (as renders do modelo alto) e no canal do alfa do _n (o assar).
+    caixas_relevo = relevo.montar(M, arma.relevos(ficha) if hasattr(arma, 'relevos') else [], ctx.get('relevos', {}))
     alto = pecas.iniciar('alto', 'alto')
     arma.construir(ficha, M)
     pecas.finalizar(alto)
@@ -125,6 +128,9 @@ def construir(ctx):
         'entradas': {'hash': ctx['hash']}, 'origemMM': list(arma.ORIGEM_MM),
         'dizimacao': {'mundo': round(razao_mundo, 4), 'longe': round(razao_longe, 4)},
         'facesEscondidasRemovidas': perto['_removidas'],
+        # as zonas com relevo moldado e a caixa da máscara (mm, x0 x1 z0 z1): o validador do Node só exige o alfa do _n
+        # nelas — sem relevo o alfa é todo 255 e o WebP o descarta (o jogo lê 1: liso)
+        'relevos': {z: [round(v, 2) for v in c] for z, c in sorted(caixas_relevo.items())},
     })
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ctx['conferencia'], f"{ctx['id']}.blend"))
     if problemas:

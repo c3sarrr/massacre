@@ -257,6 +257,12 @@ function hashEntradas(id, def, ficha) {
 async function contextoReal(id, { forcar = false } = {}) {
   const { ARMAS_REAIS, armaComPega, classeDaArma, medidasDaArma, orcamentoDaArma, soquetesDaArma, zonasDaArma } = await import('../src/data/armasReais.js');
   const { validarFicha } = await import('../src/weapons/model/ficha.js');
+  // Os tipos do relevo moldado (correções da P1 da 4.1c): o Blender desenha e assa os mesmos números que o shader usa;
+  // e a conta do veio da madeira, a mesma do jogo (o brilho que acompanha o veio é a `varCor` da madeira).
+  const { ACABAMENTOS, RELEVOS_MOLDADOS } = await import('../src/data/acabamentos.js');
+  const veio = { ...ACABAMENTOS.madeira.veio, brilho: ACABAMENTOS.madeira.varCor };
+  // As texturas CC0 do Blender (o registro tem o md5 de cada arquivo): trocar uma refaz as armas.
+  const texturas = JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'texturas', 'fontes.json'), 'utf8'));
   const def = ARMAS_REAIS[id];
   if (!def) throw new Error(`${id} não é uma arma realista (tem: ${Object.keys(ARMAS_REAIS).join(', ')})`);
   const ficha = validarFicha(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', `${id}.json`), 'utf8')), classeDaArma(id));
@@ -274,7 +280,9 @@ async function contextoReal(id, { forcar = false } = {}) {
     // A pega das luvas só nas categorias que já têm a regra no solver (src/data/luvas.js).
     pega: armaComPega(id),
     orcamento: orcamentoDaArma(id), saida: join(ROOT, def.pasta), conferencia: join(ROOT, 'tools', 'blender', 'conferencia', id),
-    categoria: def.categoria, luvas, hash: hashEntradas(id, def, { ficha, luvas, pega: armaComPega(id) }), forcar,
+    relevos: RELEVOS_MOLDADOS, veio,
+    categoria: def.categoria, luvas,
+    hash: hashEntradas(id, def, { ficha, luvas, pega: armaComPega(id), relevos: RELEVOS_MOLDADOS, veio, texturas }), forcar,
   };
   mkdirSync(TMP, { recursive: true });
   const arquivo = join(TMP, `${id}-real.json`);

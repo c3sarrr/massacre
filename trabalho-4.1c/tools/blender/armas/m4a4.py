@@ -229,29 +229,19 @@ def _gatilho(ficha, M):
 
 
 def _punho(ficha, M):
-    """O punho A2 de polímero: o perfil da foto arredondado (o chanfro largo) e o painel quadriculado dos dois lados (o
-    relevo das pirâmides, só no modelo alto)."""
-    pc, pt, L = ficha['pecas'], ficha['pontos'], ficha['vistaDeCima']['larguras']
-    pol = M['guarnicao']
+    """O punho A2 de polímero: o perfil da foto arredondado (o chanfro largo); o painel de losangos dos dois lados é o
+    relevo moldado (`relevos`)."""
+    pc, L = ficha['pecas'], ficha['vistaDeCima']['larguras']
     lp = L['punho']['mm'] / 2
-    punho = P.prisma('punho', P.simplificar(pc['punho']), 'XZ', -lp, lp, pol, 'guarnicao', chanfro=5.0, seg=4)
-    painel = pt['painelPunho']
-    xs = [p[0] for p in painel]
-    zs = [p[1] for p in painel]
-    grade = PS.piramides(1.3, 0.4)
+    # o perfil da foto sem o zigue-zague de pixel, que o chanfro largo transformava em facetas (correções da P1)
+    perfil = P.simplificar(P.suavizar_trecho(pc['punho'], lambda _x, _y: 1.0, sigma=1.5))
+    return P.prisma('punho', perfil, 'XZ', -lp, lp, M['guarnicao'], 'guarnicao', chanfro=5.0, seg=4)
 
-    def no_painel(u, v):
-        n = len(painel)
-        dentro = False
-        for k in range(n):
-            (ax, ay), (bx, by) = painel[k], painel[(k + 1) % n]
-            if (ay > v) != (by > v) and u < ax + (v - ay) / (by - ay) * (bx - ax):
-                dentro = not dentro
-        return grade(u, v) if dentro else None
-    for s in (-1, 1):
-        PS.relevo('quadriculado do punho', punho, (min(xs) - 1, max(xs) + 1), (min(zs), max(zs)), 0.13,
-                  lambda u, v, s=s: ((u, s * (lp + 20.0), v), (0, -s, 0)), no_painel)
-    return punho
+
+def relevos(ficha):
+    """O losango moldado do punho A2 nos painéis dos dois lados (a foto da M4A1 da NSWC; o relevo moldado, relevo.py, no
+    lugar da folha de pirâmides em geometria)."""
+    return [{'tipo': 'losango', 'zona': 'guarnicao', 'normal': 'lado', 'poligono': [tuple(p) for p in ficha['pontos']['painelPunho']]}]
 
 
 def _carregador(ficha, M):
@@ -260,7 +250,9 @@ def _carregador(ficha, M):
     pc, pt, ln, L = ficha['pecas'], ficha['pontos'], ficha['linhas'], ficha['vistaDeCima']['larguras']
     mat = M['carregador']
     lc = L['carregador']['mm'] / 2
-    P.prisma('carregador', P.simplificar(pc['carregador']), 'XZ', -lc, lc, mat, 'carregador', 'carregador', chanfro=1.0)
+    # o perfil da foto sem o zigue-zague de pixel (a média gaussiana ao longo da borda; correções da P1 da 4.1c)
+    P.prisma('carregador', P.simplificar(P.suavizar_trecho(pc['carregador'], lambda _x, _y: 1.0, sigma=1.2)), 'XZ', -lc, lc, mat,
+             'carregador', 'carregador', chanfro=1.0)
     for nome in ('nervuraCarregador1', 'nervuraCarregador2'):
         for s in (-1, 1):
             a, b = sorted((s * (lc - 0.2), s * (lc + 0.7)))

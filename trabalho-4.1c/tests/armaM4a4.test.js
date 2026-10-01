@@ -21,6 +21,8 @@ test('M4A4: a saída do Blender passa em todas as validações da classe fuzil',
   assert.ok(bytes > 0 && bytes <= orcamentoDaArma('m4a4').arquivosMB * 1024 * 1024);
   assert.equal(relatorio.aprovado, true);
   assert.ok(relatorio.silhueta.iouTolerancia >= 0.98);
+  // o relevo moldado (correções da P1 da 4.1c): o losango do punho A2
+  assert.deepEqual(Object.keys(relatorio.relevos), ['guarnicao']);
   for (const d of Object.values(relatorio.medidas)) assert.ok(Math.abs(d.erro) <= 0.01);
   const t = orcamentoDaArma('m4a4').triangulos;
   for (const n of ['perto', 'mundo', 'longe']) assert.ok(resumo.lods[n].triangulos <= t[n], `${n}: ${resumo.lods[n].triangulos}`);

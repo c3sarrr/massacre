@@ -199,15 +199,19 @@ export function validarSaida(id, raiz) {
   for (const z of a.zonas) if (!resumo.zonas.includes(z)) problemas.push(`falta a zona ${z}`);
   for (const s of soquetesDaArma(id)) if (!resumo.soquetes[s]) problemas.push(`falta o soquete ${s}`);
 
+  const relatorio = JSON.parse(readFileSync(join(pasta, arqs.relatorio), 'utf8'));
+  // o alfa do _n é o relevo moldado (correções da P1 da 4.1c): o tipo da textura do molde, liso = 255; numa arma sem
+  // nenhuma região (a AK) o alfa é todo 255 e o WebP o descarta — o jogo lê 1, liso
+  const comRelevo = Object.keys(relatorio.relevos ?? {}).length > 0;
   const texturas = { [arqs.n]: orc.textura, [arqs.m]: orc.textura, [arqs.mundoN]: orc.texturaMundo, [arqs.mundoM]: orc.texturaMundo };
   for (const [arq, lado] of Object.entries(texturas)) {
     const w = ladoWebp(readFileSync(join(pasta, arq)));
     if (w.largura !== lado || w.altura !== lado) problemas.push(`${arq}: ${w.largura}×${w.altura} (esperava ${lado}×${lado})`);
     if (!w.semPerdas) problemas.push(`${arq}: WebP com perdas (os canais empacotados precisam do sem perdas)`);
     if (arq.endsWith('_m.webp') && !w.alfa) problemas.push(`${arq}: sem o canal alfa (variação de cor)`);
+    if (comRelevo && arq.endsWith('_n.webp') && !w.alfa) problemas.push(`${arq}: sem o canal alfa (relevo moldado)`);
   }
 
-  const relatorio = JSON.parse(readFileSync(join(pasta, arqs.relatorio), 'utf8'));
   if (relatorio.arma !== id) problemas.push(`relatório de ${relatorio.arma}, esperava ${id}`);
   if (!relatorio.aprovado) problemas.push(`o Blender reprovou: ${(relatorio.problemas ?? []).join('; ')}`);
   problemas.push(...problemasDasMedidas(relatorio, medidasDaArma(id)));

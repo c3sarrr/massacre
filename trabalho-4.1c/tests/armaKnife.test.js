@@ -18,6 +18,8 @@ test('faca M9: a saída do Blender passa em todas as validações da classe faca
   assert.ok(bytes > 0 && bytes <= orcamentoDaArma('knife').arquivosMB * 1024 * 1024);
   assert.equal(relatorio.aprovado, true);
   assert.ok(relatorio.silhueta.iouTolerancia >= 0.98);
+  // o relevo moldado (correções da P1 da 4.1c): o recartilhado dos segmentos do cabo
+  assert.deepEqual(Object.keys(relatorio.relevos), ['guarnicao']);
   assert.deepEqual(Object.keys(relatorio.medidas).sort(), ['comprimento', 'espessuraLamina', 'lamina']);
   for (const d of Object.values(relatorio.medidas)) assert.ok(Math.abs(d.erro) <= 0.01);
   assert.deepEqual([...resumo.zonas].sort(), [...zonasDaArma('knife')].sort());

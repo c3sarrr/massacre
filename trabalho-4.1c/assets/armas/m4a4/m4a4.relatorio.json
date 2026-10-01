@@ -1,7 +1,7 @@
 {
  "silhueta": {
-  "iouBruto": 0.97398,
-  "iouTolerancia": 0.98409,
+  "iouBruto": 0.973,
+  "iouTolerancia": 0.98403,
   "raioToleranciaPx": 1,
   "mmPorPx": 0.5
  },
@@ -22,14 +22,14 @@
    "erro": 0.0
   },
   "alturaSemCarregador": {
-   "mm": 220.3,
+   "mm": 220.12,
    "alvo": 220.3,
-   "erro": 0.0
+   "erro": -0.00081
   },
   "alturaComCarregador": {
-   "mm": 257.46,
+   "mm": 257.17,
    "alvo": 257.5,
-   "erro": -0.00014
+   "erro": -0.00129
   }
  },
  "malha": {
@@ -40,21 +40,21 @@
  },
  "lods": {
   "perto": {
-   "triangulos": 34272
+   "triangulos": 30996
   },
   "mundo": {
-   "triangulos": 5700
+   "triangulos": 5699
   },
   "longe": {
-   "triangulos": 1418
+   "triangulos": 1419
   }
  },
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.195,
-   "minimo": 0.959,
-   "maximo": 1.024
+   "medianaPxPorMm": 2.164,
+   "minimo": 0.95,
+   "maximo": 1.025
   }
  },
  "soquetes": [
@@ -85,27 +85,35 @@
  "arma": "m4a4",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-28T04:11:51",
+ "gerado": "2026-10-01T11:30:58",
  "entradas": {
-  "hash": "91c4f8a9061a5d6eabb29906c4a98b889e2980cce7ceb3457b69015078dc415c"
+  "hash": "8d1ffdf954e3ad07a3825dc9c3cf685e9caf79c5130bd5e14ce5721ad9c774c8"
  },
  "origemMM": [
   -504.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.4516,
-  "longe": 0.2634
+  "mundo": 0.474,
+  "longe": 0.2659
  },
  "facesEscondidasRemovidas": 1421,
+ "relevos": {
+  "guarnicao": [
+   -603.0,
+   -547.0,
+   -119.0,
+   -67.0
+  ]
+ },
  "arquivos": {
-  "m4a4.glb": 405776,
-  "m4a4_m.webp": 2612326,
-  "m4a4_mundo_m.webp": 292010,
-  "m4a4_mundo_n.webp": 274542,
-  "m4a4_n.webp": 2638426
+  "m4a4.glb": 385772,
+  "m4a4_m.webp": 2481002,
+  "m4a4_mundo_m.webp": 276750,
+  "m4a4_mundo_n.webp": 241760,
+  "m4a4_n.webp": 1841914
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 467.5
+ "segundos": 584.8
 }

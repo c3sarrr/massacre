@@ -1,0 +1,19 @@
+{
+ "sobre": "Texturas CC0 usadas pelos scripts do Blender (decisão do usuário de 2026-09-27; CLAUDE.md, seção 0.7). Cada uma com o site, a página, o nome, o autor, a licença conferida, a data, a resolução e o md5 de cada arquivo; o tools/blender/armas/texturas.py recusa a textura fora deste registro, sem a licença CC0 ou com o md5 diferente. Elas entram só no modelo alto (as renders da conferência e o assar) e chegam ao jogo assadas nos .webp.",
+ "texturas": [
+  {
+   "id": "cherry_veneer",
+   "site": "Poly Haven",
+   "pagina": "https://polyhaven.com/a/cherry_veneer",
+   "nome": "Cherry Veneer",
+   "autor": "Jenelle van Heerden",
+   "licenca": "CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/), conferida na página da textura e em https://polyhaven.com/license em 2026-10-01",
+   "data": "2026-10-01",
+   "mm": [1000, 1000],
+   "arquivos": {
+    "cherry_veneer_diff_2k.jpg": { "px": [2048, 2048], "md5": "6d5c8b7fe2d3c262bf9d0e0178a86b20" }
+   },
+   "uso": "O veio da madeira das armas (materiais.mat_madeira; correções da P1 da 4.1c): a luminância do difuso, normalizada, pinta o veio do modelo alto entre as duas cores da madeira e vai para o canal A da _m, de onde o jogo tira o veio na cor da skin. A cerejeira tem o veio fino e reto e as figuras suaves da bétula das coronhas da AK (as fotos do board QAK); a cor da foto não é usada."
+  }
+ ]
+}

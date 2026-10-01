@@ -42,7 +42,7 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 3.537,
+   "medianaPxPorMm": 3.535,
    "minimo": 1.0,
    "maximo": 1.0
   }
@@ -62,9 +62,9 @@
  "arma": "knife",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-28T04:04:02",
+ "gerado": "2026-10-01T11:35:04",
  "entradas": {
-  "hash": "52a00dfbe1855dd8d90f8c0171382d5e3c1f62a097cd7fee8acd0001711626cb"
+  "hash": "6a921cd6655349296a71be4a54dfcce477d5b2e7b8f79edd9729ce9bc491f7a9"
  },
  "origemMM": [
   -177.6,
@@ -75,14 +75,22 @@
   "longe": 0.2705
  },
  "facesEscondidasRemovidas": 3,
+ "relevos": {
+  "guarnicao": [
+   -300.0,
+   -202.9,
+   -31.0,
+   31.0
+  ]
+ },
  "arquivos": {
-  "knife.glb": 114776,
-  "knife_m.webp": 658390,
-  "knife_mundo_m.webp": 70880,
-  "knife_mundo_n.webp": 69864,
-  "knife_n.webp": 687304
+  "knife.glb": 114516,
+  "knife_m.webp": 546680,
+  "knife_mundo_m.webp": 66302,
+  "knife_mundo_n.webp": 67568,
+  "knife_n.webp": 433492
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 175.3
+ "segundos": 243.9
 }
