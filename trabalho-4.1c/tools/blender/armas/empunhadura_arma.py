@@ -48,6 +48,9 @@ JUNTAR = (('anelar', 'medio'), ('minimo', 'anelar'), ('indicador', 'medio'))
 PASSO_JUNTAR_GRAUS = 0.25
 JUNTAR_ATRAVESSA_MM = 0.15  # metade do limite da validação da luva (0,3 mm), com folga
 PARES_VIZINHOS = (('indicador', 'medio'), ('medio', 'anelar'), ('anelar', 'minimo'))
+QUINA_MM = 1e-3  # as faces em volta do ponto mais perto da arma (a pseudonormal de Arma.distancia)
+# a paridade dos cruzamentos (Arma.distancia): três direções oblíquas, longe dos eixos das faces retas da arma
+RAIOS_DA_PARIDADE = tuple(Vector(v).normalized() for v in ((0.36, 0.48, 0.8), (-0.6, 0.64, -0.48), (0.8, -0.36, -0.48)))
 
 
 class Arma:
@@ -63,12 +66,37 @@ class Arma:
         self.bvh = BVHTree.FromPolygons(verts, polys)
 
     def distancia(self, p, limite=None):
-        """Distância com sinal (mm) do ponto à superfície, negativa dentro; None além do `limite`."""
+        """Distância com sinal (mm) do ponto à superfície, negativa dentro; None além do `limite`. O sinal sai da normal
+        da face mais perto; mais longe que PERTO_DA_ARMA_MM (só sem o limite das buscas: a validação), de três votos —
+        ela, a pseudonormal (a média das normais das faces em volta do ponto mais perto) e a paridade dos raios —, que
+        erram em casos diferentes: a face, perto de uma quina (a do outro lado dela: o antebraço da mão da frente,
+        24 mm abaixo de um friso do anel delta da M4A4, saía 24 mm dentro); a média, numa ponta fina; a paridade, nas
+        peças que se sobrepõem (o cano dentro do guarda-mão)."""
         r = self.bvh.find_nearest(p) if limite is None else self.bvh.find_nearest(p, limite)
         if r[0] is None:
             return None
         co, n, _i, d = r
-        return -d if (Vector(p) - co).dot(n) < 0.0 else d
+        para_fora = Vector(p) - co
+        dentro = para_fora.dot(n) < 0.0
+        if d > PERTO_DA_ARMA_MM:
+            media = sum((f[1] for f in self.bvh.find_nearest_range(co, QUINA_MM)), Vector())
+            pela_media = para_fora.dot(media) < 0.0 if media.length > 1e-9 else dentro
+            dentro = dentro + pela_media + self._impar(p) >= 2
+        return -d if dentro else d
+
+    def _impar(self, p):
+        """Se a maioria dos raios de RAIOS_DA_PARIDADE que saem do ponto cruza a malha um número ímpar de vezes."""
+        impares = 0
+        for direcao in RAIOS_DA_PARIDADE:
+            k, o = 0, Vector(p)
+            while k < 256:
+                co = self.bvh.ray_cast(o, direcao)[0]
+                if co is None:
+                    break
+                k += 1
+                o = co + direcao * 1e-3
+            impares += k % 2
+        return 2 * impares > len(RAIOS_DA_PARIDADE)
 
     def raio(self, origem, direcao, limite=1000.0):
         """(ponto, normal) da primeira face no raio, ou (None, None)."""
@@ -403,18 +431,23 @@ def _com_dedo(m, dedo, g):
             .com(f'{dedo}_3', flexao=g['dip']))
 
 
-def dedo_no_alvo(na, mao, m, dedo, alvo, normal, abertura_max, raio_mm, folga=None):
+def dedo_no_alvo(na, mao, m, dedo, alvo, normal, abertura_max, raio_mm, folga=None, aperto=0.0, alvo_arma=None):
     """O dedo com a polpa no alvo (a normal para fora da superfície), chegando pela normal até encostar na arma.
-    `folga(pts)`, se vier, é uma conta extra (mm) que tem de ficar ≥ 0 no caminho (o guarda-mato). Devolve (pose,
+    `folga(pts)`, se vier, é uma conta extra (mm) que tem de ficar ≥ 0 no caminho (o guarda-mato). Com o `aperto` (mm),
+    a luva pode entrar até isso a mais na arma no caminho — a luva apertada num guarda-mato mais estreito que o dedo,
+    como a da M4A4 —, menos na peça do alvo (`alvo_arma`, o gatilho), em que a polpa só encosta. Devolve (pose,
     relatório)."""
     lim = limites_do_dedo(mao, abertura_max)
     cadeia = CadeiaDedo(na, dedo, m.pose())
     ik = ik_dedo(cadeia, na.arma, alvo, normal, lim, raio_mm)
     dedo_v = na.vertices(cadeia.ossos)
+    no_alvo = NaArma(na.col, alvo_arma) if aperto and alvo_arma is not None else None
 
     def cruza(g):
         pts = na.pontos(_com_dedo(m, dedo, g).pose())
-        if na.penetracao(pts, dedo_v) > CONTATO_MM:
+        if na.penetracao(pts, dedo_v) > CONTATO_MM + aperto:
+            return True
+        if no_alvo is not None and no_alvo.penetracao(pts, dedo_v) > CONTATO_MM:
             return True
         return folga is not None and folga(pts) < 0.0
 

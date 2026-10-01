@@ -1,7 +1,7 @@
 {
  "silhueta": {
-  "iouBruto": 0.973,
-  "iouTolerancia": 0.98403,
+  "iouBruto": 0.97231,
+  "iouTolerancia": 0.98355,
   "raioToleranciaPx": 1,
   "mmPorPx": 0.5
  },
@@ -40,7 +40,7 @@
  },
  "lods": {
   "perto": {
-   "triangulos": 30996
+   "triangulos": 30396
   },
   "mundo": {
    "triangulos": 5700
@@ -52,9 +52,9 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.164,
-   "minimo": 0.95,
-   "maximo": 1.025
+   "medianaPxPorMm": 2.212,
+   "minimo": 0.951,
+   "maximo": 1.024
   }
  },
  "soquetes": [
@@ -82,20 +82,262 @@
   "detalhes",
   "interno"
  ],
+ "empunhadura": {
+  "d": {
+   "palmaAndouMM": 1.4,
+   "dedosPararam": {
+    "medio_1": "contato",
+    "medio_2": "contato",
+    "medio_3": "contato",
+    "anelar_1": "contato",
+    "anelar_2": "contato",
+    "anelar_3": "contato",
+    "minimo_1": "contato",
+    "minimo_2": "contato",
+    "minimo_3": "contato"
+   },
+   "vizinhos": {},
+   "indicador": {
+    "graus": {
+     "abertura": -15.55,
+     "mcp": -7.14,
+     "pip": 35.8,
+     "dip": -0.2
+    },
+    "encostou": true,
+    "chegouDeMM": 4.0,
+    "polpaEncostaMM": -0.05,
+    "polpaAoAlvoMM": 0.55,
+    "folgaDoResto": -0.05
+   },
+   "polegar": {
+    "graus": {
+     "abducao": 70,
+     "cmc": 15.0,
+     "rotacao": 16.25,
+     "mcp": 41.01,
+     "ip": 35.98
+    },
+    "ik": {
+     "abducao": 70,
+     "cmc": 15.0,
+     "rotacao": 16.25,
+     "mcp": 40.94,
+     "ip": 35.94
+    },
+    "polpaEncostaMM": -0.05,
+    "polpaAoAlvoMM": 1.28,
+    "encostou": true,
+    "chegouDeMM": null
+   },
+   "penetracaoMM": 0.049,
+   "contatosMM": {
+    "palma": -0.046,
+    "medio": -0.047,
+    "anelar": -0.04,
+    "minimo": -0.043,
+    "indicador_gatilho": -0.049,
+    "polegar": -0.047
+   },
+   "palmaMeioMM": -0.05,
+   "luva": {
+    "juntas": {
+     "pulso": 1.0,
+     "indicador_mcp": 0.9776,
+     "indicador_pip": 0.9782,
+     "indicador_dip": 1.0,
+     "medio_mcp": 1.0054,
+     "medio_pip": 0.973,
+     "medio_dip": 0.9856,
+     "anelar_mcp": 1.3135,
+     "anelar_pip": 0.9773,
+     "anelar_dip": 0.9873,
+     "minimo_mcp": 1.0054,
+     "minimo_pip": 0.9902,
+     "minimo_dip": 0.9932,
+     "polegar_mcp": 0.9818,
+     "polegar_ip": 0.9916
+    },
+    "atravessaMM": 0.0,
+    "assentamentoMM": 0.02,
+    "piorJunta": [
+     "medio_pip",
+     0.973
+    ],
+    "paredeDoPunho": 1.0
+   },
+   "angulos": {
+    "anelar_1": 51.38,
+    "anelar_2": 55.27,
+    "anelar_3": 36.84,
+    "indicador_1": 7.86,
+    "indicador_2": 55.8,
+    "indicador_3": 9.8,
+    "medio_1": 36.75,
+    "medio_2": 58.12,
+    "medio_3": 38.75,
+    "minimo_1": 40.55,
+    "minimo_2": 42.8,
+    "minimo_3": 28.53
+   },
+   "juntosMM": {
+    "medio-anelar": [
+     6.78,
+     4.58
+    ],
+    "anelar-minimo": [
+     2.15,
+     2.24
+    ]
+   }
+  },
+  "e": {
+   "palmaAndouMM": 22.7,
+   "dedosPararam": {
+    "indicador_1": "contato",
+    "indicador_2": "contato",
+    "indicador_3": "contato",
+    "medio_1": "contato",
+    "medio_2": "contato",
+    "medio_3": "contato",
+    "anelar_1": "contato",
+    "anelar_2": "contato",
+    "anelar_3": "contato",
+    "minimo_1": "contato",
+    "minimo_2": "contato",
+    "minimo_3": "contato"
+   },
+   "vizinhos": {},
+   "juntar": {
+    "anelar": 5.0,
+    "minimo": 10.0,
+    "indicador": -4.38
+   },
+   "polegar": {
+    "graus": {
+     "abducao": 49.69,
+     "cmc": -1.0,
+     "rotacao": 17.0,
+     "mcp": 1.62,
+     "ip": 0.0
+    },
+    "coladoMM": 3.49,
+    "trechosMM": [
+     2.81,
+     2.04,
+     1.15,
+     0.21,
+     0.31,
+     3.49
+    ],
+    "curvaGraus": 1.6,
+    "desvioDoEixoGraus": 40.1,
+    "polpaEncostaMM": 0.21
+   },
+   "penetracaoMM": 0.048,
+   "contatosMM": {
+    "palma": -0.04,
+    "indicador": -0.048,
+    "medio": -0.002,
+    "anelar": -0.02,
+    "minimo": -0.006,
+    "polegar": 0.21
+   },
+   "palmaMeioMM": -0.04,
+   "luva": {
+    "juntas": {
+     "pulso": 1.0,
+     "indicador_mcp": 1.0074,
+     "indicador_pip": 0.992,
+     "indicador_dip": 0.9954,
+     "medio_mcp": 1.0037,
+     "medio_pip": 0.9973,
+     "medio_dip": 0.9977,
+     "anelar_mcp": 1.191,
+     "anelar_pip": 0.9926,
+     "anelar_dip": 0.9957,
+     "minimo_mcp": 1.0133,
+     "minimo_pip": 0.9915,
+     "minimo_dip": 0.9944,
+     "polegar_mcp": 0.9987,
+     "polegar_ip": 0.9957
+    },
+    "atravessaMM": 0.033,
+    "assentamentoMM": 0.02,
+    "piorJunta": [
+     "minimo_pip",
+     0.9915
+    ],
+    "paredeDoPunho": 1.0,
+    "ondeAtravessa": [
+     148.5,
+     -18.82,
+     -45.99
+    ]
+   },
+   "angulos": {
+    "anelar_1": 37.88,
+    "anelar_2": 37.88,
+    "anelar_3": 25.25,
+    "indicador_1": 18.98,
+    "indicador_2": 39.61,
+    "indicador_3": 26.41,
+    "medio_1": 32.34,
+    "medio_2": 32.34,
+    "medio_3": 21.56,
+    "minimo_1": 40.17,
+    "minimo_2": 40.17,
+    "minimo_3": 26.78
+   },
+   "lados": {
+    "polegarMM": 33.24,
+    "dedosMM": {
+     "indicador": -25.89,
+     "medio": -36.17,
+     "anelar": -35.46,
+     "minimo": -36.96
+    }
+   },
+   "juntosMM": {
+    "indicador-medio": [
+     1.98,
+     1.29
+    ],
+    "medio-anelar": [
+     2.24,
+     5.03
+    ],
+    "anelar-minimo": [
+     3.53,
+     9.1
+    ]
+   }
+  },
+  "frente": "e",
+  "maos": [
+   "d",
+   "e"
+  ],
+  "marca": {
+   "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd",
+   "e": "e9f11073664b9f2a333b6046ab2b243b67b5f49e78a3d22641033c782b6f2b07"
+  },
+  "segundos": 33.0
+ },
  "arma": "m4a4",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-10-01T15:33:48",
+ "gerado": "2026-10-01T18:05:02",
  "entradas": {
-  "hash": "eaf8434cc8fb0fb5718a82c3a14dfb7d529b161e7214fd812b5b79a8f0198cfb"
+  "hash": "fbfc6bf04b385edac2b372388ac57528955a7ad1423711973b9dc6513ff0fb5a"
  },
  "origemMM": [
   -504.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.4741,
-  "longe": 0.2657
+  "mundo": 0.4786,
+  "longe": 0.2656
  },
  "facesEscondidasRemovidas": 1421,
  "relevos": {
@@ -107,13 +349,13 @@
   ]
  },
  "arquivos": {
-  "m4a4.glb": 385968,
-  "m4a4_m.webp": 2479840,
-  "m4a4_mundo_m.webp": 279398,
-  "m4a4_mundo_n.webp": 240284,
-  "m4a4_n.webp": 1843822
+  "m4a4.glb": 416344,
+  "m4a4_m.webp": 2511658,
+  "m4a4_mundo_m.webp": 278866,
+  "m4a4_mundo_n.webp": 238106,
+  "m4a4_n.webp": 1877194
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 595.4
+ "segundos": 699.0
 }

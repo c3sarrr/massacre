@@ -365,11 +365,11 @@ def _folgas_na_arma(cadeia, ms, na):
     return folgas
 
 
-def colado_na_malha(col, na, pts):
+def colado_na_malha(col, na, pts, medir=None):
     """A folga (mm) do polegar deitado medida na malha: em cada trecho de TRECHOS_DEITADO da falange proximal e da
-    distal, a menor distância dos vértices do trecho à arma (o lado que encosta). Devolve a lista, da base para a
-    ponta."""
-    rig, lado = col.rig, col.lado
+    distal, a menor distância dos vértices do trecho à arma (o lado que encosta), ou `medir(osso, ponto)` se vier (o
+    plano do trilho da M4A4). Devolve a lista, da base para a ponta."""
+    rig, lado, medir = col.rig, col.lado, medir or (lambda _o, q: na.arma.distancia(q))
     trechos = []
     repouso = col.modelo.pontos({})
     for osso in LIVRE:
@@ -381,17 +381,18 @@ def colado_na_malha(col, na, pts):
         for a, z in TRECHOS_DEITADO:
             trecho = [i for i in indices if a <= (Vector(repouso[i]) - cabeca).dot(eixo) / comp2 < z]
             if trecho:
-                trechos.append(round(min(na.arma.distancia(pts[i]) for i in trecho), 2))
+                trechos.append(round(min(medir(osso, pts[i]) for i in trecho), 2))
     return trechos
 
 
-def deitar_na_arma(col, mao, m, na, eixo, face):
+def deitar_na_arma(col, mao, m, na, eixo, face, inicio=None, medir=None):
     """O polegar da mão da frente deitado reto na arma (ver o cabeçalho): a pose `m` com o polegar resolvido e o
     relatório (os graus totais, a folga ao longo do comprimento medida na malha, a curva e o desvio das falanges do
     `eixo`, unitário no referencial da luva), na face do lado `face` (unitária, no referencial da arma: a normal da
     superfície mais perto de cada trecho do polegar tem de ser ela, senão ele deita na face de baixo, ao lado do
     indicador). Se a solução ainda entrar mais que o contato, a MCP e a IP abrem juntas até
-    soltar (o polegar fica mais reto, nunca mais curvo)."""
+    soltar (o polegar fica mais reto, nunca mais curvo); com `inicio`, a busca parte dele (a segunda chegada da palma);
+    `medir` vai ao colado_na_malha."""
     lim = limites(mao)
     rep = mao.rep
     cadeia = Cadeia(col, mao, {o: q for o, q in m.pose().items() if not o.startswith('polegar')})
@@ -410,7 +411,7 @@ def deitar_na_arma(col, mao, m, na, eixo, face):
         return c
 
     livre, resto = _livre_e_resto(col)
-    inicio = minimizar(custo_de, lim)
+    inicio = minimizar(custo_de, lim, inicio)
     for folga_alvo in FOLGAS_DEITADO:
         g = refinar_na_malha(lambda gg: custo_de(gg, folga_alvo), lim, inicio, na, m, cadeia)
         if not _cruza(col, _com_graus(m, cadeia, g), livre, resto, na):
@@ -421,8 +422,8 @@ def deitar_na_arma(col, mao, m, na, eixo, face):
             pose = _com_graus(m, cadeia, aberto).pose()
             na_mao = col.profundidade(pose, livre, resto, empunhadura.PERTO_MM)
             na_arma = na.penetracao(na.pontos(pose), na.vertices(LIVRE + TENAR))
-            raise RuntimeError(f'o polegar deitado cruza a mão ({na_mao:.2f} mm) ou a arma ({na_arma:.2f} mm), mesmo com '
-                               f'a MCP e a IP abertas (graus {totais(mao, aberto)})')
+            raise empunhadura.PolegarCruza(f'o polegar deitado cruza a mão ({na_mao:.2f} mm) ou a arma ({na_arma:.2f} '
+                                           f'mm), mesmo com a MCP e a IP abertas (graus {totais(mao, aberto)})', aberto)
         anda = max(abs(g[k] - aberto[k]) for k in GRAUS)
         tolerancia = empunhadura.TOLERANCIA_GRAUS / max(anda, 1e-6)
         a, b = 0.0, 1.0  # a entra, b solta
@@ -439,7 +440,7 @@ def deitar_na_arma(col, mao, m, na, eixo, face):
     desvio = max(math.degrees(math.acos(max(-1.0, min(1.0, (ms[k].to_3x3() @ Vector((0.0, 1.0, 0.0))).normalized()
                                                          .dot(eixo))))) for k in (1, 2))
     t = totais(mao, g)
-    trechos = colado_na_malha(col, na, pts)
+    trechos = colado_na_malha(col, na, pts, medir)
     rel = {'graus': t, 'coladoMM': max(trechos), 'trechosMM': trechos, 'curvaGraus': round(t['mcp'] + t['ip'], 1),
            'desvioDoEixoGraus': round(desvio, 1), 'polpaEncostaMM': round(na.encosto(pts, cadeia.lado_da_polpa), 2)}
     return m, rel

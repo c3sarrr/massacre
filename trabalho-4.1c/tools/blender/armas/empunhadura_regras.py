@@ -8,8 +8,11 @@
 #    base dela se afastava do punho e o polegar não alcançava o outro lado), a MCP do indicador 27,6 mm atrás e 11,7 mm
 #    abaixo do ponto do gatilho (a membrana alta no punho e o médio logo embaixo do guarda-mato), e chega pela normal da
 #    palma até encostar; o médio, o anelar e o mínimo fecham em volta do punho; o indicador põe a polpa na face da frente
-#    do gatilho a 60 % da altura dele, com pelo menos 1 mm do guarda-mato e do resto da arma; o polegar cruza para o
-#    lado esquerdo do punho (a polpa encostada o mais à esquerda que ele alcança);
+#    do gatilho a 60 % da altura dele, com pelo menos 1 mm do guarda-mato e do resto da arma (a `folga` do gatilho;
+#    negativa, o aperto da luva num vão mais estreito que o dedo: as falanges média e distal entram até isso no
+#    guarda-mato e no piso do receptor — a luva comprimida, como a de verdade no guarda-mato padrão da M4A4 —, e a
+#    polpa só encosta no gatilho); o polegar cruza para o lado esquerdo do punho (a polpa encostada o mais à esquerda
+#    que ele alcança);
 #  - a mão da frente (FRENTE; regra fixa do usuário de 2026-09-27, para toda arma que tem mão da frente — no guarda-mão,
 #    no cano, na telha da escopeta): só o polegar de um lado da arma e os outros quatro dedos do outro, como a pega da
 #    AK no CS:GO. A palma por baixo, os dedos para a direita (o polegar para a frente), girada em volta da vertical (os
@@ -80,7 +83,9 @@ FRENTE = {
     'gatilho': None,
     # o polegar deitado reto na face `face` (a esquerda), encostado ao longo da falange proximal e da distal, as duas
     # apontando para `eixo` (unitários, no referencial da arma: a boca, subindo um pouco) —
-    # empunhadura_polegar.deitar_na_arma
+    # empunhadura_polegar.deitar_na_arma. Com `plano` (mm, ao longo de `face` a partir do plano do meio da arma), a
+    # folga da proximal é medida até ele: o alto do trilho do lado (a M4A4), que ela cruza por cima do vão entre o
+    # trilho e o corpo do guarda-mão
     'polegar': {'deitado': True, 'face': (0.0, 1.0, 0.0), 'eixo': (1.0, 0.0, 0.6)},
     # o lado do polegar (unitário, no referencial da arma, a partir do plano do meio dela) e os dedos que vão ao outro
     'lados': {'polegar': (0.0, 1.0, 0.0), 'dedos': DEDOS4},

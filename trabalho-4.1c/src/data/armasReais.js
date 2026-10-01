@@ -98,8 +98,6 @@ export const ARMAS_REAIS = F({
   // mostra o alumínio; o fosco cinza-claro de antes lia como plástico.
   m4a4: F({
     categoria: 'rifle',
-    // a regra rifle da pega é a da AK (o indicador cruza o gatilho da M4): a da M4A4 entra na Tarefa 10 do plano da 4.1c
-    pega: false,
     pasta: 'assets/armas/m4a4/',
     zonas: ZONAS,
     pecas: F(['ferrolho', 'alavanca', 'tampa', 'carregador', 'gatilho', 'seletor']),

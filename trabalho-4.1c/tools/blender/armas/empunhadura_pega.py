@@ -92,9 +92,10 @@ def _vertices_do_corpo(col):
     return [i for i, o in enumerate(col.dono) if o not in livres]
 
 
-def _pegar(col, na, mao, r, soquete, gatilho, base, lado, cmc=None):
+def _pegar(col, na, mao, r, soquete, gatilho, base, lado, cmc=None, polegar_inicio=None):
     """Uma mão na arma pela regra `r` (ver o cabeçalho), com a CMC do polegar na chegada nos graus `cmc` (a abdução, a
-    flexão e a rotação além do repouso; sem eles, a pose de pegar). Devolve (pose, relatório do solver)."""
+    flexão e a rotação além do repouso; sem eles, a pose de pegar) e o polegar deitado partindo de `polegar_inicio` (os
+    graus da solução da primeira chegada). Devolve (pose, relatório do solver)."""
     rel = {}
     lim = polegar.limites(mao)
     m = EA.mao_aberta(mao, polegar.afastar(col, mao, empunhadura.Mao()))
@@ -131,14 +132,23 @@ def _pegar(col, na, mao, r, soquete, gatilho, base, lado, cmc=None):
         def folga(pts):
             return min(base.distancia(pts[i]) for i in guarda) - g['folga']
 
+        # a folga negativa é o aperto da luva no vão (empunhadura_regras, a M4A4): só no resto da arma, não no gatilho
         m, rel['indicador'], _cadeia = EA.dedo_no_alvo(na, mao, m, 'indicador', alvo_g, normal_g, g['abertura'],
-                                                       g['raio'], folga)
+                                                       g['raio'], folga, aperto=max(0.0, -g['folga']),
+                                                       alvo_arma=EA.Arma([gatilho]))
         rel['indicador']['folgaDoResto'] = round(folga(na.pontos(m.pose())) + g['folga'], 2)
     cadeia = polegar.Cadeia(col, mao, {o: q for o, q in m.pose().items() if not o.startswith('polegar')})
     p = r['polegar']
     if p.get('deitado'):
         eixo = (na.encaixe.inverted().to_3x3() @ Vector(p['eixo'])).normalized()
-        m, rel['polegar'] = polegar.deitar_na_arma(col, mao, m, na, eixo, Vector(p['face']).normalized())
+        face = Vector(p['face']).normalized()
+        medir = None
+        if p.get('plano') is not None:
+            # a falange proximal medida até o plano da face (o alto do trilho do lado da M4A4: ela passa por cima do vão
+            # entre o trilho e o corpo do guarda-mão), e a distal até a malha, em que ela encosta
+            def medir(osso, q):
+                return face.dot(Vector(q)) - p['plano'] if osso == polegar.LIVRE[0] else na.arma.distancia(q)
+        m, rel['polegar'] = polegar.deitar_na_arma(col, mao, m, na, eixo, face, polegar_inicio, medir)
     elif p.get('sobre'):
         # o polegar dobrado por cima dos dedos de `sobre` (a faca: a falange média do indicador), como no punho fechado
         # das poses de teste: a polpa assenta nas falanges deles (a superfície do fechar_no_alvo), e a arma é obstáculo
@@ -157,9 +167,10 @@ def _pegar(col, na, mao, r, soquete, gatilho, base, lado, cmc=None):
     return m, rel
 
 
-def _contatos(col, na, mao, pts, r):
+def _contatos(col, na, mao, pts, r, gatilho=None):
     """{contato: [vértice, distância em mm]} da regra — a palma, cada dedo que fecha, a polpa do indicador (no gatilho)
-    e a do polegar —, com o vértice de cada um mais perto da arma (as sondas)."""
+    e a do polegar —, com o vértice de cada um mais perto da arma (as sondas). A da polpa do indicador vai até a peça do
+    gatilho (`gatilho`, a Arma dela): encostada no guarda-mato, a 10 mm do gatilho, ela contava como no gatilho."""
     # a palma com as eminências (a tenar sobre o metacarpo do polegar e a hipotenar sobre os do anelar e do mínimo): é
     # nelas que a palma apoia num punho reto — o oco do meio fica afastado (o `palmaMeioMM` do relatório)
     grupos = {'palma': na.vertices(PALMA)}
@@ -171,7 +182,8 @@ def _contatos(col, na, mao, pts, r):
         grupos['polegar'] = polegar.Cadeia(col, mao, {}).lado_da_polpa
     saida = {}
     for nome, idx in grupos.items():
-        dist = {i: na.arma.distancia(pts[i]) for i in idx}
+        arma = gatilho if nome == 'indicador_gatilho' and gatilho is not None else na.arma
+        dist = {i: arma.distancia(pts[i]) for i in idx}
         i = min(dist, key=dist.get)
         saida[nome] = [i, round(dist[i], 3)]
     return saida
@@ -263,7 +275,14 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
         luva, rig = bracos[lado]
         col = empunhadura.Colisor(luva, rig, mao, luvas.REFORCO)
         na = EA.NaArma(col, arma)
-        m, rel_m = _pegar(col, na, mao, r, soq[r['soquete']], perto.get('gatilho'), base, lado)
+        try:
+            m, rel_m = _pegar(col, na, mao, r, soq[r['soquete']], perto.get('gatilho'), base, lado)
+        except empunhadura.PolegarCruza as erro:
+            # o polegar deitado que entra na arma mesmo aberto (a mão da frente da M4A4, no canto de baixo do guarda-mão
+            # largo): a palma encostou com a CMC na pose de pegar, e a da solução levava a pele da tenar para dentro.
+            # Ela chega de novo com a CMC da solução, como a da faca
+            m, rel_m = _pegar(col, na, mao, r, soq[r['soquete']], perto.get('gatilho'), base, lado,
+                              cmc={k: erro.graus[k] for k in ('abducao', 'cmc', 'rotacao')}, polegar_inicio=erro.graus)
         if r['polegar'].get('sobre') and 'erro' not in rel_m['polegar']:
             # a segunda chegada (a faca): a palma chega de novo com a CMC do polegar da solução. Na pose de pegar, a
             # tenar encostava no cabo antes da palma, e a abdução da solução depois a tirava dele (a palma a 2,4 mm)
@@ -274,7 +293,7 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
         pose = m.pose()
         pts = na.pontos(pose)
         penetracao = na.penetracao(pts, limite=None)  # sem o limite das buscas: um dedo inteiro dentro da arma conta
-        contatos = _contatos(col, na, mao, pts, r)
+        contatos = _contatos(col, na, mao, pts, r, EA.Arma([perto['gatilho']]) if r['gatilho'] else None)
         conta, problemas_luva = validar_maos.conferir_uma(col.modelo, luva, luvas.REFORCO, f'pega {nome}', pose)
         totais, problemas_angulos = _angulos(mao, m)
         meio = min(na.arma.distancia(pts[i]) for i in na.vertices(['mao']))

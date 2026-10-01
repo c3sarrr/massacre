@@ -94,8 +94,9 @@ def construir(ctx):
     fontes = _malhas(alto)
     _etapa(t0, 'peças móveis e soquetes')
     # A pega (Fase 4.1b): as luvas refeitas pelo mesmo script e o solver na arma de jogo (o perto, peças em repouso).
-    # Só nas categorias que já têm a regra (src/data/luvas.js, CATEGORIAS_COM_PEGA; a pistola e a faca entram na 4.1c
-    # depois da P1): nas outras a arma sai sem a pega, como no jogo, que monta as luvas só onde ela existe.
+    # Só nas categorias que já têm a regra (src/data/luvas.js, CATEGORIAS_COM_PEGA; a pistola entra na Tarefa 11 do plano
+    # da 4.1c) e nas armas que não esperam a regra delas (`pega: false` em src/data/armasReais.js): nas outras a arma
+    # sai sem a pega, como no jogo, que monta as luvas só onde ela existe.
     com_pega = ctx.get('pega', True)
     if com_pega:
         mao, bracos = empunhadura_pega.montar_luvas(ctx, _colecao('luvas'))

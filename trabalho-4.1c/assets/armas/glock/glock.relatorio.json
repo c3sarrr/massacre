@@ -1,6 +1,6 @@
 {
  "silhueta": {
-  "iouBruto": 0.99079,
+  "iouBruto": 0.99082,
   "iouTolerancia": 0.99685,
   "raioToleranciaPx": 1,
   "mmPorPx": 0.5
@@ -40,7 +40,7 @@
  },
  "lods": {
   "perto": {
-   "triangulos": 5837
+   "triangulos": 5833
   },
   "mundo": {
    "triangulos": 2848
@@ -52,9 +52,9 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.168,
-   "minimo": 0.968,
-   "maximo": 1.009
+   "medianaPxPorMm": 2.243,
+   "minimo": 0.973,
+   "maximo": 1.007
   }
  },
  "soquetes": [
@@ -83,17 +83,17 @@
  "arma": "glock",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-10-01T15:23:51",
+ "gerado": "2026-10-01T18:12:54",
  "entradas": {
-  "hash": "2792f6ef68a93bba72f1d7e4700367da6df63a4b007d743e109ac8668cd27e0f"
+  "hash": "680561b03c4f540485f17a7e4b8ee84db4539d5a9be9922ec4c774830b20d7c3"
  },
  "origemMM": [
   -105.6,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.8619,
-  "longe": 0.2924
+  "mundo": 0.8623,
+  "longe": 0.2911
  },
  "facesEscondidasRemovidas": 389,
  "relevos": {
@@ -105,13 +105,13 @@
   ]
  },
  "arquivos": {
-  "glock.glb": 155544,
-  "glock_m.webp": 597100,
-  "glock_mundo_m.webp": 69706,
-  "glock_mundo_n.webp": 55766,
-  "glock_n.webp": 459480
+  "glock.glb": 153264,
+  "glock_m.webp": 595010,
+  "glock_mundo_m.webp": 69608,
+  "glock_mundo_n.webp": 55954,
+  "glock_n.webp": 466568
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 200.8
+ "segundos": 465.5
 }

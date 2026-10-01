@@ -43,10 +43,10 @@
    "triangulos": 27470
   },
   "mundo": {
-   "triangulos": 5700
+   "triangulos": 5699
   },
   "longe": {
-   "triangulos": 1424
+   "triangulos": 1425
   }
  },
  "uv": {
@@ -132,7 +132,7 @@
    "penetracaoMM": 0.048,
    "contatosMM": {
     "palma": -0.044,
-    "medio": 0.02,
+    "medio": 0.019,
     "anelar": -0.014,
     "minimo": -0.02,
     "indicador_gatilho": -0.044,
@@ -214,33 +214,33 @@
    },
    "polegar": {
     "graus": {
-     "abducao": 32.5,
-     "cmc": 6.25,
-     "rotacao": 15.5,
+     "abducao": 31.5,
+     "cmc": 6.0,
+     "rotacao": 16.5,
      "mcp": 0.0,
      "ip": 0.0
     },
-    "coladoMM": 6.52,
+    "coladoMM": 6.53,
     "trechosMM": [
-     6.52,
-     5.26,
-     4.04,
-     2.38,
-     0.21,
-     0.0
+     6.53,
+     5.28,
+     4.06,
+     2.41,
+     0.24,
+     -0.02
     ],
     "curvaGraus": 0.0,
-    "desvioDoEixoGraus": 14.2,
-    "polpaEncostaMM": 0.0
+    "desvioDoEixoGraus": 13.4,
+    "polpaEncostaMM": -0.02
    },
-   "penetracaoMM": 0.05,
+   "penetracaoMM": 0.049,
    "contatosMM": {
     "palma": -0.042,
     "indicador": -0.04,
-    "medio": -0.05,
+    "medio": -0.049,
     "anelar": -0.002,
     "minimo": -0.023,
-    "polegar": 0.003
+    "polegar": -0.023
    },
    "palmaMeioMM": -0.04,
    "luva": {
@@ -289,7 +289,7 @@
     "minimo_3": 36.94
    },
    "lados": {
-    "polegarMM": 20.09,
+    "polegarMM": 20.11,
     "dedosMM": {
      "indicador": -15.44,
      "medio": -24.62,
@@ -326,9 +326,9 @@
  "arma": "ak47",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-10-01T15:20:29",
+ "gerado": "2026-10-01T18:21:41",
  "entradas": {
-  "hash": "9a6cf29be6481d4164d27b73fca2518418a2bec8c4c137c7df0db1f0a47bd3c3"
+  "hash": "8275f6906d2e538518c70f600f9d2a4096f791115a5eeac41f46f8c898df1d95"
  },
  "origemMM": [
   -551.0,
@@ -336,18 +336,18 @@
  ],
  "dizimacao": {
   "mundo": 0.3586,
-  "longe": 0.2772
+  "longe": 0.2769
  },
  "facesEscondidasRemovidas": 1781,
  "relevos": {},
  "arquivos": {
-  "ak47.glb": 393104,
-  "ak47_m.webp": 2640220,
-  "ak47_mundo_m.webp": 267470,
-  "ak47_mundo_n.webp": 214364,
-  "ak47_n.webp": 1611898
+  "ak47.glb": 393732,
+  "ak47_m.webp": 2666750,
+  "ak47_mundo_m.webp": 272596,
+  "ak47_mundo_n.webp": 219096,
+  "ak47_n.webp": 1609664
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 531.5
+ "segundos": 984.9
 }
