@@ -1,22 +1,31 @@
 // A pega das luvas numa arma realista (Fase 4.1b; desenho em docs/superpowers/specs/2026-09-26-4.1b-luvas-e-
 // empunhadura-design.md, seção 6.4; plano, D1): o que o solver de empunhadura do Blender grava no .glb da arma e o jogo
 // lê pelo bloco JSON do glTF (o `parser.json` do GLTFLoader, ou o JSON cru nos testes e no validador da saída).
-//  - o nó `pega` (debaixo da raiz da arma), com `extras.luvas` = {marca: {d, e}, sondas: {lado: {contato: {vertice, mm}}}}
-//    (a marca do rig de cada braço, D4 — o jogo só aplica a pega a luvas com a mesma marca — e o vértice de cada contato
-//    da regra com a distância que o Blender mediu, que o `luvas_contato` refaz com o skinning do three); o exportador
-//    grava os extras como texto JSON ou como objeto, e os dois servem;
-//  - os nós `pega_mao_d` e `pega_mao_e`, filhos de `pega`: o referencial do osso `mao` de cada braço na pose, no da arma
-//    (u); o braço põe o pulso ali;
-//  - a animação `empunhadura`: um quadro com a rotação dos 17 ossos de dedo de cada mão (OSSOS_DE_DEDO) nos nós da
-//    armadura `pega_luvas`, com os nomes do luvas.glb; o exportador com amostragem grava também a posição e a escala, e
-//    o jogo usa só as rotações. Trilha em nó de nome que não é osso das luvas é erro (o esqueleto errado).
+//  - o nó `pega` (debaixo da raiz da arma), com `extras.luvas` = {marca: {d, e}, sondas: {lado: {contato: {vertice, mm}}},
+//    maos} (a marca do rig de cada braço, D4 — o jogo só aplica a pega a luvas com a mesma marca —, o vértice de cada
+//    contato da regra com a distância que o Blender mediu, que o `luvas_contato` refaz com o skinning do three, e as mãos
+//    da regra: ['d', 'e'] ou só ['d'] na faca, 4.1c; sem o campo, as duas); o exportador grava os extras como texto JSON
+//    ou como objeto, e os dois servem;
+//  - os nós `pega_mao_d` e `pega_mao_e` (os das mãos da regra), filhos de `pega`: o referencial do osso `mao` de cada
+//    braço na pose, no da arma (u); o braço põe o pulso ali;
+//  - a animação `empunhadura`: um quadro com a rotação dos 17 ossos de dedo de cada mão da regra (OSSOS_DE_DEDO) nos nós
+//    da armadura `pega_luvas`, com os nomes do luvas.glb; o exportador com amostragem grava também a posição e a escala,
+//    e o jogo usa só as rotações. Trilha em nó de nome que não é osso das luvas é erro (o esqueleto errado).
 // No jogo, `pegaDoGltf` junta as três coisas para os braços (a marca, os dedos do clipe carregado e o referencial do osso
 // `mao` de cada lado no da raiz da arma).
 import * as THREE from 'three';
 import { OSSOS_DE_DEDO, ossosDoLado } from '../../data/luvas.js';
 
-const LADOS = ['d', 'e'];
+const LADOS = Object.freeze(['d', 'e']);
 const MARCA = /^[0-9a-f]{64}$/;
+
+/** As mãos da pega (`maos` dos extras): ['d', 'e'] ou ['d']; sem o campo, as duas (as armas da 4.1b). */
+function maosDosExtras(luvas) {
+  const maos = luvas.maos ?? LADOS;
+  const ok = Array.isArray(maos) && (maos.join() === 'd,e' || maos.join() === 'd');
+  if (!ok) throw new Error(`pega: as maos dos extras têm de ser ["d", "e"] ou ["d"] (veio ${JSON.stringify(maos)})`);
+  return [...maos];
+}
 
 function extrasDasLuvas(no) {
   const bruto = no.extras?.luvas;
@@ -27,15 +36,17 @@ function extrasDasLuvas(no) {
   } catch (e) {
     throw new Error(`pega: os extras das luvas não são JSON (${e.message})`);
   }
-  for (const lado of LADOS) {
+  const lados = maosDosExtras(luvas ?? {});
+  for (const lado of lados) {
     if (!MARCA.test(luvas?.marca?.[lado] ?? '')) throw new Error(`pega: sem a marca do rig ${lado} nos extras`);
   }
-  return luvas;
+  return { ...luvas, lados };
 }
 
 /**
- * Lê a pega do glTF de uma arma. Devolve {pega: índice do nó, maos: {d|e: {no, posicao, rotacao}}, trilhas: {osso_lado:
- * índice do nó}, marca: {d, e}, sondas: {d, e}}; lança com a explicação se falta alguma parte.
+ * Lê a pega do glTF de uma arma. Devolve {pega: índice do nó, lados: as mãos da regra (['d', 'e'] ou ['d']), maos:
+ * {lado: {no, posicao, rotacao}}, trilhas: {osso_lado: índice do nó}, marca: {lado}, sondas: {lado}}, só das mãos da
+ * regra; lança com a explicação se falta alguma parte.
  */
 export function lerPega(json) {
   const nos = json.nodes ?? [];
@@ -44,8 +55,9 @@ export function lerPega(json) {
   const pega = nos[iPega];
   const luvas = extrasDasLuvas(pega);
   const filhos = pega.children ?? [];
+  const { lados } = luvas;
   const maos = {};
-  for (const lado of LADOS) {
+  for (const lado of lados) {
     const i = filhos.find((k) => nos[k]?.name === `pega_mao_${lado}`);
     if (i === undefined) throw new Error(`pega: falta o nó pega_mao_${lado} dentro de pega`);
     maos[lado] = { no: i, posicao: nos[i].translation ?? [0, 0, 0], rotacao: nos[i].rotation ?? [0, 0, 0, 1] };
@@ -59,31 +71,34 @@ export function lerPega(json) {
     if (!ossos.has(nome)) throw new Error(`pega: trilha no nó desconhecido ${nome} (não é osso das luvas)`);
     if (canal.target.path === 'rotation') trilhas[nome] = canal.target.node;
   }
-  for (const lado of LADOS) {
+  for (const lado of lados) {
     for (const osso of OSSOS_DE_DEDO) {
       if (trilhas[`${osso}_${lado}`] === undefined) throw new Error(`pega: o clipe sem a rotação de ${osso}_${lado}`);
     }
   }
+  // só os dedos das mãos da regra (o exportador com amostragem move todos os ossos da armadura)
   for (const nome of Object.keys(trilhas)) {
-    if (!OSSOS_DE_DEDO.includes(nome.slice(0, -2))) delete trilhas[nome];
+    if (!OSSOS_DE_DEDO.includes(nome.slice(0, -2)) || !lados.includes(nome.slice(-1))) delete trilhas[nome];
   }
-  return { pega: iPega, maos, trilhas, marca: luvas.marca, sondas: luvas.sondas ?? {} };
+  const marca = Object.fromEntries(lados.map((l) => [l, luvas.marca[l]]));
+  return { pega: iPega, lados, maos, trilhas, marca, sondas: luvas.sondas ?? {} };
 }
 
 /**
- * Os quaternions dos 17 ossos de dedo de cada mão no clipe `empunhadura` carregado pelo GLTFLoader (um
+ * Os quaternions dos 17 ossos de dedo de cada mão `lados` no clipe `empunhadura` carregado pelo GLTFLoader (um
  * THREE.AnimationClip com as trilhas `<osso>_<lado>.quaternion`): {d: {osso: [x, y, z, w]}, e: {...}}, o primeiro
- * quadro de cada trilha. As outras trilhas do clipe (posição e escala da amostragem, os ossos do braço) ficam de fora.
+ * quadro de cada trilha. As outras trilhas do clipe (posição e escala da amostragem, os ossos do braço, a outra mão)
+ * ficam de fora.
  */
-export function dedosDoClipe(clip) {
-  const dedos = { d: {}, e: {} };
+export function dedosDoClipe(clip, lados = LADOS) {
+  const dedos = Object.fromEntries(lados.map((l) => [l, {}]));
   for (const t of clip?.tracks ?? []) {
     const m = /^(.+)_([de])\.quaternion$/.exec(t.name);
-    if (!m || !OSSOS_DE_DEDO.includes(m[1])) continue;
+    if (!m || !OSSOS_DE_DEDO.includes(m[1]) || !dedos[m[2]]) continue;
     if (t.values.length < 4) throw new Error(`pega: a trilha ${t.name} sem quadro`);
     dedos[m[2]][m[1]] = Array.from(t.values.slice(0, 4));
   }
-  for (const lado of LADOS) {
+  for (const lado of lados) {
     for (const osso of OSSOS_DE_DEDO) if (!dedos[lado][osso]) throw new Error(`pega: o clipe sem a rotação de ${osso}_${lado}`);
   }
   return dedos;
@@ -100,23 +115,24 @@ const C = Object.freeze(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector
  * do nó `pega_mao_*` no referencial da raiz da arma (u).
  * @param {{scene:THREE.Object3D, animations:THREE.AnimationClip[], parser:{json:object}}} gltf
  * @param {string} id o nome da raiz da arma no .glb
- * @returns {{marca:{d:string, e:string}, sondas:object, dedos:{d:object, e:object},
- *   maos:{d:{posicao:THREE.Vector3, quaternion:THREE.Quaternion}, e:{posicao:THREE.Vector3, quaternion:THREE.Quaternion}}}}
+ * @returns {{lados:string[], marca:{d:string, e?:string}, sondas:object, dedos:{d:object, e?:object},
+ *   maos:{d:{posicao:THREE.Vector3, quaternion:THREE.Quaternion}, e?:{posicao:THREE.Vector3, quaternion:THREE.Quaternion}}}}
+ *   as mãos da regra (a faca só com a direita)
  */
 export function pegaDoGltf(gltf, id) {
   const lida = lerPega(gltf.parser.json);
-  const dedos = dedosDoClipe((gltf.animations ?? []).find((a) => a.name === 'empunhadura'));
+  const dedos = dedosDoClipe((gltf.animations ?? []).find((a) => a.name === 'empunhadura'), lida.lados);
   const raiz = gltf.scene.getObjectByName(id);
   if (!raiz) throw new Error(`pega: o .glb não tem a raiz ${id}`);
   gltf.scene.updateMatrixWorld(true);
   const inv = new THREE.Matrix4().copy(raiz.matrixWorld).invert();
   const maos = {};
-  for (const lado of LADOS) {
+  for (const lado of lida.lados) {
     const no = gltf.scene.getObjectByName(`pega_mao_${lado}`);
     const posicao = new THREE.Vector3();
     const quaternion = new THREE.Quaternion();
     new THREE.Matrix4().multiplyMatrices(inv, no.matrixWorld).decompose(posicao, quaternion, new THREE.Vector3());
     maos[lado] = { posicao, quaternion: quaternion.multiply(C) };
   }
-  return { marca: lida.marca, sondas: lida.sondas, dedos, maos };
+  return { lados: lida.lados, marca: lida.marca, sondas: lida.sondas, dedos, maos };
 }

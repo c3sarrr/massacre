@@ -83,13 +83,15 @@ def conferir(ctx, pasta, amostras=160, arma=None):
 def _maos(ctx, pasta, sc, fundo):
     """As luvas na pega: as malhas posadas (sem rig, como no jogo) e as vistas de perto de cada mão (as de baixo sem o
     chão do estúdio, que fica entre a câmera e a mão)."""
-    rigs = [bpy.data.objects.get(f'rig_{lado}') for lado in ('d', 'e')]
-    if not all(r is not None and 'pega' in r for r in rigs):
+    # as mãos que a pega tem (as duas, ou só a direita na faca: 4.1c)
+    rigs = {lado: bpy.data.objects.get(f'rig_{lado}') for lado in ('d', 'e')}
+    rigs = {lado: r for lado, r in rigs.items() if r is not None and 'pega' in r}
+    if 'd' not in rigs:
         return []
     col = bpy.data.collections.new('maos_da_pega')
     sc.collection.children.link(col)
     mao = maos.Mao(ctx['luvas']['ficha'])
-    for lado, rig in zip(('d', 'e'), rigs):
+    for lado, rig in rigs.items():
         dados = json.loads(rig['pega'])
         luva = bpy.data.objects[f'luva_{lado}']
         modelo = maos_correcoes.Modelo(luva, rig, mao, luvas.REFORCO)
@@ -98,10 +100,12 @@ def _maos(ctx, pasta, sc, fundo):
         e.translation = e.translation * S
         ob.matrix_world = e
         ob.hide_render = False
-    maos_rig.posar(rigs[0], {})
-    maos_rig.posar(rigs[1], {})
+    for rig in rigs.values():
+        maos_rig.posar(rig, {})
     arquivos = []
     for lado, nome in (('d', 'direita'), ('e', 'esquerda')):
+        if lado not in rigs:
+            continue
         c = bpy.data.objects[f'soquete_mao_{lado}'].matrix_world.translation.copy()
         # A de trás vem de trás, de fora (−Y é a direita da arma) e de cima, como o atirador vê a própria mão: bem atrás
         # e no eixo, a coronha tapava a mão direita e o receptor, metade da esquerda; a da direita sobe mais (na altura

@@ -228,7 +228,7 @@ export function validarSaida(id, raiz) {
       const marcaLuvas = existsSync(glbLuvas)
         ? lerGlb(readFileSync(glbLuvas)).json.nodes?.find((n) => n.name === 'luvas')?.extras?.marca ?? null
         : null;
-      problemas.push(...validarPega(relatorio, lerPega(json), marcaLuvas));
+      problemas.push(...validarPega(relatorio, lerPega(json), marcaLuvas, ARMAS_REAIS[id].categoria));
     } catch (e) {
       problemas.push(e.message);
     }

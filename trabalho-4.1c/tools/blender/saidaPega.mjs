@@ -11,7 +11,10 @@
 // mais perto dela até contatoMM) e nenhum trecho além de polegarFolgaMM.
 // E os dedos que abraçam a arma lado a lado, sem leque (`juntosMM`: por par de vizinhos, a folga na falange média e na
 // distal): a média até dedosJuntosMM, nas duas mãos; a mão da frente tem de trazer os três pares dos quatro dedos.
-import { DEDOS_DA_FRENTE, LIMITES_DA_PEGA } from '../../src/data/luvas.js';
+// As mãos (4.1c): a regra da categoria diz quais (MAOS_DA_CATEGORIA: a faca só com a direita), e o relatório
+// (`empunhadura.maos`; sem o campo, as duas — as armas da 4.1b) e o .glb (`lerPega`) têm de bater com ela; a mão da
+// frente só onde a categoria tem uma (FRENTE_DA_CATEGORIA: o fuzil).
+import { DEDOS_DA_FRENTE, FRENTE_DA_CATEGORIA, LIMITES_DA_PEGA, MAOS_DA_CATEGORIA } from '../../src/data/luvas.js';
 
 const fmt = (v) => v.toFixed(2).replace('.', ',');
 
@@ -86,22 +89,37 @@ function problemasDoPolegar(lado, polegar) {
 }
 
 /**
- * Os problemas da pega: o relatório sem a seção, a penetração acima de 0,3 mm ou um contato acima de 1 mm num braço, a
- * mão da frente sem só o polegar de um lado e os quatro dedos do outro, os dedos em leque, a marca do .glb diferente da do relatório ou da
- * das luvas (`marcaLuvas`, a do luvas.glb; null se ainda não há luvas).
+ * Os problemas da pega: o relatório sem a seção, as mãos do relatório ou do .glb diferentes das da categoria, a
+ * penetração acima de 0,3 mm ou um contato acima de 1 mm num braço, a mão da frente sem só o polegar de um lado e os
+ * quatro dedos do outro, os dedos em leque, a marca do .glb diferente da do relatório ou da das luvas (`marcaLuvas`, a
+ * do luvas.glb; null se ainda não há luvas).
+ * @param {string} [categoria] a do viewmodel da arma (MAOS_DA_CATEGORIA); o fuzil, se não vier
  * @returns {string[]}
  */
-export function validarPega(relatorio, pega, marcaLuvas) {
+export function validarPega(relatorio, pega, marcaLuvas, categoria = 'rifle') {
   const e = relatorio?.empunhadura;
   if (!e) return ['o relatório sem a seção empunhadura (a pega das luvas; construa a arma de novo)'];
+  const maos = MAOS_DA_CATEGORIA[categoria];
+  if (!maos) return [`empunhadura: a categoria ${categoria} não tem as mãos da regra (MAOS_DA_CATEGORIA)`];
   const problemas = [];
-  if (e.frente !== 'd' && e.frente !== 'e') {
-    problemas.push('empunhadura: o relatório não diz qual é a mão da frente (construa a arma de novo)');
-  } else if (!e[e.frente]?.lados) {
-    problemas.push(`empunhadura ${e.frente}: a mão da frente sem a conferência dos lados (o polegar de um lado e os `
-      + 'quatro dedos do outro; construa a arma de novo)');
+  const doRelatorio = e.maos ?? ['d', 'e'];
+  if (doRelatorio.join() !== maos.join()) {
+    problemas.push(`empunhadura: as mãos do relatório (${doRelatorio.join(', ')}) não são as da categoria ${categoria} `
+      + `(${maos.join(', ')})`);
   }
-  for (const lado of ['d', 'e']) {
+  if ((pega.lados ?? ['d', 'e']).join() !== maos.join()) {
+    problemas.push(`empunhadura: as mãos do .glb (${(pega.lados ?? []).join(', ')}) não são as da categoria ${categoria} `
+      + `(${maos.join(', ')})`);
+  }
+  if (FRENTE_DA_CATEGORIA[categoria]) {
+    if (e.frente !== 'd' && e.frente !== 'e') {
+      problemas.push('empunhadura: o relatório não diz qual é a mão da frente (construa a arma de novo)');
+    } else if (!e[e.frente]?.lados) {
+      problemas.push(`empunhadura ${e.frente}: a mão da frente sem a conferência dos lados (o polegar de um lado e os `
+        + 'quatro dedos do outro; construa a arma de novo)');
+    }
+  }
+  for (const lado of maos) {
     const r = e[lado];
     if (!r) {
       problemas.push(`empunhadura: sem o braço ${lado}`);
@@ -120,8 +138,8 @@ export function validarPega(relatorio, pega, marcaLuvas) {
     problemas.push(...problemasDosJuntos(lado, r.juntosMM, lado === e.frente ? PARES_DA_FRENTE : null));
     if (pega.marca[lado] !== e.marca?.[lado]) problemas.push(`empunhadura ${lado}: a marca do .glb não é a do relatório`);
     if (marcaLuvas && pega.marca[lado] !== marcaLuvas[lado]) {
-      problemas.push(`empunhadura ${lado}: a marca do rig da pega (${pega.marca[lado].slice(0, 12)}…) não é a do luvas.glb `
-        + `(${String(marcaLuvas[lado]).slice(0, 12)}…): construa de novo as luvas e a arma`);
+      problemas.push(`empunhadura ${lado}: a marca do rig da pega (${String(pega.marca[lado]).slice(0, 12)}…) não é a do `
+        + `luvas.glb (${String(marcaLuvas[lado]).slice(0, 12)}…): construa de novo as luvas e a arma`);
     }
   }
   return problemas;

@@ -18,9 +18,10 @@
 #    os dedos que abraçam a arma lado a lado, sem leque (a falange média de cada um a no máximo JUNTOS_MM da do vizinho,
 #    empunhadura_arma.folgas_entre_dedos; a mão da frente os junta, empunhadura_arma.juntar_dedos);
 #  - as sondas (o `luvas_contato` do jogo mede nelas): o vértice de cada contato mais perto da arma e a distância dele;
-#  - a saída (seção 6.4): o nó `pega` com a marca e as sondas nos extras, os nós `pega_mao_d`/`pega_mao_e` (o
-#    referencial do osso `mao` de cada braço na pose, no da arma) e a armadura `pega_luvas` (os dois braços) com a ação
-#    `empunhadura` de um quadro nas rotações dos 17 ossos de dedo de cada mão (D1: a animação glTF).
+#  - a saída (seção 6.4): o nó `pega` com a marca, as sondas e as mãos da regra nos extras (`maos`: as duas, ou só a
+#    direita na faca — 4.1c), os nós `pega_mao_d`/`pega_mao_e` das mãos da regra (o referencial do osso `mao` de cada
+#    braço na pose, no da arma) e a armadura `pega_luvas` (os braços da regra) com a ação `empunhadura` de um quadro nas
+#    rotações dos 17 ossos de dedo de cada mão (D1: a animação glTF).
 # Unidades: mm e graus além do repouso (os totais no relatório); o Blender em metros.
 import json
 import time
@@ -223,8 +224,16 @@ def _angulos(mao, m):
     return totais, problemas
 
 
+def maos_da_regra(r_cat):
+    """As mãos (lado, nome) que a regra da categoria tem: as duas, ou só a direita na faca (4.1c)."""
+    maos_ = [(lado, nome) for lado, nome in LADOS if nome in r_cat]
+    if not maos_ or maos_[0][0] != 'd':
+        raise ValueError('a regra de empunhadura precisa da mão direita (a do gatilho ou a da faca)')
+    return maos_
+
+
 def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
-    """A pega das duas mãos na arma (as peças do perto, as móveis em repouso). Devolve ({lado: {'encaixe': mm,
+    """A pega das mãos da regra na arma (as peças do perto, as móveis em repouso). Devolve ({lado: {'encaixe': mm,
     'pose': {osso: quaternion}, 'contatos': ...}}, a seção `empunhadura` do relatório, os problemas)."""
     t0 = time.time()
     r_cat = regras.regra(ctx['categoria'], correcoes)
@@ -232,7 +241,8 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
     base = EA.Arma([perto['base']])
     soq = {o.name[len('soquete_'):]: o for o in soquetes}
     pega, rel, problemas = {}, {}, []
-    for lado, nome in LADOS:
+    maos_ = maos_da_regra(r_cat)
+    for lado, nome in maos_:
         r = r_cat[nome]
         luva, rig = bracos[lado]
         col = empunhadura.Colisor(luva, rig, mao, luvas.REFORCO)
@@ -266,7 +276,8 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
                 problemas.append(f'pega {nome}: o contato {k} a {d:.2f} mm da arma (máximo {CONTATO_MM} mm)')
         problemas += problemas_luva + [f'pega {nome}: {p}' for p in problemas_angulos]
         pega[lado] = {'encaixe': na.encaixe.copy(), 'pose': pose, 'contatos': contatos}
-    rel['marca'] = {lado: maos_rig.marca(bracos[lado][1]) for lado, _n in LADOS}
+    rel['maos'] = [lado for lado, _n in maos_]
+    rel['marca'] = {lado: maos_rig.marca(bracos[lado][1]) for lado, _n in maos_}
     rel['segundos'] = round(time.time() - t0, 1)
     return pega, rel, problemas
 
@@ -286,14 +297,16 @@ def luvas_da_blend(ctx):
 
 def objetos_da_saida(mao, bracos, pega, marca, colecao):
     """Os objetos da pega no .glb da arma (ver o cabeçalho), em metros no referencial do Blender: o vazio `pega` (os
-    extras: a marca e as sondas), os vazios `pega_mao_d`/`pega_mao_e` e a armadura `pega_luvas` com a ação
-    `empunhadura`. Devolve [pega, pega_mao_d, pega_mao_e, pega_luvas]."""
+    extras: a marca, as sondas e as mãos), os vazios `pega_mao_*` e a armadura `pega_luvas` (as mãos da pega) com a ação
+    `empunhadura`. Devolve [pega, pega_mao_d, (pega_mao_e,) pega_luvas]."""
+    lados = [(lado, nome) for lado, nome in LADOS if lado in pega]
     raiz = bpy.data.objects.new('pega', None)
     colecao.objects.link(raiz)
     sondas = {lado: {k: {'vertice': v[0], 'mm': v[1]} for k, v in pega[lado]['contatos'].items()} for lado in pega}
-    raiz['luvas'] = json.dumps({'marca': marca, 'sondas': sondas}, separators=(',', ':'))
+    raiz['luvas'] = json.dumps({'marca': {lado: marca[lado] for lado, _n in lados}, 'sondas': sondas,
+                                'maos': [lado for lado, _n in lados]}, separators=(',', ':'))
     objetos = [raiz]
-    for lado, _nome in LADOS:
+    for lado, _nome in lados:
         rig = bracos[lado][1]
         m = pega[lado]['encaixe'] @ mm(rig.data.bones[f'mao_{lado}'].matrix_local)
         m.translation = m.translation * S
@@ -301,17 +314,18 @@ def objetos_da_saida(mao, bracos, pega, marca, colecao):
         colecao.objects.link(ob)
         ob.matrix_world = m
         objetos.append(ob)
-    armaduras = [maos_rig.armadura(mao, colecao, lado) for lado, _n in LADOS]
-    bpy.ops.object.select_all(action='DESELECT')
-    with bpy.context.temp_override(active_object=armaduras[0], selected_editable_objects=armaduras,
-                                   selected_objects=armaduras):
-        bpy.ops.object.join()
+    armaduras = [maos_rig.armadura(mao, colecao, lado) for lado, _n in lados]
+    if len(armaduras) > 1:
+        bpy.ops.object.select_all(action='DESELECT')
+        with bpy.context.temp_override(active_object=armaduras[0], selected_editable_objects=armaduras,
+                                       selected_objects=armaduras):
+            bpy.ops.object.join()
     arm = armaduras[0]
     arm.name = arm.data.name = 'pega_luvas'
     acao = bpy.data.actions.new('empunhadura')
     arm.animation_data_create()
     arm.animation_data.action = acao
-    for lado, _nome in LADOS:
+    for lado, _nome in lados:
         for osso in OSSOS_DE_DEDO:
             pb = arm.pose.bones[f'{osso}_{lado}']
             pb.rotation_mode = 'QUATERNION'

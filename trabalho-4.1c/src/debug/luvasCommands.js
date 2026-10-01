@@ -10,6 +10,8 @@ import { LIMITES_DA_PEGA, LUVAS } from '../data/luvas.js';
 import { bvhDaArma, contatoDasLuvas } from '../characters/hands/luvasContato.js';
 
 const LADOS = Object.freeze([['direita', 'd'], ['esquerda', 'e']]);
+/** A marca da pega bate com a das luvas nas mãos que a pega tem (as duas, ou só a direita na faca: 4.1c). */
+const marcaBate = (pega, marca) => Boolean(marca) && (pega.lados ?? ['d', 'e']).every((l) => pega.marca[l] === marca[l]);
 // (sem o sinal quando arredonda para zero: "0,00", não "−0,00")
 const num = (v, casas) => (Math.abs(v) < 0.5 * 10 ** -casas ? 0 : v).toFixed(casas).replace('.', ',').replace(/^-/, '−');
 /** mm com duas casas (o jeito do console: vírgula e o sinal de menos). */
@@ -57,12 +59,12 @@ export function relatorioDasLuvas(luvasModels, vm) {
   } else if (st.bracos !== 'luvas') {
     const pega = vm.info?.pega;
     linhas.push(`na mão: ${st.item} com ${st.bracos === 'massinha' ? 'os braços de massinha' : 'nenhum braço'}${pega ? '' : ' (a arma não tem a pega das luvas)'}`);
-    if (pega && r.marca && (pega.marca.d !== r.marca.d || pega.marca.e !== r.marca.e)) {
+    if (pega && r.marca && !marcaBate(pega, r.marca)) {
       linhas.push('  a marca do rig da arma não é a das luvas: construa a arma de novo no Blender');
     }
   } else {
     const pega = vm.info.pega;
-    const bate = r.marca && pega.marca.d === r.marca.d && pega.marca.e === r.marca.e;
+    const bate = marcaBate(pega, r.marca);
     linhas.push(`na mão: ${st.item} com as luvas · ${LUVAS.pinturas[st.faccao]?.nome ?? st.faccao} · a marca da arma ${bate ? 'bate com a das luvas ✓' : 'NÃO bate com a das luvas ✗'}`);
     for (const [side] of LADOS) {
       const b = vm.gloves.bracos[side];
@@ -101,6 +103,7 @@ export function registerLuvasCommands(con, s, { matchState }) {
       }
       const porLado = {};
       for (const [side, lado] of LADOS) {
+        if (!(info.pega.lados ?? ['d', 'e']).includes(lado)) continue; // a faca: só a direita
         porLado[side] = contatoDasLuvas({ bvh, raizDaArma: vm.weapon, braco: vm.gloves.bracos[side], sondas: info.pega.sondas[lado] });
       }
       return formatarContato(info.id, porLado, info.report?.empunhadura ?? null);
