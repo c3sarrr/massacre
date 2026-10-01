@@ -46,7 +46,7 @@
    "triangulos": 5700
   },
   "longe": {
-   "triangulos": 1425
+   "triangulos": 1424
   }
  },
  "uv": {
@@ -210,7 +210,7 @@
    "juntar": {
     "anelar": 6.25,
     "minimo": 10.78,
-    "indicador": -4.69
+    "indicador": -4.38
    },
    "polegar": {
     "graus": {
@@ -236,7 +236,7 @@
    "penetracaoMM": 0.05,
    "contatosMM": {
     "palma": -0.042,
-    "indicador": -0.047,
+    "indicador": -0.04,
     "medio": -0.05,
     "anelar": -0.002,
     "minimo": -0.023,
@@ -246,10 +246,10 @@
    "luva": {
     "juntas": {
      "pulso": 1.0,
-     "indicador_mcp": 1.0073,
-     "indicador_pip": 0.9974,
-     "indicador_dip": 0.9667,
-     "medio_mcp": 1.0035,
+     "indicador_mcp": 1.007,
+     "indicador_pip": 0.9907,
+     "indicador_dip": 0.9947,
+     "medio_mcp": 1.0036,
      "medio_pip": 0.9904,
      "medio_dip": 0.9939,
      "anelar_mcp": 1.2457,
@@ -264,8 +264,8 @@
     "atravessaMM": 0.121,
     "assentamentoMM": 0.022,
     "piorJunta": [
-     "indicador_dip",
-     0.9667
+     "minimo_pip",
+     0.9758
     ],
     "paredeDoPunho": 1.0,
     "ondeAtravessa": [
@@ -279,8 +279,8 @@
     "anelar_2": 43.22,
     "anelar_3": 28.81,
     "indicador_1": 18.56,
-    "indicador_2": 30.89,
-    "indicador_3": 53.69,
+    "indicador_2": 41.48,
+    "indicador_3": 27.66,
     "medio_1": 31.97,
     "medio_2": 42.98,
     "medio_3": 28.66,
@@ -291,7 +291,7 @@
    "lados": {
     "polegarMM": 20.09,
     "dedosMM": {
-     "indicador": -16.21,
+     "indicador": -15.44,
      "medio": -24.62,
      "anelar": -25.3,
      "minimo": -25.18
@@ -299,8 +299,8 @@
    },
    "juntosMM": {
     "indicador-medio": [
-     1.55,
-     2.63
+     2.21,
+     1.62
     ],
     "medio-anelar": [
      2.64,
@@ -313,18 +313,22 @@
    }
   },
   "frente": "e",
+  "maos": [
+   "d",
+   "e"
+  ],
   "marca": {
    "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd",
    "e": "e9f11073664b9f2a333b6046ab2b243b67b5f49e78a3d22641033c782b6f2b07"
   },
-  "segundos": 42.8
+  "segundos": 42.5
  },
  "arma": "ak47",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-10-01T11:44:34",
+ "gerado": "2026-10-01T15:20:29",
  "entradas": {
-  "hash": "fb55d2867da62747f0e9cd8c94c1ca33000be34794a041e0645ac2b3db0dfa34"
+  "hash": "9a6cf29be6481d4164d27b73fca2518418a2bec8c4c137c7df0db1f0a47bd3c3"
  },
  "origemMM": [
   -551.0,
@@ -332,18 +336,18 @@
  ],
  "dizimacao": {
   "mundo": 0.3586,
-  "longe": 0.2775
+  "longe": 0.2772
  },
  "facesEscondidasRemovidas": 1781,
  "relevos": {},
  "arquivos": {
-  "ak47.glb": 391488,
-  "ak47_m.webp": 2639808,
-  "ak47_mundo_m.webp": 264752,
-  "ak47_mundo_n.webp": 214124,
-  "ak47_n.webp": 1608274
+  "ak47.glb": 393104,
+  "ak47_m.webp": 2640220,
+  "ak47_mundo_m.webp": 267470,
+  "ak47_mundo_n.webp": 214364,
+  "ak47_n.webp": 1611898
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 869.5
+ "segundos": 531.5
 }
