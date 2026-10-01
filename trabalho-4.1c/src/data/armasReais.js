@@ -93,11 +93,11 @@ export const ARMAS_REAIS = F({
   }),
   // M4A4 do jogo = a carabina M4A1 (Fase 4.1c; ficha em tools/blender/refs/m4a4.json): os receptores e a alça de alumínio
   // anodizado, o guarda-mão de trilhos, o punho e a coronha pretos, o carregador de alumínio com o revestimento seco, o
-  // cano, a torre e os comandos de aço fosfatizado e o transportador do ferrolho de aço claro, visto pela janela.
+  // cano, a torre e os comandos de aço fosfatizado e o transportador do ferrolho de aço claro, visto pela janela. O
+  // carregador (correções da P1 da 4.1c): o revestimento seco é acetinado e cinza-esverdeado escuro, e o gasto das quinas
+  // mostra o alumínio; o fosco cinza-claro de antes lia como plástico.
   m4a4: F({
     categoria: 'rifle',
-    // a regra rifle da pega é a da AK (o indicador cruza o gatilho da M4): a da M4A4 entra na Tarefa 10 do plano da 4.1c
-    pega: false,
     pasta: 'assets/armas/m4a4/',
     zonas: ZONAS,
     pecas: F(['ferrolho', 'alavanca', 'tampa', 'carregador', 'gatilho', 'seletor']),
@@ -106,7 +106,7 @@ export const ARMAS_REAIS = F({
       zonas: F({
         corpo: F({ acabamento: 'anodizado', cor: '#2B2C2E', desgaste: 0.16 }),
         guarnicao: F({ acabamento: 'polimero', cor: '#1F2022', desgaste: 0.1 }),
-        carregador: F({ acabamento: 'fosco', cor: '#4A4B4C', desgaste: 0.2 }),
+        carregador: F({ acabamento: 'acetinado', cor: '#43463F', desgaste: 0.24 }),
         detalhes: F({ acabamento: 'fosfatizado', cor: '#3A3937', desgaste: 0.14 }),
         interno: F({ acabamento: 'escovado', cor: '#8E9094', desgaste: 0 }),
       }),

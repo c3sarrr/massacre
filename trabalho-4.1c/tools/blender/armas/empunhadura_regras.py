@@ -8,8 +8,11 @@
 #    base dela se afastava do punho e o polegar não alcançava o outro lado), a MCP do indicador 27,6 mm atrás e 11,7 mm
 #    abaixo do ponto do gatilho (a membrana alta no punho e o médio logo embaixo do guarda-mato), e chega pela normal da
 #    palma até encostar; o médio, o anelar e o mínimo fecham em volta do punho; o indicador põe a polpa na face da frente
-#    do gatilho a 60 % da altura dele, com pelo menos 1 mm do guarda-mato e do resto da arma; o polegar cruza para o
-#    lado esquerdo do punho (a polpa encostada o mais à esquerda que ele alcança);
+#    do gatilho a 60 % da altura dele, com pelo menos 1 mm do guarda-mato e do resto da arma (a `folga` do gatilho;
+#    negativa, o aperto da luva num vão mais estreito que o dedo: as falanges média e distal entram até isso no
+#    guarda-mato e no piso do receptor — a luva comprimida, como a de verdade no guarda-mato padrão da M4A4 —, e a
+#    polpa só encosta no gatilho); o polegar cruza para o lado esquerdo do punho (a polpa encostada o mais à esquerda
+#    que ele alcança);
 #  - a mão da frente (FRENTE; regra fixa do usuário de 2026-09-27, para toda arma que tem mão da frente — no guarda-mão,
 #    no cano, na telha da escopeta): só o polegar de um lado da arma e os outros quatro dedos do outro, como a pega da
 #    AK no CS:GO. A palma por baixo, os dedos para a direita (o polegar para a frente), girada em volta da vertical (os
@@ -22,6 +25,13 @@
 #    arco (MCP 35°, IP 17°) com só a ponta encostada — o usuário recusou as duas. A validação reprova a arma se a polpa
 #    do polegar não ficar do lado dele, se a de um dos quatro dedos não passar para o outro (`lados`) ou se o polegar não
 #    ficar reto e deitado (a curva, a distal encostando, a proximal perto).
+#  - a faca (FACA; 4.1c, desenho da 4.1c, seção 4.3), uma mão só: a empunhadura de martelo — o cabo atravessando a
+#    palma acima dos nós (da MCP do indicador para a hipotenar), as pontas para o gume, o lado do polegar para a lâmina
+#    e as costas da mão para a direita; os quatro dedos fecham em volta do cabo, lado a lado (o indicador encostado na
+#    guarda); o polegar dá a volta por cima do cabo e dobra sobre o indicador, como no punho fechado das poses de teste
+#    (empunhadura_polegar.alvo_nas_falanges e fechar_no_alvo, com a arma de obstáculo), e a validação pede a polpa nele,
+#    não na arma. A palma chega duas vezes: a segunda com a CMC do polegar da solução (empunhadura_pega.resolver). As
+#    referências: QBN11 e QBN16 (a faca na mão, no CS:GO) e a M9 do CS2 na inspeção.
 # A CMC do polegar fica na pose de pegar (a abdução palmar e a flexão no máximo da ficha) já na chegada da palma: com o
 # polegar afastado, a palma encostava com a tenar tangente à arma, e qualquer movimento do polegar levava a pele da
 # tenar 4 a 6 mm para dentro dela.
@@ -73,13 +83,41 @@ FRENTE = {
     'gatilho': None,
     # o polegar deitado reto na face `face` (a esquerda), encostado ao longo da falange proximal e da distal, as duas
     # apontando para `eixo` (unitários, no referencial da arma: a boca, subindo um pouco) —
-    # empunhadura_polegar.deitar_na_arma
+    # empunhadura_polegar.deitar_na_arma. Com `plano` (mm, ao longo de `face` a partir do plano do meio da arma), a
+    # folga da proximal é medida até ele: o alto do trilho do lado (a M4A4), que ela cruza por cima do vão entre o
+    # trilho e o corpo do guarda-mão
     'polegar': {'deitado': True, 'face': (0.0, 1.0, 0.0), 'eixo': (1.0, 0.0, 0.6)},
     # o lado do polegar (unitário, no referencial da arma, a partir do plano do meio dela) e os dedos que vão ao outro
     'lados': {'polegar': (0.0, 1.0, 0.0), 'dedos': DEDOS4},
 }
 RIFLE['esquerda'] = copy.deepcopy(FRENTE)
-REGRAS = {'rifle': RIFLE}
+FACA = {
+    'direita': {
+        'soquete': 'mao_d',
+        # as pontas para o gume (−Z), o lado do polegar para a lâmina (+X) e as costas da mão para a direita (−Y)
+        'base': ((0.0, 1.0, 0.0), (0.0, 0.0, -1.0), (-1.0, 0.0, 0.0)),
+        'giros': (('Z', 0.0),),
+        # sem a diagonal do fuzil: os dedos fecham em planos que inclinam com ela, e os 15° levavam a ponta do indicador
+        # 6 mm para a frente embaixo do cabo — ele batia na guarda e parava a 24° de MCP, sem fechar
+        'diagonal': 0.0,
+        # a MCP do indicador a partir do soquete (o meio do cabo; mm, Blender: x, y, z), antes de encostar a palma: logo
+        # atrás do último anel, à direita e 18 mm abaixo do eixo — o cabo atravessa a palma acima dos nós, como na pega
+        # de força. Com a MCP na altura do eixo, os dedos só enganchavam no cabo (a MCP a 30°) e a falange média do
+        # indicador ficava do outro lado dele, a 114 mm da CMC do polegar, que alcança uns 100
+        'ancora': {'ponto': 'mcp_indicador', 'de': 'soquete', 'mm': (46.0, -20.0, -18.0)},
+        # a chegada da palma: 45 mm para trás e só 10 mm além da âncora — o cabo tem 28 mm de diâmetro, e com os 60 mm
+        # do fuzil a palma já passava inteira por ele (a busca procura o encosto entre a partida e o fim)
+        'chegada': (45.0, 10.0),
+        'dedos': DEDOS4,
+        'juntar': True,
+        'gatilho': None,
+        # o polegar dobrado por cima do cabo até o indicador, mirando entre a falange média e a distal (a polpa nele, até
+        # POLEGAR_SOBRE_MM), com a arma de obstáculo: ele assenta na distal, a 0,7 mm dela e a 14 mm da média. A média
+        # sozinha fica fora do alcance no cabo de 28 mm com a luva — mirando nela, o polegar cruzava o cabo ou a mão
+        'polegar': {'sobre': {'indicador_2': 0.4, 'indicador_3': 0.6}},
+    },
+}
+REGRAS = {'rifle': RIFLE, 'faca': FACA}
 
 
 def regra(categoria, correcoes=None):

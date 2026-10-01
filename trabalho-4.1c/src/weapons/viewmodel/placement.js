@@ -123,6 +123,22 @@ export function gloveTarget(placement, mao, out = { position: new THREE.Vector3(
 }
 
 /**
+ * A câmera no referencial da arma (u; +X boca, +Y cima, +Z lado direito), dada a pose da arma na câmera — a inversa
+ * dela: o olho, para onde a câmera olha e o alto dela. A primeira pessoa da conferência no Blender sai daqui, com a
+ * pose do jogo (correções da P1 da 4.1c, P1.4: o olho fixo de cada script não acompanhava a categoria).
+ * @param {{position:THREE.Vector3, quaternion:THREE.Quaternion}} placement
+ * @returns {{olho:number[], frente:number[], cima:number[]}}
+ */
+export function cameraInWeaponFrame(placement) {
+  const inv = placement.quaternion.clone().invert();
+  return {
+    olho: placement.position.clone().negate().applyQuaternion(inv).toArray(),
+    frente: new THREE.Vector3(0, 0, -1).applyQuaternion(inv).toArray(),
+    cima: new THREE.Vector3(0, 1, 0).applyQuaternion(inv).toArray(),
+  };
+}
+
+/**
  * A facção das luvas: a do time da partida (Massa Crua no TR, Tropa do Estúdio no CT) ou, sem time, a do boneco (Massa
  * Crua no de referência até o criador da Fase 5).
  * @param {'tr'|'ct'|null} team @param {string} [dollFaction]

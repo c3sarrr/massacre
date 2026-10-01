@@ -50,8 +50,17 @@ export const LIMITES_DA_PEGA = F({
 });
 export const DEDOS_DA_FRENTE = F(['indicador', 'medio', 'anelar', 'minimo']);
 // As categorias do viewmodel com regra de pega no Blender (tools/blender/armas/empunhadura_regras.py): a arma realista
-// delas sai com a pega no .glb; as outras entram com as armas delas (4.1c, 4.1d).
-export const CATEGORIAS_COM_PEGA = F(['rifle']);
+// delas sai com a pega no .glb; as outras entram com as armas delas, cada uma junto com a regra dela (4.1c: a faca na
+// Tarefa 9, a pistola na 11; 4.1d).
+export const CATEGORIAS_COM_PEGA = F(['rifle', 'faca']);
+// As mãos da regra de cada categoria (4.1c; desenho da 4.1c, seção 4.4): o fuzil e a pistola com as duas, a faca só com
+// a direita — o nó `pega` do .glb diz as dele (`extras.luvas.maos`) e o validador confere as duas listas; e a mão da
+// frente (o polegar de um lado, os quatro dedos do outro: a regra do usuário de 2026-09-27), só no fuzil.
+export const MAOS_DA_CATEGORIA = F({ rifle: F(['d', 'e']), pistola: F(['d', 'e']), faca: F(['d']) });
+export const FRENTE_DA_CATEGORIA = F({ rifle: 'e' });
+// O polegar dobrado por cima dos dedos (a empunhadura de martelo da faca, Tarefa 9): a polpa nas falanges deles, até
+// `contatoMM`, e não na arma.
+export const POLEGAR_SOBRE_DA_CATEGORIA = F({ faca: F(['indicador']) });
 
 /** Os 20 nomes de osso de um braço (`d` ou `e`). */
 export function ossosDoLado(lado) {

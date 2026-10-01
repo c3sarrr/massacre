@@ -99,6 +99,48 @@ def simplificar(pts, tol=0.15, minimo=0.6):
     return anel
 
 
+def suavizar_trecho(pts, dentro, sigma=1.5, passo=0.25):
+    """O contorno fechado com os vértices do trecho em que `dentro(x, y)` dá 1 (de 0 a 1: a transição sem quina) levados
+    para a média gaussiana de `sigma` mm da borda em volta deles (a borda reamostrada a cada `passo` mm, só para a
+    conta) — tira o zigue-zague de 0,3 a 0,6 mm dos pixels da foto, que o `simplificar` deixa nas curvas e que, com o
+    chanfro, vira uma fileira de facetas brilhando (o degrau de impressão 3D da frente do punho da Glock, nas correções
+    da P1 da 4.1c). Os vértices de fora do trecho ficam exatamente onde estão (as quinas de verdade, e os planos que os
+    cortes da peça encontram); passe o resultado pelo `simplificar`."""
+    pts = [tuple(p) for p in pts]
+    anel = pts + [pts[0]]
+    comp = [0.0]
+    for a, b in zip(anel, anel[1:]):
+        comp.append(comp[-1] + math.dist(a, b))
+    total = comp[-1]
+    n = max(8, int(total / passo))
+    amostras, k = [], 0
+    for i in range(n):
+        alvo = total * i / n
+        while comp[k + 1] < alvo:
+            k += 1
+        t = (alvo - comp[k]) / max(comp[k + 1] - comp[k], 1e-9)
+        (ax, ay), (bx, by) = anel[k], anel[k + 1]
+        amostras.append((ax + (bx - ax) * t, ay + (by - ay) * t))
+    d = total / n
+    largura = int(math.ceil(3 * sigma / d))
+    out = []
+    for i, (x, y) in enumerate(pts):
+        w = max(0.0, min(1.0, dentro(x, y)))
+        if w <= 0.0:
+            out.append((x, y))
+            continue
+        centro = comp[i] / d
+        soma = mx = my = 0.0
+        for j in range(int(math.floor(centro)) - largura, int(math.ceil(centro)) + largura + 1):
+            p = math.exp(-0.5 * ((j - centro) * d / sigma) ** 2)
+            ax, ay = amostras[j % n]
+            soma += p
+            mx += p * ax
+            my += p * ay
+        out.append((x + (mx / soma - x) * w, y + (my / soma - y) * w))
+    return out
+
+
 def reamostrar(poli, n):
     """n pontos igualmente espaçados ao longo de uma polilinha."""
     comp = [0.0]

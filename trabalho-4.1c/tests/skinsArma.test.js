@@ -21,12 +21,14 @@ import {
 const HEX = /^#[0-9A-F]{6}$/;
 
 // Os 15 da seção 6.1 do desenho das armas mais os 2 das luvas (4.1b: couro e tecido); a borracha passou a ser a borracha
-// moldada (TPR) semifosca das luvas e das armas (0,9 → 0,68, desenho da 4.1b, seção 7.2).
+// moldada (TPR) semifosca das luvas e das armas (0,9 → 0,68, desenho da 4.1b, seção 7.2); o polímero, o acetinado
+// do molde com o padrão `molde` (0,65 → 0,45, correções da P1 da 4.1c); o anodizado, o alumínio jateado acetinado e
+// sem a iridescência (0,25 → 0,42, correções da P1 da 4.1c).
 test('acabamentos: os 15 da seção 6.1 e os 2 das luvas com metal e aspereza da tabela', () => {
   const tabela = {
     oxidado: [1, 0.34], fosfatizado: [1, 0.55], fosco: [0, 0.85], acetinado: [0, 0.5], brilhante: [0, 0.25],
-    metalico: [0.6, 0.35], perolado: [0.2, 0.3], anodizado: [1, 0.25], escovado: [1, 0.3], cromado: [1, 0.05],
-    cerakote: [0, 0.7], carbono: [0, 0.35], madeira: [0, 0.45], polimero: [0, 0.65], borracha: [0, 0.68],
+    metalico: [0.6, 0.35], perolado: [0.2, 0.3], anodizado: [1, 0.42], escovado: [1, 0.3], cromado: [1, 0.05],
+    cerakote: [0, 0.7], carbono: [0, 0.35], madeira: [0, 0.45], polimero: [0, 0.45], borracha: [0, 0.68],
     couro: [0, 0.56], tecido: [0, 0.88],
   };
   assert.deepEqual(Object.keys(ACABAMENTOS).sort(), Object.keys(tabela).sort());
@@ -45,12 +47,12 @@ test('acabamentos: os 15 da seção 6.1 e os 2 das luvas com metal e aspereza da
   assert.equal(ACABAMENTOS.perolado.iridescencia, 0.8);
   assert.equal(ACABAMENTOS.perolado.iorIridescencia, 1.3);
   assert.deepEqual(ACABAMENTOS.perolado.filme, [250, 600]);
-  assert.equal(ACABAMENTOS.anodizado.iridescencia, 0.2);
+  assert.equal(ACABAMENTOS.anodizado.iridescencia, undefined); // a cor é do corante, não de filme fino
   assert.equal(ACABAMENTOS.escovado.anisotropia, 0.8);
   assert.equal(ACABAMENTOS.madeira.verniz, 0.6);
   assert.equal(ACABAMENTOS.carbono.padrao, 'carbono');
   assert.equal(ACABAMENTOS.madeira.padrao, 'veio');
-  assert.equal(ACABAMENTOS.polimero.padrao, 'pontilhado');
+  assert.equal(ACABAMENTOS.polimero.padrao, 'molde');
 });
 
 test('cores: as 20 da paleta da seção 6.2', () => {

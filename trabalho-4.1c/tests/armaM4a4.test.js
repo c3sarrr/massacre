@@ -2,7 +2,8 @@
 // glock-m4a4-m9.md, Tarefa 6): a saída inteira passa no validador da classe fuzil (níveis, peças, zonas, soquetes,
 // triângulos, texturas, tamanho, relatório aprovado com a silhueta e as medidas) e os números que o jogo usa: a boca a
 // 504 mm da origem (o pino do gatilho), a linha de mira quase horizontal, a janela de ejeção à direita, as peças móveis
-// novas (a alavanca de manejo e a tampa da janela, com a dobradiça na face direita) e a posição na tela da categoria rifle.
+// novas (a alavanca de manejo e a tampa da janela, com a dobradiça na face direita), a pega rifle das duas mãos (Tarefa
+// 10) e a posição na tela da categoria rifle.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +22,8 @@ test('M4A4: a saída do Blender passa em todas as validações da classe fuzil',
   assert.ok(bytes > 0 && bytes <= orcamentoDaArma('m4a4').arquivosMB * 1024 * 1024);
   assert.equal(relatorio.aprovado, true);
   assert.ok(relatorio.silhueta.iouTolerancia >= 0.98);
+  // o relevo moldado (correções da P1 da 4.1c): o losango do punho A2
+  assert.deepEqual(Object.keys(relatorio.relevos), ['guarnicao']);
   for (const d of Object.values(relatorio.medidas)) assert.ok(Math.abs(d.erro) <= 0.01);
   const t = orcamentoDaArma('m4a4').triangulos;
   for (const n of ['perto', 'mundo', 'longe']) assert.ok(resumo.lods[n].triangulos <= t[n], `${n}: ${resumo.lods[n].triangulos}`);
@@ -40,6 +43,32 @@ test('M4A4: soquetes e peças móveis no referencial do jogo', () => {
   assert.deepEqual(p.tampa.extras, { eixo_giro: [1, 0, 0] });
   assert.ok(p.tampa.posicao[2] > 0.4, 'a dobradiça da tampa na face direita');
   for (const n of ['gatilho', 'seletor']) assert.deepEqual(p[n].extras, { eixo_giro: [0, 0, 1] });
+});
+
+// A pega rifle (Tarefa 10; desenho da 4.1c, seção 4.1): as duas mãos e nada dentro da arma além do limite. A direita
+// com a polpa do indicador no gatilho (o contato medido até a peça dele) e a luva apertada no vão do guarda-mato no
+// máximo 0,25 mm (o vão de 21,3 mm é mais estreito que a luva), o médio, o anelar e o mínimo lado a lado no punho; a
+// da frente com o polegar reto e deitado no trilho esquerdo e os quatro dedos lado a lado do outro lado.
+test('M4A4: a pega rifle — o indicador no gatilho, a mão da frente com o polegar no trilho esquerdo', () => {
+  const { relatorio } = validarSaida('m4a4', RAIZ);
+  const e = relatorio.empunhadura;
+  assert.deepEqual(e.maos, ['d', 'e']);
+  assert.equal(e.frente, 'e');
+  for (const lado of ['d', 'e']) {
+    const m = e[lado];
+    assert.ok(m.penetracaoMM <= 0.3, `${lado}: a luva entra ${m.penetracaoMM} mm na arma`);
+    for (const [k, v] of Object.entries(m.contatosMM)) assert.ok(v <= 1, `${lado}: o contato ${k} a ${v} mm`);
+    for (const [par, [media]] of Object.entries(m.juntosMM)) assert.ok(media <= 8, `${lado}: ${par} a ${media} mm`);
+  }
+  const d = e.d;
+  assert.ok(d.contatosMM.indicador_gatilho <= 0.3, `a polpa do indicador a ${d.contatosMM.indicador_gatilho} mm do gatilho`);
+  assert.ok(d.indicador.encostou && d.indicador.polpaAoAlvoMM <= 2, `a polpa a ${d.indicador.polpaAoAlvoMM} mm do ponto do gatilho`);
+  assert.ok(d.indicador.folgaDoResto >= -0.25, `a luva aperta ${-d.indicador.folgaDoResto} mm no guarda-mato`);
+  const f = e.e;
+  assert.ok(f.lados.polegarMM > 20, `o polegar a ${f.lados.polegarMM} mm do meio, do lado esquerdo`);
+  for (const [dedo, y] of Object.entries(f.lados.dedosMM)) assert.ok(y < -20, `${dedo} a ${y} mm do meio, do lado direito`);
+  assert.ok(f.polegar.curvaGraus <= 20, `o polegar com ${f.polegar.curvaGraus}° de curva`);
+  assert.ok(Math.max(...f.polegar.trechosMM) <= 8, `o polegar a até ${Math.max(...f.polegar.trechosMM)} mm do trilho`);
 });
 
 test('M4A4: na posição da categoria rifle, a boca aparece embaixo à direita da tela (16:9, valores padrão)', () => {

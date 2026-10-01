@@ -1,6 +1,6 @@
 {
  "silhueta": {
-  "iouBruto": 0.97357,
+  "iouBruto": 0.97354,
   "iouTolerancia": 0.99391,
   "raioToleranciaPx": 1,
   "mmPorPx": 0.5
@@ -42,7 +42,7 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 3.537,
+   "medianaPxPorMm": 3.538,
    "minimo": 1.0,
    "maximo": 1.0
   }
@@ -59,12 +59,141 @@
   "guarnicao",
   "detalhes"
  ],
+ "empunhadura": {
+  "d": {
+   "palmaAndouMM": -13.22,
+   "dedosPararam": {
+    "indicador_1": "contato",
+    "indicador_2": "contato",
+    "indicador_3": "contato",
+    "medio_1": "contato",
+    "medio_2": "contato",
+    "medio_3": "contato",
+    "anelar_1": "contato",
+    "anelar_2": "contato",
+    "anelar_3": "contato",
+    "minimo_1": "contato",
+    "minimo_2": "contato",
+    "minimo_3": "contato"
+   },
+   "vizinhos": {
+    "anelar": {
+     "abertura": 2.19
+    },
+    "minimo": {
+     "abertura": 3.01
+    },
+    "indicador": {
+     "abertura": -0.62
+    }
+   },
+   "juntar": {},
+   "polegar": {
+    "graus": {
+     "abducao": 47.06,
+     "cmc": 3.09,
+     "rotacao": 17.0,
+     "mcp": 3.61,
+     "ip": 26.3
+    },
+    "ik": {
+     "abducao": 47.19,
+     "cmc": 2.88,
+     "rotacao": 17.0,
+     "mcp": 0.0,
+     "ip": 23.81
+    },
+    "polpaEncostaMM": 0.05,
+    "polpaAoAlvoMM": 23.57,
+    "encostou": true,
+    "chegouDeMM": 6.0,
+    "sobre": [
+     "indicador"
+    ]
+   },
+   "penetracaoMM": 0.161,
+   "contatosMM": {
+    "palma": 0.233,
+    "indicador": 0.022,
+    "medio": -0.027,
+    "anelar": -0.01,
+    "minimo": -0.161
+   },
+   "palmaMeioMM": 0.87,
+   "luva": {
+    "juntas": {
+     "pulso": 1.0,
+     "indicador_mcp": 1.0043,
+     "indicador_pip": 0.9652,
+     "indicador_dip": 0.9817,
+     "medio_mcp": 1.0003,
+     "medio_pip": 0.9568,
+     "medio_dip": 0.9781,
+     "anelar_mcp": 1.4286,
+     "anelar_pip": 0.9588,
+     "anelar_dip": 0.9791,
+     "minimo_mcp": 1.0047,
+     "minimo_pip": 0.9798,
+     "minimo_dip": 0.9872,
+     "polegar_mcp": 0.9992,
+     "polegar_ip": 0.9976
+    },
+    "atravessaMM": 0.049,
+    "assentamentoMM": 0.022,
+    "piorJunta": [
+     "medio_pip",
+     0.9568
+    ],
+    "paredeDoPunho": 1.0,
+    "ondeAtravessa": [
+     92.51,
+     -23.16,
+     -51.86
+    ]
+   },
+   "angulos": {
+    "anelar_1": 66.98,
+    "anelar_2": 66.98,
+    "anelar_3": 44.66,
+    "indicador_1": 64.17,
+    "indicador_2": 64.17,
+    "indicador_3": 42.78,
+    "medio_1": 68.2,
+    "medio_2": 68.2,
+    "medio_3": 45.47,
+    "minimo_1": 52.88,
+    "minimo_2": 52.88,
+    "minimo_3": 35.25
+   },
+   "juntosMM": {
+    "indicador-medio": [
+     0.63,
+     0.43
+    ],
+    "medio-anelar": [
+     2.58,
+     0.98
+    ],
+    "anelar-minimo": [
+     0.95,
+     1.14
+    ]
+   }
+  },
+  "maos": [
+   "d"
+  ],
+  "marca": {
+   "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd"
+  },
+  "segundos": 47.2
+ },
  "arma": "knife",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-28T04:04:02",
+ "gerado": "2026-10-01T17:58:48",
  "entradas": {
-  "hash": "52a00dfbe1855dd8d90f8c0171382d5e3c1f62a097cd7fee8acd0001711626cb"
+  "hash": "11b9d591a4cea086117bbfc459c020a6002c94d15135a006fdd35190b3798285"
  },
  "origemMM": [
   -177.6,
@@ -75,14 +204,22 @@
   "longe": 0.2705
  },
  "facesEscondidasRemovidas": 3,
+ "relevos": {
+  "guarnicao": [
+   -300.0,
+   -202.9,
+   -31.0,
+   31.0
+  ]
+ },
  "arquivos": {
-  "knife.glb": 114776,
-  "knife_m.webp": 658390,
-  "knife_mundo_m.webp": 70880,
-  "knife_mundo_n.webp": 69864,
-  "knife_n.webp": 687304
+  "knife.glb": 135988,
+  "knife_m.webp": 547492,
+  "knife_mundo_m.webp": 63990,
+  "knife_mundo_n.webp": 63722,
+  "knife_n.webp": 419962
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 175.3
+ "segundos": 325.3
 }

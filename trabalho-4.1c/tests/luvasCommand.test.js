@@ -89,11 +89,12 @@ function montar({ vm = null, estado = 'pronta' } = {}) {
   return (nome) => commands.get(nome).run([]);
 }
 
-function vmFalso({ bracos = 'luvas', marca = MARCA, avisos = { direita: [], esquerda: ['antebraço: supinação de 85,0° (limite 80°)'] } } = {}) {
+function vmFalso({ bracos = 'luvas', marca = MARCA, avisos = { direita: [], esquerda: ['antebraço: supinação de 85,0° (limite 80°)'] },
+  lados = undefined, item = 'ak47' } = {}) {
   const angulos = { flexao: -15.2, desvio: -10.2, pronacao: -2.9 };
   return {
-    info: { id: 'ak47', pega: { marca, sondas: {} } },
-    status: () => ({ item: 'ak47', bracos, faccao: 'tropa', avisos }),
+    info: { id: item, pega: { marca, sondas: {}, ...(lados ? { lados } : {}) } },
+    status: () => ({ item, bracos, faccao: 'tropa', avisos }),
     gloves: { prontos: bracos === 'luvas', bracos: { direita: { angulos }, esquerda: { angulos: { ...angulos, pronacao: -85 } } } },
   };
 }
@@ -114,6 +115,15 @@ test('luvas: o estado, os triângulos, a marca do rig e, na mão, a facção, a 
   assert.match(montar({ estado: 'carregando' })('luvas'), /^luvas: carregando/);
   assert.match(montar({ estado: '—' })('luvas'), /^luvas: não carregadas/);
   assert.match(montar()('luvas'), /na mão: nada/);
+});
+
+// A pega de uma mão (4.1c, Tarefa 8: a faca só com a direita): a marca confere só a mão que a pega tem.
+test('luvas: a pega de uma mão confere só a marca da direita', () => {
+  const umaMao = { lados: ['d'], marca: { d: MARCA.d }, item: 'knife', avisos: { direita: [] } };
+  assert.match(montar({ vm: vmFalso(umaMao) })('luvas'), /na mão: knife com as luvas · .* bate com a das luvas ✓/);
+  const outra = { ...umaMao, marca: { d: 'c'.repeat(64) } };
+  assert.match(montar({ vm: vmFalso(outra) })('luvas'), /NÃO bate com a das luvas ✗/);
+  assert.match(montar({ vm: vmFalso({ ...outra, bracos: null }) })('luvas'), /construa a arma de novo no Blender/);
 });
 
 test('luvas_contato: sem arma com pega na mão, o aviso', () => {

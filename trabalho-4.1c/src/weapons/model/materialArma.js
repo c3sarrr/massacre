@@ -11,7 +11,8 @@
 import * as THREE from 'three';
 import { acabamentoParaMaterial } from '../skins/acabamento.js';
 import {
-  ARMA_ANISOTROPIA, ARMA_ASPEREZA, ARMA_COR, ARMA_FRAGMENT_PARS, ARMA_METAL, ARMA_VERTEX, ARMA_VERTEX_PARS,
+  ARMA_ANISOTROPIA, ARMA_ASPEREZA, ARMA_COR, ARMA_FRAGMENT_PARS, ARMA_METAL, ARMA_NORMAL, ARMA_RELEVO_PARS, ARMA_VERTEX,
+  ARMA_VERTEX_PARS,
 } from './glsl/acabamentos.js';
 
 const linear = (c) => new THREE.Color().setRGB(c[0], c[1], c[2], THREE.LinearSRGBColorSpace);
@@ -52,7 +53,10 @@ export function criarMaterialZona({ zona, def, texturas, ambiente = null, intens
   m.userData.shared = true;
   m.defines = { ARMA_PADRAO: p.padraoId };
   if (p.anisotropy > 0) m.defines.ARMA_ESCOVADO = '';
+  // O relevo moldado (correções da P1 da 4.1c) nas armas: o tipo vem do alfa do _n (sem o _n, nada a ler). As luvas
+  // não têm molde.
   if (repouso) m.defines.ARMA_REPOUSO = '';
+  else if (texturas.n) m.defines.ARMA_RELEVO = '';
   const u = {
     mapaM: { value: texturas.m },
     corDois: { value: linear(p.color2 ?? p.color) },
@@ -69,11 +73,14 @@ export function criarMaterialZona({ zona, def, texturas, ambiente = null, intens
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${ARMA_VERTEX_PARS}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${ARMA_VERTEX}`);
+    // O relevo lê o normalMap: as declarações dele vêm depois do <common>, junto com as do mapa de normal.
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${ARMA_FRAGMENT_PARS}`)
+      .replace('#include <normalmap_pars_fragment>', `#include <normalmap_pars_fragment>\n${ARMA_RELEVO_PARS}`)
       .replace('#include <color_fragment>', `#include <color_fragment>\n${ARMA_COR}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${ARMA_ASPEREZA}`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\n${ARMA_METAL}`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${ARMA_NORMAL}`)
       .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>\n${ARMA_ANISOTROPIA}`);
   };
   m.customProgramCacheKey = () => `arma:${p.padrao}:${p.recursos.join('+')}${repouso ? ':repouso' : ''}`;

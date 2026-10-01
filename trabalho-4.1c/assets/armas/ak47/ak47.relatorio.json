@@ -1,7 +1,7 @@
 {
  "silhueta": {
-  "iouBruto": 0.98238,
-  "iouTolerancia": 0.99862,
+  "iouBruto": 0.98183,
+  "iouTolerancia": 0.99846,
   "raioToleranciaPx": 2,
   "mmPorPx": 0.5
  },
@@ -40,7 +40,7 @@
  },
  "lods": {
   "perto": {
-   "triangulos": 27381
+   "triangulos": 27470
   },
   "mundo": {
    "triangulos": 5699
@@ -52,9 +52,9 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 2.211,
-   "minimo": 0.982,
-   "maximo": 1.035
+   "medianaPxPorMm": 2.188,
+   "minimo": 0.968,
+   "maximo": 1.022
   }
  },
  "soquetes": [
@@ -114,79 +114,79 @@
      "abducao": 70.0,
      "cmc": 15.0,
      "rotacao": 0.0,
-     "mcp": 2.66,
-     "ip": 78.83
+     "mcp": 2.59,
+     "ip": 78.95
     },
     "ik": {
      "abducao": 70.0,
      "cmc": 15.0,
      "rotacao": 0.0,
-     "mcp": 1.38,
-     "ip": 73.75
+     "mcp": 2.12,
+     "ip": 72.94
     },
-    "polpaEncostaMM": -0.04,
-    "polpaAoAlvoMM": 4.94,
+    "polpaEncostaMM": -0.05,
+    "polpaAoAlvoMM": 4.99,
     "encostou": true,
     "chegouDeMM": null
    },
-   "penetracaoMM": 0.044,
+   "penetracaoMM": 0.048,
    "contatosMM": {
     "palma": -0.044,
-    "medio": 0.014,
-    "anelar": 0.014,
-    "minimo": -0.042,
+    "medio": 0.019,
+    "anelar": -0.014,
+    "minimo": -0.02,
     "indicador_gatilho": -0.044,
-    "polegar": -0.036
+    "polegar": -0.048
    },
    "palmaMeioMM": 8.35,
    "luva": {
     "juntas": {
      "pulso": 1.0,
-     "indicador_mcp": 0.9793,
+     "indicador_mcp": 0.9794,
      "indicador_pip": 0.9853,
      "indicador_dip": 0.9999,
-     "medio_mcp": 1.0158,
-     "medio_pip": 0.9813,
+     "medio_mcp": 1.0156,
+     "medio_pip": 0.9814,
      "medio_dip": 0.9895,
-     "anelar_mcp": 1.2946,
-     "anelar_pip": 0.9825,
+     "anelar_mcp": 1.2949,
+     "anelar_pip": 0.9824,
      "anelar_dip": 0.9904,
-     "minimo_mcp": 1.0045,
-     "minimo_pip": 0.9883,
-     "minimo_dip": 0.9916,
+     "minimo_mcp": 1.0046,
+     "minimo_pip": 0.9886,
+     "minimo_dip": 0.9918,
      "polegar_mcp": 0.999,
-     "polegar_ip": 0.9281
+     "polegar_ip": 0.9278
     },
     "atravessaMM": 0.0,
     "assentamentoMM": 0.021,
     "piorJunta": [
      "polegar_ip",
-     0.9281
+     0.9278
     ],
     "paredeDoPunho": 1.0
    },
    "angulos": {
-    "anelar_1": 49.92,
-    "anelar_2": 49.92,
-    "anelar_3": 33.28,
+    "anelar_1": 49.97,
+    "anelar_2": 49.97,
+    "anelar_3": 33.31,
     "indicador_1": 29.89,
     "indicador_2": 48.64,
     "indicador_3": 11.74,
-    "medio_1": 51.8,
-    "medio_2": 51.8,
-    "medio_3": 34.53,
-    "minimo_1": 46.03,
-    "minimo_2": 46.03,
-    "minimo_3": 30.69
+    "medio_1": 51.7,
+    "medio_2": 51.7,
+    "medio_3": 34.47,
+    "minimo_1": 45.61,
+    "minimo_2": 45.61,
+    "minimo_3": 30.41
    },
    "juntosMM": {
     "medio-anelar": [
-     2.45,
-     0.98
+     2.5,
+     1.05
     ],
     "anelar-minimo": [
-     3.34,
-     4.55
+     3.22,
+     4.53
     ]
    }
   },
@@ -210,46 +210,46 @@
    "juntar": {
     "anelar": 6.25,
     "minimo": 10.78,
-    "indicador": -4.69
+    "indicador": -4.38
    },
    "polegar": {
     "graus": {
-     "abducao": 32.5,
-     "cmc": 6.25,
-     "rotacao": 15.5,
+     "abducao": 31.5,
+     "cmc": 6.0,
+     "rotacao": 16.5,
      "mcp": 0.0,
      "ip": 0.0
     },
-    "coladoMM": 6.52,
+    "coladoMM": 6.53,
     "trechosMM": [
-     6.52,
-     5.26,
-     4.04,
-     2.38,
-     0.21,
-     0.0
+     6.53,
+     5.28,
+     4.06,
+     2.41,
+     0.24,
+     -0.02
     ],
     "curvaGraus": 0.0,
-    "desvioDoEixoGraus": 14.2,
-    "polpaEncostaMM": 0.0
+    "desvioDoEixoGraus": 13.4,
+    "polpaEncostaMM": -0.02
    },
-   "penetracaoMM": 0.05,
+   "penetracaoMM": 0.049,
    "contatosMM": {
     "palma": -0.042,
-    "indicador": -0.047,
-    "medio": -0.05,
+    "indicador": -0.04,
+    "medio": -0.049,
     "anelar": -0.002,
     "minimo": -0.023,
-    "polegar": 0.003
+    "polegar": -0.023
    },
    "palmaMeioMM": -0.04,
    "luva": {
     "juntas": {
      "pulso": 1.0,
-     "indicador_mcp": 1.0073,
-     "indicador_pip": 0.9974,
-     "indicador_dip": 0.9667,
-     "medio_mcp": 1.0035,
+     "indicador_mcp": 1.007,
+     "indicador_pip": 0.9907,
+     "indicador_dip": 0.9947,
+     "medio_mcp": 1.0036,
      "medio_pip": 0.9904,
      "medio_dip": 0.9939,
      "anelar_mcp": 1.2457,
@@ -264,8 +264,8 @@
     "atravessaMM": 0.121,
     "assentamentoMM": 0.022,
     "piorJunta": [
-     "indicador_dip",
-     0.9667
+     "minimo_pip",
+     0.9758
     ],
     "paredeDoPunho": 1.0,
     "ondeAtravessa": [
@@ -279,8 +279,8 @@
     "anelar_2": 43.22,
     "anelar_3": 28.81,
     "indicador_1": 18.56,
-    "indicador_2": 30.89,
-    "indicador_3": 53.69,
+    "indicador_2": 41.48,
+    "indicador_3": 27.66,
     "medio_1": 31.97,
     "medio_2": 42.98,
     "medio_3": 28.66,
@@ -289,9 +289,9 @@
     "minimo_3": 36.94
    },
    "lados": {
-    "polegarMM": 20.09,
+    "polegarMM": 20.11,
     "dedosMM": {
-     "indicador": -16.21,
+     "indicador": -15.44,
      "medio": -24.62,
      "anelar": -25.3,
      "minimo": -25.18
@@ -299,8 +299,8 @@
    },
    "juntosMM": {
     "indicador-medio": [
-     1.55,
-     2.63
+     2.21,
+     1.62
     ],
     "medio-anelar": [
      2.64,
@@ -313,36 +313,41 @@
    }
   },
   "frente": "e",
+  "maos": [
+   "d",
+   "e"
+  ],
   "marca": {
    "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd",
    "e": "e9f11073664b9f2a333b6046ab2b243b67b5f49e78a3d22641033c782b6f2b07"
   },
-  "segundos": 20.8
+  "segundos": 42.5
  },
  "arma": "ak47",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-09-27T20:57:48",
+ "gerado": "2026-10-01T18:21:41",
  "entradas": {
-  "hash": "38a04f79f412c16dfbed6bb5e34fa070bc56686daad1b0ed83c7db8a92f236c3"
+  "hash": "8275f6906d2e538518c70f600f9d2a4096f791115a5eeac41f46f8c898df1d95"
  },
  "origemMM": [
   -551.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.3593,
-  "longe": 0.277
+  "mundo": 0.3586,
+  "longe": 0.2769
  },
  "facesEscondidasRemovidas": 1781,
+ "relevos": {},
  "arquivos": {
-  "ak47.glb": 399492,
-  "ak47_m.webp": 2865674,
-  "ak47_mundo_m.webp": 288590,
-  "ak47_mundo_n.webp": 213738,
-  "ak47_n.webp": 1571640
+  "ak47.glb": 393732,
+  "ak47_m.webp": 2666750,
+  "ak47_mundo_m.webp": 272596,
+  "ak47_mundo_n.webp": 219096,
+  "ak47_n.webp": 1609664
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 307.0
+ "segundos": 984.9
 }

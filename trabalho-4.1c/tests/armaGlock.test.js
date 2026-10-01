@@ -21,6 +21,8 @@ test('Glock-18: a saída do Blender passa em todas as validações da classe pis
   assert.ok(bytes > 0 && bytes <= orcamentoDaArma('glock').arquivosMB * 1024 * 1024);
   assert.equal(relatorio.aprovado, true);
   assert.ok(relatorio.silhueta.iouTolerancia >= 0.98);
+  // o relevo moldado (correções da P1 da 4.1c): o pontilhado e o quadriculado do punho, na armação
+  assert.deepEqual(Object.keys(relatorio.relevos), ['guarnicao']);
   assert.deepEqual(Object.keys(relatorio.medidas).sort(), ['alturaComCarregador', 'alturaSemCarregador', 'cano', 'comprimento', 'raioDeMira']);
   for (const d of Object.values(relatorio.medidas)) assert.ok(Math.abs(d.erro) <= 0.01);
   assert.deepEqual(Object.keys(resumo.lods), ['perto', 'mundo', 'longe']);

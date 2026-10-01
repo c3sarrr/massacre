@@ -9,7 +9,8 @@
   "escala: o composto com a coronha fechada mede 755,7 mm (29,75 pol. do TM 9-1005-319-23&P); a coronha aberta (a posição toda estendida, +3,25 pol.) põe o comprimento nos 838,2 mm do TM, com o tubo do amortecedor à vista (1,148 pol. do tubo militar) entre a placa do receptor e a coronha; o passo das fendas do trilho do receptor na foto (9,96 mm) confere a escala a 0,5 % da MIL-STD-1913 (10,008 mm)",
   "a alça fica onde a foto da NSWC a mostra, com o pé de trás encostado na trava da alavanca de manejo (a posição de trás do trilho); o raio de mira sai da foto (o eixo do tambor de deriva da mira traseira à torre): 361 mm, contra os 14,5 pol. (368 mm) que o catálogo da Colt dá para a carabina A2 de 16 pol.",
   "as alturas das miras (os soquetes): a massa no alto das orelhas da torre (63 mm); a abertura traseira 1 mm acima dela (a inclinação do zeramento), abaixo do eixo do tambor de deriva (68 mm)",
-  "lado esquerdo (o da primeira pessoa): a alavanca do seletor e o retém do ferrolho da foto File:M4w-att.jpg (espelhada, registrada pelos receptores, IoU 0,90); as posições do seletor com marcações genéricas (regra 9)"
+  "lado esquerdo (o da primeira pessoa): a alavanca do seletor e o retém do ferrolho da foto File:M4w-att.jpg (espelhada, registrada pelos receptores, IoU 0,90); as posições do seletor com marcações genéricas (regra 9)",
+  "o gatilho da foto sai colado no receptor inferior (a lâmina entre os dois vãos do guarda-mato) e no guarda-mato (a ponta encostada no ressalto do alto da barra): as peças receptorInferior e guardaMato saem sem ele, com o piso do bolso do mecanismo reto entre os cantos de cima dos dois vãos (z -48,6) e o alto da barra reto (z -69,6); o gatilho é a peça dele, e o contorno e os buracos continuam os da foto (correção da Tarefa 10 da 4.1c: o bloco da largura do receptor no lugar da lâmina não deixava o indicador chegar ao gatilho)"
  ],
  "medidas": {
   "comprimento": {
@@ -4290,58 +4291,6 @@
     -48.6
    ],
    [
-    -499.2,
-    -53.3
-   ],
-   [
-    -500.6,
-    -58.3
-   ],
-   [
-    -500.1,
-    -62.8
-   ],
-   [
-    -498.6,
-    -66.4
-   ],
-   [
-    -497.6,
-    -67.5
-   ],
-   [
-    -501.0,
-    -67.5
-   ],
-   [
-    -501.7,
-    -66.0
-   ],
-   [
-    -502.2,
-    -65.7
-   ],
-   [
-    -504.4,
-    -60.8
-   ],
-   [
-    -505.1,
-    -57.8
-   ],
-   [
-    -505.3,
-    -52.2
-   ],
-   [
-    -504.4,
-    -49.9
-   ],
-   [
-    -504.4,
-    -48.8
-   ],
-   [
     -505.8,
     -48.6
    ],
@@ -5088,26 +5037,6 @@
    [
     -500.1,
     -69.6
-   ],
-   [
-    -499.9,
-    -68.4
-   ],
-   [
-    -501.0,
-    -67.5
-   ],
-   [
-    -497.6,
-    -67.5
-   ],
-   [
-    -496.5,
-    -68.7
-   ],
-   [
-    -496.5,
-    -69.1
    ],
    [
     -495.2,
@@ -8203,8 +8132,8 @@
     "nota": "dedução: o guarda-mato de alavanca, de 0,5 pol."
    },
    "gatilho": {
-    "mm": 9.0,
-    "nota": "dedução"
+    "mm": 7.4,
+    "nota": "o arco do gatilho militar do AR-15: 0,29 pol. (o guia de gatilhos de AR-15 da Recoil); desce pela fenda passante do fundo do bolso do mecanismo, de 0,310–0,313 pol."
    },
    "anelDelta": {
     "mm": 57.0,

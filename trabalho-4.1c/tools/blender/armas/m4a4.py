@@ -15,10 +15,36 @@ from . import pecas_superficie as PS
 ORIGEM_MM = (-504.0, 0.0)  # o pino do gatilho no eixo do cano: a origem da arma no jogo (como a AK)
 PECAS = ('ferrolho', 'alavanca', 'tampa', 'carregador', 'gatilho', 'seletor')
 PERTO_MM = (-470.0, 5.0)  # a vista de perto da conferência: a janela de ejeção, o assistente e o defletor
-OLHO_M = (-0.75, 0.11, 0.09)  # o olho da vista de primeira pessoa da conferência (m), atrás e à esquerda da alça
 Y_DIVISA = -8.5  # a divisa dos receptores (linhas.divisaReceptores)
 X_TRAS_SUP, X_FRENTE_REC = -583.0, -386.8
 X_TRILHO = -568.0  # o começo do trilho do receptor (o fim de trás, na trava da alavanca)
+# A pega (Tarefa 10 do plano da 4.1c): a regra `rifle` (empunhadura_regras.py) com os números da M4A4, das varreduras
+# de 2026-10-01 na arma de jogo.
+#  - mão direita: o vão do guarda-mato na face do gatilho tem 21,3 mm (do piso do receptor, em z −48,3, ao alto da
+#    barra, em −69,6), e a luva tem de 21,0 a 21,3 mm de largura na falange distal do indicador (de 21 a 24 na média):
+#    o 1 mm de folga da AK não cabe, e o dedo só passa na horizontal, com a MCP perto da altura do gatilho. A polpa
+#    desce para 74 % da altura do gatilho (o dedo no meio do vão) e a MCP fica 7 mm abaixo do ponto do gatilho e 42 mm
+#    atrás dele (com os 27,6 da AK, o médio, logo abaixo, ficava na altura da barra do guarda-mato e não fechava no
+#    punho: ia esticado para a frente, em leque com o anelar); a folga negativa deixa a luva apertar até 0,25 mm no
+#    guarda-mato e no piso — como a de verdade, no guarda-mato padrão (o de alavanca da M4 abre para as luvas de
+#    inverno) —, e a polpa só encosta no gatilho. Na varredura, a luva entra 0,05 mm (só encosta)
+#  - mão da frente: o guarda-mão de trilhos tem 59,5 mm de lado (o da AK, 39): o centro da palma 15 mm à esquerda do
+#    meio (10 na AK), a tenar na quina de baixo, e 25° em volta da vertical (35 na AK; com mais, o polegar subia além do
+#    trilho de cima). O polegar deita sobre o trilho esquerdo, que sai 9,4 mm do corpo do guarda-mão: a folga da
+#    falange proximal vai até o alto do trilho (o plano de 29,75 mm, a metade do lado), por cima do vão entre ele e o
+#    corpo, e o eixo sobe 17° (0,3; os 31° da AK punham a ponta acima do guarda-mão). Os quatro dedos sobem pelo lado
+#    direito, e o indicador chega à quina de cima: a ponta dele aparece por cima do trilho de cima na primeira pessoa
+EMPUNHADURA = {
+    'direita': {
+        'ancora': {'ponto': 'mcp_indicador', 'de': 'gatilho', 'mm': (-42.0, -40.0, -7.0)},
+        'gatilho': {'altura': 0.74, 'abertura': 20.0, 'raio': 8.0, 'folga': -0.25},
+    },
+    'esquerda': {
+        'ancora': {'ponto': 'palma', 'de': 'soquete', 'mm': (0.0, 15.0, -30.0)},
+        'giros': (('Z', 25.0), ('X', -10.0)),
+        'polegar': {'deitado': True, 'face': (0.0, 1.0, 0.0), 'eixo': (1.0, 0.0, 0.3), 'plano': 29.75},
+    },
+}
 
 
 def pivos(ficha):
@@ -229,29 +255,19 @@ def _gatilho(ficha, M):
 
 
 def _punho(ficha, M):
-    """O punho A2 de polímero: o perfil da foto arredondado (o chanfro largo) e o painel quadriculado dos dois lados (o
-    relevo das pirâmides, só no modelo alto)."""
-    pc, pt, L = ficha['pecas'], ficha['pontos'], ficha['vistaDeCima']['larguras']
-    pol = M['guarnicao']
+    """O punho A2 de polímero: o perfil da foto arredondado (o chanfro largo); o painel de losangos dos dois lados é o
+    relevo moldado (`relevos`)."""
+    pc, L = ficha['pecas'], ficha['vistaDeCima']['larguras']
     lp = L['punho']['mm'] / 2
-    punho = P.prisma('punho', P.simplificar(pc['punho']), 'XZ', -lp, lp, pol, 'guarnicao', chanfro=5.0, seg=4)
-    painel = pt['painelPunho']
-    xs = [p[0] for p in painel]
-    zs = [p[1] for p in painel]
-    grade = PS.piramides(1.3, 0.4)
+    # o perfil da foto sem o zigue-zague de pixel, que o chanfro largo transformava em facetas (correções da P1)
+    perfil = P.simplificar(P.suavizar_trecho(pc['punho'], lambda _x, _y: 1.0, sigma=1.5))
+    return P.prisma('punho', perfil, 'XZ', -lp, lp, M['guarnicao'], 'guarnicao', chanfro=5.0, seg=4)
 
-    def no_painel(u, v):
-        n = len(painel)
-        dentro = False
-        for k in range(n):
-            (ax, ay), (bx, by) = painel[k], painel[(k + 1) % n]
-            if (ay > v) != (by > v) and u < ax + (v - ay) / (by - ay) * (bx - ax):
-                dentro = not dentro
-        return grade(u, v) if dentro else None
-    for s in (-1, 1):
-        PS.relevo('quadriculado do punho', punho, (min(xs) - 1, max(xs) + 1), (min(zs), max(zs)), 0.13,
-                  lambda u, v, s=s: ((u, s * (lp + 20.0), v), (0, -s, 0)), no_painel)
-    return punho
+
+def relevos(ficha):
+    """O losango moldado do punho A2 nos painéis dos dois lados (a foto da M4A1 da NSWC; o relevo moldado, relevo.py, no
+    lugar da folha de pirâmides em geometria)."""
+    return [{'tipo': 'losango', 'zona': 'guarnicao', 'normal': 'lado', 'poligono': [tuple(p) for p in ficha['pontos']['painelPunho']]}]
 
 
 def _carregador(ficha, M):
@@ -260,7 +276,9 @@ def _carregador(ficha, M):
     pc, pt, ln, L = ficha['pecas'], ficha['pontos'], ficha['linhas'], ficha['vistaDeCima']['larguras']
     mat = M['carregador']
     lc = L['carregador']['mm'] / 2
-    P.prisma('carregador', P.simplificar(pc['carregador']), 'XZ', -lc, lc, mat, 'carregador', 'carregador', chanfro=1.0)
+    # o perfil da foto sem o zigue-zague de pixel (a média gaussiana ao longo da borda; correções da P1 da 4.1c)
+    P.prisma('carregador', P.simplificar(P.suavizar_trecho(pc['carregador'], lambda _x, _y: 1.0, sigma=1.2)), 'XZ', -lc, lc, mat,
+             'carregador', 'carregador', chanfro=1.0)
     for nome in ('nervuraCarregador1', 'nervuraCarregador2'):
         for s in (-1, 1):
             a, b = sorted((s * (lc - 0.2), s * (lc + 0.7)))

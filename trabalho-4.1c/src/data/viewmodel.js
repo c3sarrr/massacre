@@ -41,6 +41,14 @@ export const VIEWMODEL = F({
    * guarda-mão pede muita supinação: o braço pendente é a referência da torção (o polegar para cima da câmera). Uma
    * referência pelo ombro (o úmero) não serve: as posições do viewmodel são estilizadas como as do CS (a mão do gatilho
    * a 16 cm do ombro, o cotovelo do apoio 44 cm à frente do olho) e a torção passava de 100°.
+   * A `faca` (correções da P1 da 4.1c, P1.4, com a pega de martelo da Tarefa 9): a M9 do CS2 parada — a lâmina subindo
+   * para o centro da tela com a face para a câmera, os dentes do dorso embaixo, o gume em cima e as costas da luva para
+   * a câmera, embaixo à direita; a de antes (10, 18, −30) mostrava os dentes para cima (o "de ponta-cabeça" do usuário)
+   * e, com a luva, pedia 133° de extensão e 114° de desvio ulnar do pulso. Achada por busca de padrão nos ângulos, na
+   * posição e no cotovelo de luva contra a miniatura de vitrine do CS2 (a frente da guarda, a ponta, o meio do cabo e o
+   * pomo na tela), com a face da lâmina a ≥ 0,7 para a câmera e o pulso a no máximo 13 % de cada limite da AAOS nas três
+   * posições prontas (6° de extensão, 3° de desvio ulnar, 11° de pronação na Mesa). A faca só tem a mão direita: o
+   * cotovelo de luva da esquerda não é usado.
    */
   categories: F({
     pistola: F({ pos: F([1.8, -0.9, -13.5]), angles: F([3, 4, -2]), elbows: F({ direita: F([12, -20, 2]), esquerda: F([-10, -20, 0]) }) }),
@@ -51,7 +59,10 @@ export const VIEWMODEL = F({
     sniper: F({ pos: F([5, -4.1, -9.6]), angles: F([3.5, 1, -1.5]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -17, -8]) }) }),
     escopeta: F({ pos: F([4.5, -3.2, -9.2]), angles: F([4, 1, -2]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -17, -6]) }) }),
     smgBullpup: F({ pos: F([4.9, -4, -14.5]), angles: F([4, 2, -2]), elbows: F({ direita: F([14, -19, 4]), esquerda: F([-14, -19, -2]) }) }),
-    faca: F({ pos: F([3.4, -2.4, -10.5]), angles: F([10, 18, -30]), elbows: F({ direita: F([16, -16, 4]), esquerda: F([-9, -20, 4]) }) }),
+    faca: F({
+      pos: F([1.15, -2.21, -13.9]), angles: F([14.2, 45.7, -175.85]), elbows: F({ direita: F([16, -16, 4]), esquerda: F([-9, -20, 4]) }),
+      gloveElbows: F({ direita: F([-2, -31, -16]), esquerda: F([-9, -20, 4]) }),
+    }),
   }),
   // Categoria de cada arma com modelo — a receita de massinha ou o .glb do Blender (as da 4.4 entram aqui junto com o
   // modelo) — e, quando a silhueta pede, um ajuste fino somado à posição da categoria (`nudge`, u no referencial da

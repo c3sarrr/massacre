@@ -33,6 +33,15 @@ _VIZINHOS = {'indicador': ('medio',), 'medio': ('indicador', 'anelar'), 'anelar'
              'minimo': ('anelar',)}
 
 
+class PolegarCruza(RuntimeError):
+    """O polegar que entra na mão ou na arma mesmo aberto (empunhadura_polegar.deitar_na_arma), com os graus da solução
+    (além do repouso): a pega chega a palma de novo com a CMC deles (empunhadura_pega.resolver)."""
+
+    def __init__(self, mensagem, graus):
+        super().__init__(mensagem)
+        self.graus = graus
+
+
 def para_fora(dedo, lado):
     """O sinal da abertura que afasta o dedo do médio no lado `lado` ('d' ou 'e'): a luva esquerda é a direita
     espelhada, e o giro em Z do osso espelhado anda para o outro lado (na esquerda, o sinal da direita juntava os dedos

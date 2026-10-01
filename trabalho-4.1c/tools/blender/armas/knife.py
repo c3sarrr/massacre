@@ -5,14 +5,11 @@
 # pecas_superficie.lamina), o contrafio do clip, a serrilha do dorso, o sulco e o furo do corta-arame; a guarda com a
 # argola da boca do cano; o cabo redondo com os anéis e o quadriculado; o pomo com a trava e a fenda do ressalto.
 # Marcações genéricas (regra 9): o país e o lote, nada do fabricante.
-import math
-
 from . import pecas as P
 from . import pecas_superficie as PS
 
 PECAS = ()  # a faca é uma peça só (a base)
 PERTO_MM = (-165.0, 5.0)  # a vista de perto da conferência: o ricasso, a serrilha e a guarda
-OLHO_M = (-0.45, 0.10, 0.12)  # o olho da vista de primeira pessoa da conferência (m)
 FIO = 0.5  # a largura do fio do gume (mm)
 SEG_TORNO = 32  # lados do cabo, do pomo e da argola: com 48 o perto passava do orçamento da faca (9 506 de 8 000)
 ORIGEM_MM = (-177.6, 0.0)  # a frente da guarda no eixo do cabo (plano da 4.1c, D4; a ficha, pontos.origem)
@@ -137,27 +134,30 @@ def _guarda(ficha, M):
 
 
 def _cabo(ficha, M):
-    """O cabo de polímero: o torno da ficha (o inchaço de trás, o pescoço, os cinco anéis) e o quadriculado dos
-    segmentos (o relevo das pirâmides em volta do cilindro, só no modelo alto)."""
+    """O cabo de polímero: o torno da ficha (o inchaço de trás, o pescoço, os cinco anéis); o recartilhado dos segmentos
+    é o relevo moldado (`relevos`)."""
+    tn = ficha['tornos']
+    return P.torno('cabo', tn['cabo']['perfil'], M['guarnicao'], 'guarnicao', seg=SEG_TORNO, chanfro=0.4)
+
+
+def relevos(ficha):
+    """O recartilhado do cabo (a foto "US Military M9 Bajonett COMPO"; o relevo moldado, relevo.py, no lugar da folha de
+    pirâmides em volta do cilindro, que deixava emendas): em volta do eixo, nos segmentos — do inchaço de trás até perto
+    da guarda, fora os anéis, o pescoço e o trecho junto do último anel."""
     tn, pt = ficha['tornos'], ficha['pontos']
-    cabo = P.torno('cabo', tn['cabo']['perfil'], M['guarnicao'], 'guarnicao', seg=SEG_TORNO, chanfro=0.4)
-    perfil = tn['cabo']['perfil']
-    aneis = pt['aneisCabo']
-    pescoco = pt['pescoco']
-    grade = PS.piramides(1.1, 0.3)
-    r_med = 14.0
-
-    def no_segmento(u, v):
-        if any(abs(u - a) < 2.6 for a in aneis) or pescoco[0] - 1.0 <= u <= pescoco[1] + 1.0 or u > aneis[-1] - 2.6:
-            return None
-        return grade(u, v)
-
-    def raio(u, v):
-        ang = v / r_med
-        return ((u, (r_med + 20.0) * math.sin(ang), (r_med + 20.0) * math.cos(ang)), (0.0, -math.sin(ang), -math.cos(ang)))
-    x0 = perfil[0][0] + 1.0
-    PS.relevo('quadriculado do cabo', cabo, (x0, aneis[-1]), (0.0, 2 * math.pi * r_med), 0.12, raio, no_segmento)
-    return cabo
+    aneis, pescoco = pt['aneisCabo'], pt['pescoco']
+    x0, x1 = tn['cabo']['perfil'][0][0] + 1.0, aneis[-1] - 2.6
+    cortes = sorted([(a - 2.6, a + 2.6) for a in aneis[:-1]] + [(pescoco[0] - 1.0, pescoco[1] + 1.0)])
+    trechos, x = [], x0
+    for a, b in cortes:
+        if a > x:
+            trechos.append((x, min(a, x1)))
+        x = max(x, b)
+    if x < x1:
+        trechos.append((x, x1))
+    r = 30.0  # além do raio do cabo: a faixa pega a volta inteira
+    return [{'tipo': 'recartilhado', 'zona': 'guarnicao', 'normal': 'radial', 'poligono': [(a, -r), (b, -r), (b, r), (a, r)]}
+            for a, b in trechos if b - a > 0.5]
 
 
 def _pomo(ficha, M):
