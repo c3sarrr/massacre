@@ -43,7 +43,7 @@
    "triangulos": 30996
   },
   "mundo": {
-   "triangulos": 5699
+   "triangulos": 5700
   },
   "longe": {
    "triangulos": 1419
@@ -85,17 +85,17 @@
  "arma": "m4a4",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-10-01T11:30:58",
+ "gerado": "2026-10-01T15:33:48",
  "entradas": {
-  "hash": "8d1ffdf954e3ad07a3825dc9c3cf685e9caf79c5130bd5e14ce5721ad9c774c8"
+  "hash": "eaf8434cc8fb0fb5718a82c3a14dfb7d529b161e7214fd812b5b79a8f0198cfb"
  },
  "origemMM": [
   -504.0,
   0.0
  ],
  "dizimacao": {
-  "mundo": 0.474,
-  "longe": 0.2659
+  "mundo": 0.4741,
+  "longe": 0.2657
  },
  "facesEscondidasRemovidas": 1421,
  "relevos": {
@@ -107,13 +107,13 @@
   ]
  },
  "arquivos": {
-  "m4a4.glb": 385772,
-  "m4a4_m.webp": 2481002,
-  "m4a4_mundo_m.webp": 276750,
-  "m4a4_mundo_n.webp": 241760,
-  "m4a4_n.webp": 1841914
+  "m4a4.glb": 385968,
+  "m4a4_m.webp": 2479840,
+  "m4a4_mundo_m.webp": 279398,
+  "m4a4_mundo_n.webp": 240284,
+  "m4a4_n.webp": 1843822
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 584.8
+ "segundos": 595.4
 }
