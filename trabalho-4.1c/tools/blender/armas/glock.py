@@ -13,7 +13,6 @@ ORIGEM_MM = (-105.6, 0.0)  # o pino do gatilho no eixo do cano: a origem da arma
 PECAS = ('ferrolho', 'carregador', 'gatilho', 'seletor')
 ANGULO_PUNHO = 22.0  # graus do eixo do punho com a vertical (o ajuste das linhas da frente e de trás do contorno: 19 e 27)
 PERTO_MM = (-150.0, -10.0)  # a vista de perto da conferência: a traseira do ferrolho, o seletor e o retém
-OLHO_M = (-0.42, 0.075, 0.055)  # o olho da vista de primeira pessoa da conferência, atrás e à esquerda da alça (m)
 Y_MEIO_GUARDA = -26.8  # o alto do vão do guarda-mato (y da ficha): acima dele a armação é o guarda-pó
 Y_PUNHO_LARGO = -32.0  # abaixo dele o punho tem a largura toda; acima, a do guarda-pó, com a rampa do alargamento
 RAIO_GUIA, ALTURA_GUIA = 1.9, 1.0  # a ponta da guia da mola (raio) e o centro dela acima do fundo do ferrolho (mm)

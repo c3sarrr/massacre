@@ -181,15 +181,27 @@ class Cadeia:
         return soma
 
 
+def osso_do_alvo(chave):
+    """O osso de uma chave do alvo do polegar: o dedo sozinho é a falange média dele (`indicador` → `indicador_2`); com
+    a falange, ela (`indicador_3`, a distal: a faca, em que o cabo grosso leva a média para baixo do cabo)."""
+    return chave if chave[-2:] in ('_1', '_2', '_3') else f'{chave}_2'
+
+
+def dedo_do_alvo(chave):
+    """O dedo de uma chave do alvo do polegar (`indicador_3` → `indicador`)."""
+    return chave[:-2] if chave[-2:] in ('_1', '_2', '_3') else chave
+
+
 def alvo_nas_falanges(col, pose, pesos):
-    """(ponto, normal para fora) do alvo nas costas das falanges médias dos dedos de `pesos` ({dedo: peso}) na pose: a
-    média ponderada dos pontos de saída dos raios pelas costas de cada uma e das direções deles."""
+    """(ponto, normal para fora) do alvo nas costas das falanges de `pesos` ({dedo ou falange: peso}; o dedo sozinho é a
+    falange média) na pose: a média ponderada dos pontos de saída dos raios pelas costas de cada uma e das direções
+    deles."""
     rig, lado = col.rig, col.lado
     maos_rig.posar(rig, pose)
     bvh = _malha(col.modelo.pontos(pose), col.tris)
     ponto, normal, soma = Vector(), Vector(), 0.0
-    for dedo, peso in pesos.items():
-        pb = rig.pose.bones[f'{dedo}_2_{lado}']
+    for chave, peso in pesos.items():
+        pb = rig.pose.bones[f'{osso_do_alvo(chave)}_{lado}']
         m = mm(pb.matrix)
         meio = m @ Vector((0.0, pb.bone.length / S * 0.5, 0.0))
         costas = -(m.to_3x3() @ Vector((0.0, 0.0, 1.0))).normalized()
@@ -495,27 +507,32 @@ def _assentar_na_arma(col, lim, m, cadeia, ik, livre, resto, na):
     return m, g, encostou
 
 
-def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None, eixo=None):
+def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None, eixo=None, arma=None):
     """O polegar da pose `m` com a polpa no alvo, chegando pela normal dele até encostar e assentando pela IP e pela
-    MCP; `superficie` são os triângulos da luva em que a polpa deve assentar (nas poses de teste). Na pega, `na` é a
-    luva na arma (empunhadura_arma.NaArma): o alvo e a normal vêm no referencial da luva, a arma entra na IK e no
-    contato e o encosto da polpa é medido nela; o `eixo` (a mão da frente, no referencial da luva) é para onde a
-    falange distal aponta. Devolve (pose, relatório): os graus totais, os da IK, a distância da polpa à superfície e ao
-    ponto do alvo (mm), se encostou, a altura de onde chegou (mm) e, com o `eixo`, o desvio da falange distal (graus)."""
+    MCP; `superficie` são os triângulos da luva em que a polpa deve assentar (nas poses de teste e na faca). Na pega,
+    `na` é a luva na arma (empunhadura_arma.NaArma): o alvo e a normal vêm no referencial da luva, a arma entra na IK e
+    no contato e o encosto da polpa é medido nela; o `eixo` (a mão da frente, no referencial da luva) é para onde a
+    falange distal aponta. Com `arma` no lugar do `na` (a faca: a polpa assenta nos dedos que abraçam o cabo), a arma é
+    só obstáculo — entra na IK (com o refino pela malha da tenar), na chegada e no fechar da MCP e da IP — e o encosto
+    da polpa é medido na `superficie`: sem ela, o polegar que dá a volta por cima do cabo até o indicador passava por
+    dentro dele, e a abdução levava a tenar para dentro do cabo. Devolve (pose, relatório): os graus totais, os da IK,
+    a distância da polpa à superfície e ao ponto do alvo (mm), se encostou, a altura de onde chegou (mm) e, com o
+    `eixo`, o desvio da falange distal (graus)."""
     lim = limites(mao)
     cadeia = Cadeia(col, mao, {o: q for o, q in m.pose().items() if not o.startswith('polegar')})
-    ik = resolver(cadeia, alvo, normal, lim, na=na, m=m, eixo=eixo)
+    ik = resolver(cadeia, alvo, normal, lim, na=na or arma, m=m, eixo=eixo)
     livre, resto = _livre_e_resto(col)
     if na is not None:
         m, g, encostou = _assentar_na_arma(col, lim, m, cadeia, ik, livre, resto, na)
         acima = None
     else:
         for acima in ACIMA_MM:
-            de = resolver(cadeia, alvo + normal * acima, normal, lim, inicio=ik)
-            if not _cruza(col, _com_graus(m, cadeia, de), livre, resto):
+            de = resolver(cadeia, alvo + normal * acima, normal, lim, inicio=ik, na=arma, m=m)
+            if not _cruza(col, _com_graus(m, cadeia, de), livre, resto, arma):
                 break
         else:
-            raise RuntimeError(f'o polegar cruza a mão mesmo com a polpa {ACIMA_MM[-1]} mm acima do alvo')
+            onde = 'a mão ou a arma' if arma is not None else 'a mão'
+            raise RuntimeError(f'o polegar cruza {onde} mesmo com a polpa {ACIMA_MM[-1]} mm acima do alvo')
 
         def em(s):
             return {k: min(max(de[k] + (ik[k] - de[k]) * s, lim[k][0]), lim[k][1]) for k in GRAUS}
@@ -523,10 +540,10 @@ def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None, eixo=None):
         anda = max(abs(ik[k] - de[k]) for k in GRAUS)
         tolerancia = empunhadura.TOLERANCIA_GRAUS / max(anda, 1e-6)
         a, b = 0.0, 1.0 + ALEM
-        if _cruza(col, _com_graus(m, cadeia, em(b)), livre, resto):
+        if _cruza(col, _com_graus(m, cadeia, em(b)), livre, resto, arma):
             while b - a > tolerancia:
                 s = (a + b) / 2
-                if _cruza(col, _com_graus(m, cadeia, em(s)), livre, resto):
+                if _cruza(col, _com_graus(m, cadeia, em(s)), livre, resto, arma):
                     b = s
                 else:
                     a = s
@@ -536,7 +553,7 @@ def fechar_no_alvo(col, mao, m, alvo, normal, superficie, na=None, eixo=None):
         g = em(a)
         m = _com_graus(m, cadeia, g)
         for grau, osso in (('mcp', 'polegar_2'), ('ip', 'polegar_3')):
-            m, g[grau], enc = empunhadura.fechar(col, m, osso, lim[grau][1])
+            m, g[grau], enc = empunhadura.fechar(col, m, osso, lim[grau][1], na=arma)
             encostou = encostou or enc
     polpa, _lado = cadeia.polpa_em(g)
     if na is None:

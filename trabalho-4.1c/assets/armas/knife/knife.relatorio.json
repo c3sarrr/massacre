@@ -42,7 +42,7 @@
  "uv": {
   "sobreposicao": 0,
   "densidadeTexel": {
-   "medianaPxPorMm": 3.535,
+   "medianaPxPorMm": 3.537,
    "minimo": 1.0,
    "maximo": 1.0
   }
@@ -59,12 +59,141 @@
   "guarnicao",
   "detalhes"
  ],
+ "empunhadura": {
+  "d": {
+   "palmaAndouMM": -13.22,
+   "dedosPararam": {
+    "indicador_1": "contato",
+    "indicador_2": "contato",
+    "indicador_3": "contato",
+    "medio_1": "contato",
+    "medio_2": "contato",
+    "medio_3": "contato",
+    "anelar_1": "contato",
+    "anelar_2": "contato",
+    "anelar_3": "contato",
+    "minimo_1": "contato",
+    "minimo_2": "contato",
+    "minimo_3": "contato"
+   },
+   "vizinhos": {
+    "anelar": {
+     "abertura": 2.19
+    },
+    "minimo": {
+     "abertura": 3.01
+    },
+    "indicador": {
+     "abertura": -0.62
+    }
+   },
+   "juntar": {},
+   "polegar": {
+    "graus": {
+     "abducao": 47.06,
+     "cmc": 3.09,
+     "rotacao": 17.0,
+     "mcp": 3.61,
+     "ip": 26.3
+    },
+    "ik": {
+     "abducao": 47.19,
+     "cmc": 2.88,
+     "rotacao": 17.0,
+     "mcp": 0.0,
+     "ip": 23.81
+    },
+    "polpaEncostaMM": 0.05,
+    "polpaAoAlvoMM": 23.57,
+    "encostou": true,
+    "chegouDeMM": 6.0,
+    "sobre": [
+     "indicador"
+    ]
+   },
+   "penetracaoMM": 0.161,
+   "contatosMM": {
+    "palma": 0.233,
+    "indicador": 0.022,
+    "medio": -0.027,
+    "anelar": -0.01,
+    "minimo": -0.161
+   },
+   "palmaMeioMM": 0.87,
+   "luva": {
+    "juntas": {
+     "pulso": 1.0,
+     "indicador_mcp": 1.0043,
+     "indicador_pip": 0.9652,
+     "indicador_dip": 0.9817,
+     "medio_mcp": 1.0003,
+     "medio_pip": 0.9568,
+     "medio_dip": 0.9781,
+     "anelar_mcp": 1.4286,
+     "anelar_pip": 0.9588,
+     "anelar_dip": 0.9791,
+     "minimo_mcp": 1.0047,
+     "minimo_pip": 0.9798,
+     "minimo_dip": 0.9872,
+     "polegar_mcp": 0.9992,
+     "polegar_ip": 0.9976
+    },
+    "atravessaMM": 0.049,
+    "assentamentoMM": 0.022,
+    "piorJunta": [
+     "medio_pip",
+     0.9568
+    ],
+    "paredeDoPunho": 1.0,
+    "ondeAtravessa": [
+     92.51,
+     -23.16,
+     -51.86
+    ]
+   },
+   "angulos": {
+    "anelar_1": 66.98,
+    "anelar_2": 66.98,
+    "anelar_3": 44.66,
+    "indicador_1": 64.17,
+    "indicador_2": 64.17,
+    "indicador_3": 42.78,
+    "medio_1": 68.2,
+    "medio_2": 68.2,
+    "medio_3": 45.47,
+    "minimo_1": 52.88,
+    "minimo_2": 52.88,
+    "minimo_3": 35.25
+   },
+   "juntosMM": {
+    "indicador-medio": [
+     0.63,
+     0.43
+    ],
+    "medio-anelar": [
+     2.58,
+     0.98
+    ],
+    "anelar-minimo": [
+     0.95,
+     1.14
+    ]
+   }
+  },
+  "maos": [
+   "d"
+  ],
+  "marca": {
+   "d": "71b3a3f92043933e263d87b068377f97fcebc23607023cc645db62ffab501cbd"
+  },
+  "segundos": 49.8
+ },
  "arma": "knife",
  "versao": 1,
  "blender": "5.2.2 LTS",
- "gerado": "2026-10-01T11:35:04",
+ "gerado": "2026-10-01T13:08:13",
  "entradas": {
-  "hash": "6a921cd6655349296a71be4a54dfcce477d5b2e7b8f79edd9729ce9bc491f7a9"
+  "hash": "4fac1353229c590e103e7c2c2449a54ac8011c95d90cceac130a6968835e1a9d"
  },
  "origemMM": [
   -177.6,
@@ -84,13 +213,13 @@
   ]
  },
  "arquivos": {
-  "knife.glb": 114516,
-  "knife_m.webp": 546680,
-  "knife_mundo_m.webp": 66302,
-  "knife_mundo_n.webp": 67568,
-  "knife_n.webp": 433492
+  "knife.glb": 135164,
+  "knife_m.webp": 549366,
+  "knife_mundo_m.webp": 64192,
+  "knife_mundo_n.webp": 66606,
+  "knife_n.webp": 430758
  },
  "aprovado": true,
  "problemas": [],
- "segundos": 243.9
+ "segundos": 223.9
 }

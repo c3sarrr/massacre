@@ -3,7 +3,8 @@
 // realistas com pega. A pega do .glb da arma põe os dedos (a marca do rig conferida), cada osso `mao` vai para o
 // referencial dele na pega (a pose da arma na câmera), o antebraço aponta para o cotovelo da categoria com o polegar
 // para cima na meia pronação, a pintura é a da facção (a do time, ou a do boneco sem time) e a braçadeira só aparece
-// com time. As variantes de shader compilam antes de o braço aparecer (sem travada).
+// com time. As variantes de shader compilam antes de o braço aparecer (sem travada). A pega de uma mão (a faca, 4.1c)
+// vai só ao braço direito: o esquerdo volta ao repouso e não aparece.
 
 import * as THREE from 'three';
 import { GLOVE_SIDE, gloveTarget } from './placement.js';
@@ -79,10 +80,15 @@ export class BracosDeLuva {
     return this.#pronto;
   }
 
-  /** Os dedos na pega da arma nos dois braços; false (e o erro no log) se a pega é de outro rig. */
+  /** Os dedos na pega da arma nos braços que ela tem (a faca: só o direito; o outro volta ao repouso); false (e o erro
+   *  no log) se a pega é de outro rig. */
   aplicarPega(pega) {
     try {
-      for (const s of SIDES) this.bracos[s].aplicarPega(pega);
+      const lados = pega.lados ?? ['d', 'e'];
+      for (const s of SIDES) {
+        if (lados.includes(GLOVE_SIDE[s])) this.bracos[s].aplicarPega(pega);
+        else if (this.bracos[s].pega) this.bracos[s].soltarPega();
+      }
       this.pega = pega;
       return true;
     } catch (err) {
@@ -104,7 +110,7 @@ export class BracosDeLuva {
     for (const s of SIDES) {
       const b = this.bracos[s];
       if (!b) continue;
-      b.grupo.visible = Boolean(this.pega && lados.has(s));
+      b.grupo.visible = Boolean(this.pega && lados.has(s) && this.pega.maos[GLOVE_SIDE[s]]);
       if (!b.grupo.visible) continue;
       const alvo = gloveTarget(placement, this.pega.maos[GLOVE_SIDE[s]], this.#alvo);
       this.avisos[s] = b.colocar(alvo.position, alvo.quaternion, cotovelo(s), CIMA).avisos;

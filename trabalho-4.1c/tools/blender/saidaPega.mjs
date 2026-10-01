@@ -14,7 +14,9 @@
 // As mãos (4.1c): a regra da categoria diz quais (MAOS_DA_CATEGORIA: a faca só com a direita), e o relatório
 // (`empunhadura.maos`; sem o campo, as duas — as armas da 4.1b) e o .glb (`lerPega`) têm de bater com ela; a mão da
 // frente só onde a categoria tem uma (FRENTE_DA_CATEGORIA: o fuzil).
-import { DEDOS_DA_FRENTE, FRENTE_DA_CATEGORIA, LIMITES_DA_PEGA, MAOS_DA_CATEGORIA } from '../../src/data/luvas.js';
+import {
+  DEDOS_DA_FRENTE, FRENTE_DA_CATEGORIA, LIMITES_DA_PEGA, MAOS_DA_CATEGORIA, POLEGAR_SOBRE_DA_CATEGORIA,
+} from '../../src/data/luvas.js';
 
 const fmt = (v) => v.toFixed(2).replace('.', ',');
 
@@ -58,6 +60,20 @@ function problemasDosJuntos(lado, juntos, exigidos) {
     }
   }
   return problemas;
+}
+
+/** O polegar dobrado por cima dos dedos `sobre` (a faca): encostado neles, a polpa a até contatoMM. */
+function problemasDoPolegarSobre(lado, polegar, sobre) {
+  const m = LIMITES_DA_PEGA.contatoMM;
+  const nos = sobre.join(', ');
+  if (!polegar || (polegar.sobre ?? []).join() !== sobre.join()) {
+    return [`empunhadura ${lado}: o polegar não está dobrado por cima do ${nos} (a regra da faca; construa a arma de novo)`];
+  }
+  if (!polegar.encostou || !(polegar.polpaEncostaMM <= m)) {
+    return [`empunhadura ${lado}: o polegar não assenta no ${nos} (a polpa a ${fmt(polegar.polpaEncostaMM ?? NaN)} mm; `
+      + `máximo ${m} mm)`];
+  }
+  return [];
 }
 
 function problemasDoPolegar(lado, polegar) {
@@ -134,6 +150,8 @@ export function validarPega(relatorio, pega, marcaLuvas, categoria = 'rifle') {
       }
     }
     if (r.lados) problemas.push(...problemasDosLados(lado, r.lados, lado === e.frente ? DEDOS_DA_FRENTE : null));
+    const sobre = POLEGAR_SOBRE_DA_CATEGORIA[categoria];
+    if (sobre && lado === 'd') problemas.push(...problemasDoPolegarSobre(lado, r.polegar, sobre));
     if (lado === e.frente) problemas.push(...problemasDoPolegar(lado, r.polegar));
     problemas.push(...problemasDosJuntos(lado, r.juntosMM, lado === e.frente ? PARES_DA_FRENTE : null));
     if (pega.marca[lado] !== e.marca?.[lado]) problemas.push(`empunhadura ${lado}: a marca do .glb não é a do relatório`);

@@ -15,7 +15,6 @@ from . import pecas_superficie as PS
 ORIGEM_MM = (-504.0, 0.0)  # o pino do gatilho no eixo do cano: a origem da arma no jogo (como a AK)
 PECAS = ('ferrolho', 'alavanca', 'tampa', 'carregador', 'gatilho', 'seletor')
 PERTO_MM = (-470.0, 5.0)  # a vista de perto da conferência: a janela de ejeção, o assistente e o defletor
-OLHO_M = (-0.75, 0.11, 0.09)  # o olho da vista de primeira pessoa da conferência (m), atrás e à esquerda da alça
 Y_DIVISA = -8.5  # a divisa dos receptores (linhas.divisaReceptores)
 X_TRAS_SUP, X_FRENTE_REC = -583.0, -386.8
 X_TRILHO = -568.0  # o começo do trilho do receptor (o fim de trás, na trava da alavanca)

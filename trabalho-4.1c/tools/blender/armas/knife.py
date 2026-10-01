@@ -10,7 +10,6 @@ from . import pecas_superficie as PS
 
 PECAS = ()  # a faca é uma peça só (a base)
 PERTO_MM = (-165.0, 5.0)  # a vista de perto da conferência: o ricasso, a serrilha e a guarda
-OLHO_M = (-0.45, 0.10, 0.12)  # o olho da vista de primeira pessoa da conferência (m)
 FIO = 0.5  # a largura do fio do gume (mm)
 SEG_TORNO = 32  # lados do cabo, do pomo e da argola: com 48 o perto passava do orçamento da faca (9 506 de 8 000)
 ORIGEM_MM = (-177.6, 0.0)  # a frente da guarda no eixo do cabo (plano da 4.1c, D4; a ficha, pontos.origem)

@@ -273,6 +273,16 @@ async function contextoReal(id, { forcar = false } = {}) {
     ficha: validarFichaLuvas(JSON.parse(readFileSync(join(ROOT, 'tools', 'blender', 'refs', 'luvas.json'), 'utf8'))),
     pinturas: LUVAS.pinturas,
   };
+  // A primeira pessoa da conferência com a pose do jogo (correções da P1 da 4.1c, P1.4): a câmera no referencial da arma
+  // (u) pela posição da categoria, com os offsets padrão do CS e o ajuste fino da arma, e o FOV vertical do padrão. Fica
+  // fora do hash: é só a vista da conferência, não muda a saída do construir.
+  const { cameraInWeaponFrame, viewCategory, viewPlacement, viewmodelVerticalFov, weaponNudge } = await import('../src/weapons/viewmodel/placement.js');
+  const { VIEWMODEL } = await import('../src/data/viewmodel.js');
+  const offsetPadrao = { x: VIEWMODEL.offset.x.default, y: VIEWMODEL.offset.y.default, z: VIEWMODEL.offset.z.default };
+  const primeiraPessoa = {
+    ...cameraInWeaponFrame(viewPlacement(viewCategory(id), { offset: offsetPadrao, nudge: weaponNudge(id) })),
+    fovVertical: viewmodelVerticalFov(VIEWMODEL.fov.default),
+  };
   const ctx = {
     id, raiz: ROOT, ficha, fabrica: def.fabrica, pecas: def.pecas, zonas: zonasDaArma(id), soquetes: soquetesDaArma(id),
     // As medidas-chave da classe (Fase 4.1c, D3): o validar.py mede cada uma pelo nome.
@@ -281,7 +291,7 @@ async function contextoReal(id, { forcar = false } = {}) {
     pega: armaComPega(id),
     orcamento: orcamentoDaArma(id), saida: join(ROOT, def.pasta), conferencia: join(ROOT, 'tools', 'blender', 'conferencia', id),
     relevos: RELEVOS_MOLDADOS, veio,
-    categoria: def.categoria, luvas,
+    categoria: def.categoria, luvas, primeiraPessoa,
     hash: hashEntradas(id, def, { ficha, luvas, pega: armaComPega(id), relevos: RELEVOS_MOLDADOS, veio, texturas }), forcar,
   };
   mkdirSync(TMP, { recursive: true });
@@ -303,10 +313,14 @@ function resumoSaida(id) {
 /** A pega das luvas numa linha: a maior entrada na arma e o contato mais longe de cada mão (Fase 4.1b). */
 function resumoPega(e) {
   if (!e) return '';
-  const maos = ['d', 'e'].map((l) => {
+  // as mãos da regra (Tarefa 8 da 4.1c: a faca só tem a direita; sem o campo, as duas, como as armas da 4.1b) e, na
+  // faca, o polegar assentado no dedo
+  const maos = (e.maos ?? ['d', 'e']).map((l) => {
     const c = Object.entries(e[l].contatosMM);
     const [nome, mm] = c.reduce((a, b) => (b[1] > a[1] ? b : a));
-    return `${l === 'd' ? 'direita' : 'esquerda'} entra ${e[l].penetracaoMM} mm, contato mais longe ${nome} ${mm} mm`;
+    const p = e[l].polegar;
+    const sobre = p?.sobre ? `, polegar no ${p.sobre.join(', ')} a ${p.polpaEncostaMM} mm` : '';
+    return `${l === 'd' ? 'direita' : 'esquerda'} entra ${e[l].penetracaoMM} mm, contato mais longe ${nome} ${mm} mm${sobre}`;
   });
   return ` · pega (${e.segundos} s): ${maos.join('; ')}`;
 }

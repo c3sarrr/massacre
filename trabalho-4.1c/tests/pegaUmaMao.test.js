@@ -4,7 +4,9 @@
 // e os quatro dedos do outro) é só do fuzil.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CATEGORIAS_COM_PEGA, FRENTE_DA_CATEGORIA, MAOS_DA_CATEGORIA, OSSOS_DE_DEDO, ossosDoLado } from '../src/data/luvas.js';
+import {
+  CATEGORIAS_COM_PEGA, FRENTE_DA_CATEGORIA, LIMITES_DA_PEGA, MAOS_DA_CATEGORIA, OSSOS_DE_DEDO, POLEGAR_SOBRE_DA_CATEGORIA, ossosDoLado,
+} from '../src/data/luvas.js';
 import { dedosDoClipe, lerPega } from '../src/characters/hands/pega.js';
 import { validarPega } from '../tools/blender/saidaPega.mjs';
 
@@ -76,7 +78,10 @@ test('dedosDoClipe pede só as mãos da pega', () => {
   assert.throws(() => dedosDoClipe(clip), /_e/); // sem as mãos, as duas (como antes)
 });
 
-const BRACO = { penetracaoMM: 0.1, contatosMM: { palma: 0.2, indicador: 0.3 }, juntosMM: { 'medio-anelar': [2.5, 3] } };
+const BRACO = {
+  penetracaoMM: 0.1, contatosMM: { palma: 0.2, indicador: 0.3 }, juntosMM: { 'medio-anelar': [2.5, 3] },
+  polegar: { encostou: true, polpaEncostaMM: 0.4, sobre: ['indicador'] },
+};
 
 test('validarPega numa categoria de uma mão: só a direita, sem a mão da frente', () => {
   const p = lerPega(gltfPega());
@@ -88,4 +93,18 @@ test('validarPega numa categoria de uma mão: só a direita, sem a mão da frent
   // a penetração e os contatos continuam valendo
   const fundo = { empunhadura: { ...rel.empunhadura, d: { ...BRACO, penetracaoMM: 0.5 } } };
   assert.match(validarPega(fundo, p, null, 'faca').join('\n'), /entra 0,50 mm/);
+});
+
+// A faca (Tarefa 9): o polegar dobrado por cima da falange média do indicador, a polpa nele (não na arma).
+test('validarPega na faca: o polegar assentado no indicador, a polpa a até 1 mm', () => {
+  assert.deepEqual(POLEGAR_SOBRE_DA_CATEGORIA, { faca: ['indicador'] });
+  assert.ok(CATEGORIAS_COM_PEGA.includes('faca'), 'a faca com a regra no Blender');
+  const p = lerPega(gltfPega());
+  const rel = (polegar) => ({ empunhadura: { maos: ['d'], d: { ...BRACO, polegar }, marca: { d: MARCA.d } } });
+  assert.deepEqual(validarPega(rel(BRACO.polegar), p, null, 'faca'), []);
+  const longe = { ...BRACO.polegar, polpaEncostaMM: LIMITES_DA_PEGA.contatoMM + 0.5 };
+  assert.match(validarPega(rel(longe), p, null, 'faca').join('\n'), /polegar.*indicador.*1,50 mm/);
+  assert.match(validarPega(rel({ ...BRACO.polegar, encostou: false }), p, null, 'faca').join('\n'), /polegar.*indicador/);
+  assert.match(validarPega(rel({ ...BRACO.polegar, sobre: ['medio'] }), p, null, 'faca').join('\n'), /polegar.*indicador/);
+  assert.match(validarPega(rel(undefined), p, null, 'faca').join('\n'), /polegar/);
 });

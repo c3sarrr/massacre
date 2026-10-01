@@ -38,6 +38,7 @@ from .unidades import S
 
 PENETRACAO_MM = 0.3
 CONTATO_MM = 1.0
+POLEGAR_SOBRE_MM = 1.0  # a faca: a polpa do polegar a no máximo isto do indicador (desenho da 4.1c, seção 4.3)
 LADO_MM = 5.0  # o `ladoMM` de LIMITES_DA_PEGA (src/data/luvas.js): a polpa a pelo menos isto do meio, do lado certo
 POLEGAR_CURVA_GRAUS = 20.0  # o `polegarCurvaGraus`: a MCP mais a IP do polegar deitado da mão da frente
 POLEGAR_FOLGA_MM = 8.0  # o `polegarFolgaMM`: nenhum trecho do polegar deitado mais longe que isto da arma
@@ -91,14 +92,16 @@ def _vertices_do_corpo(col):
     return [i for i, o in enumerate(col.dono) if o not in livres]
 
 
-def _pegar(col, na, mao, r, soquete, gatilho, base, lado):
-    """Uma mão na arma pela regra `r` (ver o cabeçalho). Devolve (pose, relatório do solver)."""
+def _pegar(col, na, mao, r, soquete, gatilho, base, lado, cmc=None):
+    """Uma mão na arma pela regra `r` (ver o cabeçalho), com a CMC do polegar na chegada nos graus `cmc` (a abdução, a
+    flexão e a rotação além do repouso; sem eles, a pose de pegar). Devolve (pose, relatório do solver)."""
     rel = {}
     lim = polegar.limites(mao)
     m = EA.mao_aberta(mao, polegar.afastar(col, mao, empunhadura.Mao()))
-    m = polegar._com_graus(m, polegar.Cadeia(col, mao, {}),
-                           {'abducao': lim['abducao'][1], 'cmc': lim['cmc'][1], 'rotacao': 0.0, 'mcp': lim['mcp'][0],
-                            'ip': lim['ip'][0]})
+    chegada = {'abducao': lim['abducao'][1], 'cmc': lim['cmc'][1], 'rotacao': 0.0, 'mcp': lim['mcp'][0],
+               'ip': lim['ip'][0]}
+    chegada.update(cmc or {})
+    m = polegar._com_graus(m, polegar.Cadeia(col, mao, {}), chegada)
     R = regras.rotacao(r, soquete.matrix_world, lado)
     anc = r['ancora']
     ponto_da_luva = col.cabeca['indicador_1'] if anc['ponto'] == 'mcp_indicador' else _centro_da_palma(col)
@@ -136,6 +139,18 @@ def _pegar(col, na, mao, r, soquete, gatilho, base, lado):
     if p.get('deitado'):
         eixo = (na.encaixe.inverted().to_3x3() @ Vector(p['eixo'])).normalized()
         m, rel['polegar'] = polegar.deitar_na_arma(col, mao, m, na, eixo, Vector(p['face']).normalized())
+    elif p.get('sobre'):
+        # o polegar dobrado por cima dos dedos de `sobre` (a faca: a falange média do indicador), como no punho fechado
+        # das poses de teste: a polpa assenta nas falanges deles (a superfície do fechar_no_alvo), e a arma é obstáculo
+        alvo_p, normal_p = polegar.alvo_nas_falanges(col, m.pose(), p['sobre'])
+        dedos_sobre = sorted({polegar.dedo_do_alvo(k) for k in p['sobre']})
+        superficie = col.triangulos({f'{d}_{i}' for d in dedos_sobre for i in (1, 2, 3)})
+        try:
+            m, rel['polegar'] = polegar.fechar_no_alvo(col, mao, m, alvo_p, normal_p, superficie, arma=na)
+        except RuntimeError as erro:
+            # a validação reprova (o polegar sem assentar) e a .blend fica salva para as vistas de perto
+            rel['polegar'] = {'erro': str(erro), 'encostou': False, 'polpaEncostaMM': None}
+        rel['polegar']['sobre'] = dedos_sobre
     else:
         alvo_p, normal_p = polegar.alvo_na_arma(cadeia, na, m, lim, regras.lado_do_polegar(r), p['peso'])
         m, rel['polegar'] = polegar.fechar_no_alvo(col, mao, m, alvo_p, normal_p, None, na=na)
@@ -152,7 +167,8 @@ def _contatos(col, na, mao, pts, r):
         grupos[d] = na.vertices([f'{d}_{i}' for i in (1, 2, 3)])
     if r['gatilho']:
         grupos['indicador_gatilho'] = EA.CadeiaDedo(na, 'indicador', {}).lado_da_polpa
-    grupos['polegar'] = polegar.Cadeia(col, mao, {}).lado_da_polpa
+    if not r['polegar'].get('sobre'):  # na faca o polegar assenta no indicador, não na arma
+        grupos['polegar'] = polegar.Cadeia(col, mao, {}).lado_da_polpa
     saida = {}
     for nome, idx in grupos.items():
         dist = {i: na.arma.distancia(pts[i]) for i in idx}
@@ -248,6 +264,13 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
         col = empunhadura.Colisor(luva, rig, mao, luvas.REFORCO)
         na = EA.NaArma(col, arma)
         m, rel_m = _pegar(col, na, mao, r, soq[r['soquete']], perto.get('gatilho'), base, lado)
+        if r['polegar'].get('sobre') and 'erro' not in rel_m['polegar']:
+            # a segunda chegada (a faca): a palma chega de novo com a CMC do polegar da solução. Na pose de pegar, a
+            # tenar encostava no cabo antes da palma, e a abdução da solução depois a tirava dele (a palma a 2,4 mm)
+            # ou a punha dentro (0,7 mm)
+            g = polegar.graus_da_pose(m, polegar.Cadeia(col, mao, {}))
+            m, rel_m = _pegar(col, na, mao, r, soq[r['soquete']], perto.get('gatilho'), base, lado,
+                              cmc={k: g[k] for k in ('abducao', 'cmc', 'rotacao')})
         pose = m.pose()
         pts = na.pontos(pose)
         penetracao = na.penetracao(pts, limite=None)  # sem o limite das buscas: um dedo inteiro dentro da arma conta
@@ -262,6 +285,13 @@ def resolver(ctx, mao, bracos, perto, soquetes, correcoes):
             problemas += [f'pega {nome}: {p}' for p in problemas_lados]
         if r['polegar'].get('deitado'):
             problemas += [f'pega {nome}: {p}' for p in _polegar_deitado(rel_m['polegar'])]
+        if r['polegar'].get('sobre'):
+            pol = rel_m['polegar']
+            if pol.get('erro'):
+                problemas.append(f"pega {nome}: o polegar não dobra por cima do {', '.join(pol['sobre'])}: {pol['erro']}")
+            elif not pol['encostou'] or pol['polpaEncostaMM'] > POLEGAR_SOBRE_MM:
+                problemas.append(f"pega {nome}: o polegar não assenta no {', '.join(pol['sobre'])} (a polpa a "
+                                 f"{pol['polpaEncostaMM']} mm; máximo {POLEGAR_SOBRE_MM} mm)")
         rel[lado]['juntosMM'] = EA.folgas_entre_dedos(col, pose, r['dedos'])
         for par, (media, _distal) in rel[lado]['juntosMM'].items():
             if media > JUNTOS_MM:
