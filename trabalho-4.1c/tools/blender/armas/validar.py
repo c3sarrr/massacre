@@ -13,7 +13,7 @@ import bmesh
 import bpy
 import numpy as np
 
-from . import lod
+from . import canonica, lod
 from .unidades import S
 
 MM_POR_PX = 0.5   # resolução da máscara de lado
@@ -158,21 +158,19 @@ def _peca(ob):
 
 
 def _extremos(objetos):
-    """Mínimo e máximo (mm, no referencial do Blender) dos vértices avaliados dos objetos."""
-    dg = bpy.context.evaluated_depsgraph_get()
+    """Mínimo e máximo (mm, no referencial do Blender) dos vértices avaliados dos objetos (canonica.avaliacao: a
+    avaliação ruim do booleano é refeita)."""
     lo = np.full(3, np.inf)
     hi = np.full(3, -np.inf)
     for ob in objetos:
-        ev = ob.evaluated_get(dg)
-        me = ev.to_mesh()
-        co = np.empty(len(me.vertices) * 3, np.float32)
-        me.vertices.foreach_get('co', co)
+        with canonica.avaliacao(ob) as me:
+            co = np.empty(len(me.vertices) * 3, np.float32)
+            me.vertices.foreach_get('co', co)
         co = co.reshape(-1, 3)
         mw = np.array(ob.matrix_world)
         w = co @ mw[:3, :3].T + mw[:3, 3]
         lo = np.minimum(lo, w.min(0))
         hi = np.maximum(hi, w.max(0))
-        ev.to_mesh_clear()
     return lo / S, hi / S
 
 
@@ -242,20 +240,18 @@ def medidas(perto, pecas, soquetes_def, ficha, nomes=MEDIDAS_DE_FOGO):
 
 
 def malha(objetos):
-    """Peças fechadas (arestas que não são de exatamente duas faces) e sem faces degeneradas, com os modificadores."""
-    dg = bpy.context.evaluated_depsgraph_get()
+    """Peças fechadas (arestas que não são de exatamente duas faces) e sem faces degeneradas, com os modificadores
+    (canonica.avaliacao: a avaliação ruim do booleano é refeita; a aresta solta que se repete é recusada lá)."""
     abertas = 0
     degeneradas = 0
     nomes = []
     for ob in objetos:
-        ev = ob.evaluated_get(dg)
-        me = ev.to_mesh()
-        bm = bmesh.new()
-        bm.from_mesh(me)
+        with canonica.avaliacao(ob) as me:
+            bm = bmesh.new()
+            bm.from_mesh(me)
         a = sum(1 for e in bm.edges if not e.is_manifold)
         d = sum(1 for f in bm.faces if f.calc_area() < 1e-12)
         bm.free()
-        ev.to_mesh_clear()
         abertas += a
         degeneradas += d
         if a or d:

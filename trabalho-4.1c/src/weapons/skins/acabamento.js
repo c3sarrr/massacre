@@ -104,7 +104,8 @@ export function acabamentoParaMaterial({ acabamento, cor, cor2 = null, desgaste 
     anisotropy,
     sheen: brilho ? brilho.intensidade : 0,
     sheenRoughness: brilho ? brilho.aspereza : 0,
-    sheenColor: brilho ? color.map((c) => c + (1 - c) * brilho.clareia) : [0, 0, 0],
+    // o reflexo sem cor da superfície do fio mais a luz que volta tingida por ele (data/acabamentos.js, `tecido`)
+    sheenColor: brilho ? color.map((c) => Math.min(1, brilho.superficie + brilho.ganho * c)) : [0, 0, 0],
     padrao: a.padrao,
     padraoId: PADROES.indexOf(a.padrao),
     varAspereza: a.varAspereza,

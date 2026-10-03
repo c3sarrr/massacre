@@ -1,5 +1,5 @@
-// Testes das receitas das armas de massinha (Fase 4.1; docs/phases/phase-4.md, seção 4.1, "Testes"): as seis que ainda
-// são de massinha validam (a AK-47 virou a arma realista do Blender na 4.1a);
+// Testes das receitas das armas de massinha (Fase 4.1; docs/phases/phase-4.md, seção 4.1, "Testes"): as três que ainda
+// são de massinha validam (a AK-47 virou a arma realista do Blender na 4.1a; a Glock-18, a M4A4 e a faca, na 4.1c);
 // grupos, âncoras e massas por arma (a tabela do primeiro lote); a espessura mínima (e a receita que a quebra é
 // recusada); o acento pela facção; a silhueta lateral × a planta de referência com IoU ≥ 0,8; o comprimento real da
 // tabela de escala; árvores determinísticas (a mesma chave de cache); e a categoria de cada uma no viewmodel.
@@ -20,25 +20,21 @@ import { silhouetteIoU, silhouetteLength } from '../src/weapons/model/silhouette
 import { hashNode } from '../src/clay/sdf/nodes.js';
 import { plantaDoArquivo } from '../src/weapons/model/ficha.js';
 
-const IDS = ['glock', 'm4a4', 'awp', 'nova', 'p90', 'knife'];
+const IDS = ['awp', 'nova', 'p90'];
 
 // A tabela do primeiro lote (phase-4.md): facção do acento, massas, grupos e o comprimento real (u).
 const TABLE = {
-  glock: { faction: 'tr', clays: ['grafite', 'grafiteClaro'], groups: ['corpo', 'slide', 'carregador', 'gatilho'], length: 7.3 },
-  m4a4: { faction: 'ct', clays: ['grafite', 'grafiteClaro'], groups: ['corpo', 'carregador', 'ferrolho', 'gatilho'], length: 33.1 },
   awp: { faction: 'ambos', clays: ['verdeOliva', 'grafite'], groups: ['corpo', 'carregador', 'alavanca', 'gatilho'], length: 48.4 },
   nova: { faction: 'ambos', clays: ['grafite', 'grafiteClaro'], groups: ['corpo', 'bomba', 'gatilho'], length: 39.2 },
   p90: { faction: 'ambos', clays: ['grafite', 'grafiteClaro'], groups: ['corpo', 'carregador', 'gatilho'], length: 19.7 },
-  knife: { faction: 'ambos', clays: ['aco', 'madeira'], groups: ['corpo'], length: 7.9 },
 };
 
 const plan = (id) => plantaDoArquivo(JSON.parse(readFileSync(new URL(`../tools/blender/refs/${id}.json`, import.meta.url), 'utf8')));
-// As de massinha que ainda têm a planta da 4.1 (formato 1) em tools/blender/refs/: as refeitas na 4.1c (a Glock, a M4A4 e
-// a faca) ganharam a ficha no formato 2, da arma real, e a receita delas sai na Tarefa 12 do plano da 4.1c.
-const COM_PLANTA = IDS.filter((x) => x !== 'knife'
-  && JSON.parse(readFileSync(new URL(`../tools/blender/refs/${x}.json`, import.meta.url), 'utf8')).formato !== 2);
+// As de massinha com a planta da 4.1 (formato 1) em tools/blender/refs/ (a ficha no formato 2 é a da arma real, que
+// chega com o modelo do Blender e tira a receita daqui).
+const COM_PLANTA = IDS.filter((x) => JSON.parse(readFileSync(new URL(`../tools/blender/refs/${x}.json`, import.meta.url), 'utf8')).formato !== 2);
 
-test('receitas: as seis estão no registro, validam e são das armas da tabela', () => {
+test('receitas: as de massinha estão no registro, validam e são das armas da tabela', () => {
   assert.deepEqual(Object.keys(ARMAS).sort(), [...IDS].sort());
   for (const id of IDS) {
     const r = ARMAS[id];
@@ -71,7 +67,7 @@ test('receitas: grupos, âncoras e massas por arma (a tabela do primeiro lote)',
   }
 });
 
-test('receitas: nenhuma peça de massa fica mais fina que o mínimo (a lâmina da faca é a exceção)', () => {
+test('receitas: nenhuma peça de massa fica mais fina que o mínimo (a peça de lâmina é a exceção)', () => {
   for (const id of IDS) {
     for (const p of ARMAS[id].parts) {
       if (p.op === 'subtract') continue;
@@ -79,9 +75,15 @@ test('receitas: nenhuma peça de massa fica mais fina que o mínimo (a lâmina d
       assert.ok(partThickness(p) >= min - 1e-9, `${id}.${p.name}: ${partThickness(p)} < ${min}`);
     }
   }
-  assert.ok(ARMAS.knife.parts.some((p) => p.thin && Math.abs(partThickness(p) - WEAPON_MODEL.minBlade) < 1e-9), 'a lâmina tem 0,5 u');
-  // Uma receita com uma peça fina demais é recusada, com o nome da peça no erro.
-  const bad = structuredClone(ARMAS.glock);
+  // A peça de lâmina (`thin`, a da faca de massinha da 4.1) vale até o mínimo dela, 0,5 u; uma peça fina demais é
+  // recusada, com o nome dela no erro.
+  const fina = structuredClone(ARMAS.awp);
+  const lamina = fina.parts.find((p) => p.shape === 'profile' && p.op !== 'subtract');
+  lamina.thin = true;
+  lamina.h = WEAPON_MODEL.minBlade / 2;
+  assert.ok(Math.abs(partThickness(lamina) - WEAPON_MODEL.minBlade) < 1e-9);
+  assert.doesNotThrow(() => validateRecipe(fina));
+  const bad = structuredClone(ARMAS.awp);
   const part = bad.parts.find((p) => p.shape === 'profile' && p.op !== 'subtract');
   part.h = 0.4;
   assert.throws(() => validateRecipe(bad), new RegExp(part.name));

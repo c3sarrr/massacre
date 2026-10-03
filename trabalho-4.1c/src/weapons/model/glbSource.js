@@ -15,7 +15,7 @@ import { ARMAS_REAIS, LODS_REAIS, TEXTURAS_DO_LOD, armaComPega } from '../../dat
 import { VIEWMODEL } from '../../data/viewmodel.js';
 import { pegaDoGltf } from '../../characters/hands/pega.js';
 import { FABRICA, chaveDaSkin, skinDeFabrica } from '../skins/skin.js';
-import { fichaParaPlanta, MM_POR_U, validarFicha } from './ficha.js';
+import { fichaParaPlanta, MM_POR_U, origemDaFicha, validarFicha } from './ficha.js';
 import { ancorasDosSoquetes, montarInstanciaGlb, resumirGlb } from './glbWeapon.js';
 import { ambienteDoMaterial, criarMaterialZona } from './materialArma.js';
 
@@ -173,7 +173,10 @@ export class GlbSource {
       bounds: resumo.caixa, radius: max.distanceTo(min) / 2,
       anchors: ancorasDosSoquetes(resumo.soquetes), sockets: resumo.soquetes,
       hands: Boolean(pega), pega,
-      plan: fichaParaPlanta(ficha), lengthU: ficha.medidas.comprimento.mm / MM_POR_U,
+      // a planta da ficha, relativa à boca (na faca, à ponta), e onde esse ponto fica na arma: pela origem da ficha, que
+      // vale também para a faca (sem boca)
+      plan: fichaParaPlanta(ficha), planOrigin: origemDaFicha(relatorio?.origemMM, id),
+      lengthU: ficha.medidas.comprimento.mm / MM_POR_U,
       parts: [...a.pecas], zones: [...a.zonas], lods: [...LODS_REAIS],
       report: relatorio, ficha, iou: relatorio?.silhueta?.iouTolerancia ?? null, recipe: null,
     };

@@ -13,6 +13,7 @@ npm test           # testes de lógica pura (node --test)
 npm run vendor     # recopia three / three-mesh-bvh / peerjs fixados para /vendor
 npm run blender -- <abrir|conferir|ida-volta> <arma|todas>   # editor de armas no Blender 5.2 (Fase 4.1)
 npm run blender -- construir <arma|todas> [--forcar]   # armas realistas: constrói, assa, valida e exporta (Fase 4.1a)
+npm run blender -- provar pecas                        # a prova de medida das peças da biblioteca (Fase 4.1c)
 ```
 
 O servidor de desenvolvimento só atende GET/HEAD e nunca serve arquivos ocultos (`.claude`, `.git`...) nem `node_modules`.
@@ -77,7 +78,18 @@ O servidor de desenvolvimento só atende GET/HEAD e nunca serve arquivos ocultos
   com peças que o gerador do jogo conhece e o exportador grava a receita em `src/data/armas/<id>.js`; o jogo gera a
   malha em código (regra 4 do `CLAUDE.md` mantida: nada de GLB). As poses "em dois" da 4.3 também saem do Blender como
   dados. Caminho em `tools/blender/` (`npm run blender`); o executável vem de `BLENDER_PATH` ou de
-  `tools/blender/local.json` (fora do git).
+  `tools/blender/local.json` (fora do git). **Mudado em 2026-09-26 (redesenho das armas realistas):** o Blender
+  constrói por script os modelos realistas das armas e das luvas, que entram no jogo como `.glb` + `.webp` assados
+  (`tools/blender/armas/`, `assets/`); a receita de massinha fica só para as armas ainda não refeitas.
+- **Texturas CC0 para o Blender (decisão do Cesar, 2026-09-27):** os scripts do Blender podem pegar texturas de domínio
+  público como base dos materiais das armas e das luvas, nestas bibliotecas: cgbookcase
+  (https://www.cgbookcase.com/textures), Poly Haven (https://polyhaven.com/textures — por exemplo, plástico e borracha:
+  https://polyhaven.com/textures/plastic-rubber), ambientCG (https://ambientcg.com/list?type=substance&sort=popular) e
+  o CC0 Asset Index (https://github.com/xiaoqianran/Blender-cc0-asset-index, com a ferramenta `cc0a` que baixa cada
+  recurso com o `LICENSE.json`). Só CC0; cada textura usada registrada em `tools/blender/texturas/fontes.json`; o jogo
+  recebe só o `.webp` assado; modelos desses sites continuam fora. Regras completas no `CLAUDE.md`, seção 0.7
+  ("Texturas CC0 no Blender"). Na sessão da nuvem de 2026-09-27, a rede bloqueava cgbookcase, Poly Haven e ambientCG
+  (só o índice no GitHub respondia): é preciso liberar esses domínios no ambiente antes de baixar.
 - **Massinha saindo ao levar tiro:** já está na spec (respingos e amassados na Fase 4; dano e morte em pedaços que
   grudam no chão na Fase 5). Detalhar nessas fases: pedaços na cor do boneco saindo do ponto de impacto, grudando
   em parede/chão, e amassado no corpo onde o tiro acertou.
@@ -1093,8 +1105,179 @@ desgaste=0,5`.
 
 Git: a 4.1a está na árvore de trabalho da `fase-3.1`, junto com a 3.5 e a 4.1, sem commit, esperando o pedido.
 
-### Próxima: subfase 4.1b — Luvas, mangas e empunhadura
+### Subfase 4.1b — Luvas, braço de massinha e empunhadura ✅ (2026-09-27; o FPS na máquina do usuário a medir)
 
-Luvas táticas de 5 dedos e a manga de tecido na cor do time, com a braçadeira, feitas no Blender como as armas; o rig
-das mãos e o solver de empunhadura (nenhum dedo atravessando a arma nem flutuando); a AK segurada em primeira pessoa
-(`docs/phases/phase-4.md`, tabela de subfases; o desenho detalhado é feito no começo do chat dela).
+Desenho em `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md`; plano de desenho em
+`docs/superpowers/plans/2026-09-26-4.1b-luvas-e-empunhadura.md`; plano executado (gerado do diff da cópia de trabalho,
+validado numa cópia limpa e aplicado aqui pelo mesmo roteiro): `docs/phases/phase-4.1b-plan.md`. Referências na seção 15
+do moodboard: as fontes da ficha das luvas (ANSUR II, Buryanov e Kotiuk, Greiner, AAOS, Cooney), os boards QTG, QGL e
+QFH, as buscas das luvas táticas e do TPR moldado, e a imagem da AK no CS:GO que o usuário mandou na parada P2.
+
+Decisões do usuário: sem manga e sem roupa por enquanto (as próximas fases furam o boneco de massinha); a luva tática
+realista no braço de massinha do boneco, com a braçadeira de massa em modo de time; o protetor de borracha moldada nos
+nós; na mão da frente de toda arma, só o polegar de um lado — reto, deitado e encostado, sem curva — e os quatro dedos
+do outro, como a AK no CS:GO; uma mão só na tela; o rebatedor branco na bancada; texturas CC0 de bibliotecas abertas
+liberadas para o Blender (cgbookcase, Poly Haven, ambientCG e o CC0 Asset Index; seção 0.7 do `CLAUDE.md`).
+
+O que entrou:
+- **Ficha das luvas** (`tools/blender/refs/luvas.json`, validada por `src/characters/hands/fichaLuvas.js`): cada número
+  com a fonte — a mão média, os ossos entre as juntas, a largura e a volta nas juntas, os limites das juntas e a rotação
+  do metacarpo do polegar.
+- **Luvas no Blender** (`tools/blender/armas/`): o gerador de quadriláteros (`maos.py`, com medidas, limites, gaiola e
+  cápsulas), os detalhes que fazem silhueta e o modelo alto assado no relevo (`maos_detalhes.py`, `maos_alto.py`),
+  couro, tecido e borracha em `materiais.py`, o rig de 20 ossos por braço com os pesos do gerador e as correções das
+  dobras (`maos_rig.py`, `maos_correcoes.py`), a validação das poses (`validar_maos.py`), a UV por costuras, o assar e a
+  exportação (`luvas.py`); `npm run blender -- construir|validar|conferir|abrir luvas`.
+- **Solver de empunhadura** dentro do `construir` de cada arma (`empunhadura*.py`): a palma no soquete, os dedos
+  fechando juntos até encostar, os vizinhos sem se atravessar (e, na mão da frente, lado a lado), o indicador no
+  gatilho pela IK, o polegar deitado na face esquerda na mão da frente; a pega vai no `.glb` da arma (nós `pega_mao_*`,
+  o clipe `empunhadura`, a marca do rig, as sondas). A validação bloqueia a exportação: penetração, contatos, os lados
+  (o polegar de um, os dedos do outro), o polegar reto e deitado, os dedos lado a lado, a luva sem se atravessar e os
+  ângulos no limite da ficha; a saída do Node (`tools/blender/saidaLuvas.mjs`, `saidaPega.mjs`) repete as contas.
+- **Jogo**: `src/data/luvas.js` (zonas, pinturas por facção, limites da pega), os acabamentos de couro e tecido e a
+  borracha moldada, a carga das luvas (`luvasSource.js`), o braço de luva com o modelo das dobras igual ao do Blender
+  (`bracoLuva.js`, `modeloDobras.js`, `moldeLuva.js`), o antebraço de massinha em SDF (`antebracoMassa.js`, a forma
+  `tronco`), o viewmodel com as luvas na arma com pega e a massinha nas outras (`bracosLuva.js`), os cotovelos do
+  `rifle` com o pulso dentro dos limites nas três posições do CS, a bancada com "Segurar" e o seletor de facção, os
+  comandos `luvas` e `luvas_contato` (a luva deformada de verdade contra a arma, comparada com o Blender) e o rebatedor
+  de isopor (`src/maps/arsenal/rebatedor.js`, `set.foam`).
+- **Documentos**: regras 3 e 4 e a tabela de paridade em "as armas e as luvas"; a seção 0.7 "Mãos" e a nova "Texturas
+  CC0 no Blender"; a 0.12 com o "sem roupa por enquanto"; o desenho geral com cada mudança e o que era; a seção 15 do
+  moodboard.
+
+Números medidos:
+- `construir luvas`: 6 748 triângulos por luva (base 5 568, detalhes 1 180; orçamento 7 000); medidas 0,00 % no
+  comprimento e na largura, −0,35 % no pulso; poses de teste com penetração de 0,049 mm e a pior junta a 0,90 da
+  espessura; 3,66 MB (`luvas.glb` 0,34, `_n` 1,69, `_m` 1,61; orçamento 6 MB).
+- `construir ak47` com a pega: aprovada, silhueta 99,9 %, 5,10 MB; mão do gatilho entrando 0,044 mm; mão da frente com o
+  polegar a 0° de curva e +20,1 mm do meio da arma, os dedos de −16,2 a −25,3 mm do outro lado e a falange média de
+  cada dedo a 1,55 / 2,64 / 6,77 mm da do vizinho.
+- No jogo (Chromium com SwiftShader na nuvem, preset Leve): `luvas_contato` nas duas facções e nas três posições do CS
+  com a pior diferença para o Blender de 0,02 mm (limite 0,05), a luva entrando no máximo 0,06 mm e cada contato a até
+  0,03 mm; memória igual do segundo ciclo em diante (menu 32/26/49, bancada 109/35/66, pista 86/93/76) e nas 30 trocas
+  de arma (76/95/60, heap 77,6 MB); o rebatedor clareia o receptor de 0,0024 para 0,0390 e de 0,0004 para 0,0269 de
+  luminância; nenhum erro do jogo no console. **FPS e quadro p95 na pista com a AK: a medir na máquina do usuário** (o
+  SwiftShader desenha na CPU): `map pista`, `arma ak47`, `r_preset alto`, `overlay completo`.
+
+Revisão crítica (achado → correção; o detalhe de cada uma no plano de desenho, paradas P1 e P2 e Tarefas 12 a 14):
+- O polegar da mão da frente subia na vertical, depois dobrava em arco com só a ponta encostada → o polegar reto e
+  deitado na face esquerda (a IK pelo comprimento, com a face e o eixo), e a validação da curva e da folga.
+- Os dedos da mão da frente do lado do polegar → a regra dos lados (a polpa de cada um a pelo menos 5 mm do meio).
+- Os dedos da mão da frente em leque pelo lado direito → `juntar_dedos` e a validação dos dedos lado a lado.
+- O sinal da abertura na mão esquerda (espelhada) invertido → `para_fora(dedo, lado)`.
+- A penetração passava despercebida além de 6 mm → a validação mede sem o limite das buscas.
+- O coiote saía no mesmo laranja da madeira da AK → mais escuro e puxado para o oliva, com o teste do contraste.
+- O grão do couro parecia craquelado → seixinhos arredondados com o vale largo e raso.
+- O pulso da mão da frente perto do limite → os cotovelos por minimax, cada ângulo a no máximo 91 % do limite.
+- O receptor quase preto na bancada → o rebatedor de isopor aceso pelo rim, sem sombra no tapete.
+
+Ficou de fora (com o porquê, no plano): as facetas de perto no protetor dos nós e nas pontas (não aparecem na primeira
+pessoa; entram com a inspeção da 4.3 — pedem triângulos das costas e da palma ou mais orçamento); o gancho do polegar da
+mão do gatilho (a IP a 78,8° de 80°; a mão fica fora da tela até a inspeção e a terceira pessoa); a memória
+(`massacre-workflow-rules`, `massacre-game-project`) fica para a próxima sessão no Windows, com o que acrescentar
+anotado no plano.
+
+Como testar: `npm test` (454 testes, 84 novos); `npm run blender -- construir luvas` e `construir ak47 --forcar`;
+`npm run blender -- conferir ak47` (as vistas de perto das mãos); no jogo, `map pista`, `arma ak47`, `luvas`,
+`luvas_contato`, `cl_bracadeira tr|ct`, `viewmodel_presetpos 1|2|3`; `arsenal` com "Segurar (primeira pessoa)" e o
+seletor de facção no painel (Tab).
+
+### Subfase 4.1c — Glock-18, M4A4 e a baioneta M9 ✅ (2026-10-02)
+
+Desenho em `docs/superpowers/specs/2026-09-28-4.1c-glock-m4a4-m9-design.md`; plano de desenho (com o registro dos
+achados e das correções) em `docs/superpowers/plans/2026-09-28-4.1c-glock-m4a4-m9.md`; plano executado (gerado do diff
+da cópia de trabalho, cada arquivo repartido pelas tarefas das mudanças dele, validado numa cópia limpa e aplicado aqui
+pelo mesmo roteiro): `docs/phases/phase-4.1c-plan.md`. Referências na seção 16 do moodboard: as buscas QMR, QRS, QTM,
+QRA, QPD e QBN e os boards QGK e QKN, as fotos do Commons de cada arma, as fontes primárias (a Glock, o TM 9-1005-319-10
+da M4A1, o exemplar do Smithsonian e a especificação da M9) e as da mão (Bookman & Fam 2010, Pérez-González et al.
+2013, Johansson et al. 1999).
+
+Decisões do usuário (a lista inteira em `docs/phases/phase-4.md`): a Glock com as duas mãos na tela, na pega de
+polegares para a frente, com o indicador indexado na armação; a M4A4 é a carabina M4A1 com o guarda-mão de trilhos; as
+correções da P1 (o polímero acetinado com o relevo do molde só nas regiões texturizadas, o anodizado sem iridescência, a
+madeira e o aço da AK pelas fotos, a pose da M9 do CS2 parada); a construção determinística; o desvio da MCP do polegar
+e a palma que cede (a "palma que fecha" foi medida e piorou a pega); na P2, a luva da Tropa e o enquadramento dos fuzis
+ficam como estão; miras, acessórios e skins viram um desenho próprio, depois da 4.1c (a pesquisa e o desenho já estão em
+`docs/research/miras-acessorios-skins.md` e `docs/superpowers/specs/2026-10-01-miras-acessorios-e-skins-design.md`).
+
+O que entrou:
+- **Classes e fichas:** `CLASSES` em `src/data/armasReais.js` (o fuzil e a pistola com as cinco zonas, os sete
+  soquetes e as cinco medidas; a faca com `corpo`, `guarnicao` e `detalhes`, os soquetes `mao_d` e `ponta` e as medidas
+  da lâmina), a foto do contorno de qualquer lado na ficha (`fotoDoContorno`), as fichas no formato 2 das três
+  (`tools/blender/refs/glock.json`, `m4a4.json`, `knife.json`, medidas na régua sobre as fotos do Commons) e a
+  validação do `construir` por classe.
+- **No Blender** (`tools/blender/armas/`): os scripts `glock.py`, `m4a4.py` (+ `m4a4_frente.py`) e `knife.py`; as peças
+  novas da biblioteca (o trilho MIL-STD-1913, o quadriculado, a textura de punho, as serrilhas e o gume, em
+  `pecas_superficie.py`, com a prova de medida `provas_pecas.py`: `npm run blender -- provar pecas`; as contas de
+  contorno em `contornos.py`); o relevo moldado do polímero (`relevo.py`: as regiões do molde no script da arma, o tipo
+  no alfa do `_n`); a madeira pela lâmina de cerejeira CC0 do Poly Haven (`texturas.py`, `tools/blender/texturas/`); a
+  construção determinística (`canonica.py`: as entradas em ordem canônica e as cópias avaliadas na forma canônica; a
+  avaliação ruim refeita e o `construir` refeito num processo novo em `MalhaRuim`; as gravações com nova tentativa em
+  `gravar.py`).
+- **As pegas** (o solver em `empunhadura*.py`, as luvas em `maos_palma.py` e `luvas.py`): a M4A4 na regra `rifle` (o
+  aperto da luva no vão do guarda-mato, o polegar deitado sobre o trilho esquerdo); a regra `faca` (martelo, uma mão: o
+  formato da pega diz as mãos, `extras.luvas.maos`); a regra `pistola` (as duas mãos na sequência da ASJ, a luva de
+  apoio contra a do gatilho, os polegares retos para a frente, o indicador indexado acima do gatilho); o desvio lateral
+  da MCP do polegar na ficha das luvas e a palma que cede (o afundamento até o que a fonte mede, no Blender e no jogo).
+- **No jogo:** as três pelo `.glb` com a pega (as receitas de massinha delas saíram de `src/data/armas/`); as luvas nas
+  categorias `pistola` e `faca`, com a faca só com o braço direito; os cotovelos de luva por categoria e por arma pela
+  varredura (`tools/cotovelos.mjs`); o relevo moldado e o polímero, o anodizado e a madeira no shader das armas
+  (`src/weapons/model/relevoMoldado.js`, `glsl/acabamentos.js`); a bancada com as três (a planta pela origem da ficha,
+  a "Explodir" por arma, as skins nas zonas de cada classe e o `skin` completando as zonas da arma); o brilho de tecido
+  tingido pelo fio (a luva preta da Tropa lia cinza-parda).
+- **Documentos:** a seção 0.7 do `CLAUDE.md` e do `CLAUDE.md.md` (as pegas de pistola e de faca, os cotovelos), o
+  desenho geral (o lado da primeira pessoa, as variantes e as fotos, a origem da faca, as zonas por classe, a construção
+  determinística, as regras novas e a validação), o desenho da 4.1b (o brilho de tecido), a seção 16 do moodboard.
+
+Números medidos:
+- `construir todas` (sem nenhuma avaliação ruim): as luvas com 6 748 triângulos por luva e 3,75 MB; a AK com a
+  silhueta a 99,8 %, 27 466 / 5 700 / 1 424 triângulos (perto, mundo, longe) e 4,77 MB; a Glock a 99,7 %, 5 835 / 2 848
+  / 760 e 1,33 MB; a M4A4 a 98,4 %, 30 406 / 5 700 / 1 419 e 5,06 MB; a faca a 99,4 %, 7 628 / 1 424 / 380 e 1,20 MB. As
+  medidas-chave a ±1 % (a maior diferença: o raio de mira da Glock, +0,85 %). As pegas: na Glock, a direita entrando
+  0,049 mm com o polegar do gatilho a 0,27 mm do de apoio e a esquerda 0,016 mm; na M4A4, 0,046 e 0,048 mm, o polegar
+  da frente a 0,24 mm do trilho; na faca, 0,13 mm com o polegar a 0,05 mm do indicador; na AK, 0,046 e 0,04 mm.
+- No jogo (o Chrome sem janela com a RTX 2070 desta máquina): o `luvas_contato` das quatro nas duas facções com a pior
+  diferença para o Blender de 0,03 mm e nenhum aviso de pulso; na pista no Alto em 1920 × 1080, a mediana de 279 FPS
+  com a AK (que a 4.1b deixou a medir), 279 com a Glock, 283 com a M4A4 e 272 com a faca (CPU 2,7 a 3,4 ms, GPU 4,1
+  ms por quadro); a memória igual do quarto ao sexto ciclo menu → bancada → pista (44/46/83, 121/58/100, 98/113/110) e
+  nas 30 trocas de arma; nenhum erro do jogo no console. A meta de 60 FPS numa GPU integrada fica a medir numa máquina
+  assim.
+- `npm test`: 526 testes (72 novos).
+- O plano executado: 16 tarefas, 117 arquivos (os de código que mudaram em várias tarefas repartidos pelos blocos do diff), validado numa cópia limpa da base: nas seis tarefas com teste (2, 3, 7, 11, 12 e 13), os testes falham antes e passam depois; a suíte passa no fim de cada tarefa (454 → 526); a prova das peças depois da Tarefa 4 e o `construir todas` depois da 11 aprovados, com os números da cópia de trabalho (a construção determinística, de ponta a ponta); a cópia final igual à de trabalho; aplicado aqui pelo mesmo roteiro, com os binários da construção aceita.
+
+Revisão crítica (achado → correção; o detalhe no registro do plano de desenho):
+- As partes de baixo das armas pareciam plástico de impressão 3D (a folha de relevo em escada nas curvas, o polímero
+  áspero por inteiro) → o relevo moldado no alfa do `_n`, lido no shader com o gradiente analítico, e o polímero
+  acetinado; o recartilhado da M9 rasgava em linhas (o número de losangos por volta pulava) → as voltas fixas no tipo.
+- O anodizado da M4 manchava de verde-azulado → sem a iridescência do filme fino (é do titânio).
+- O aço da AK manchado como chapa galvanizada e a madeira em listras iguais → o oxidado por igual e o veio de uma
+  madeira de verdade (a cerejeira CC0), girado ao longo do punho.
+- A M9 "de ponta-cabeça" → o modelo estava certo; a pose na mão é a da M9 do CS2 parada, com o pulso a no máximo 13 %
+  de cada limite.
+- O gatilho da M4 colado no receptor e no guarda-mato pela foto → a lâmina de 7,4 mm e o vão do guarda-mato livre.
+- A construção mudava a cada execução (o booleano e os chanfros em outra ordem; a pega passava numa e não na outra) →
+  a forma canônica das entradas e das cópias avaliadas.
+- O polegar do gatilho da pistola não deitava para a frente, o indicador parava longe do gatilho e a palma ficava a 12
+  mm da armação → o desvio da MCP, a sequência da ASJ, o indicador indexado e a palma que cede.
+- A planta da faca 7 u para trás (sem boca) → a planta pela origem da ficha; a "Explodir" da Glock e da M4 pela tabela
+  da AK → as direções por arma; o `skin` oferecia as cinco zonas para a faca → as zonas da arma.
+- A luva preta da Tropa cinza-parda → o brilho de tecido em duas partes (a superfície sem cor e o fio tingido).
+- O `pecas.py` acima de ~600 linhas → as contas de contorno em `contornos.py`.
+- O `construir` da M4A4 caindo em todo processo → a causa era o esquadro em arco do chanfro do quebra-chamas (vértices
+  de lixo de memória, ~10³⁶ mm, nos cantos das fendas), não o booleano: o esquadro reto nessa peça e a forma canônica
+  recusando o vértice absurdo; uma varredura de todas as peças das quatro armas não achou outro caso.
+
+Ficou de fora (com o porquê, no plano): os picos de 25 a 50 ms na troca de pose do stop-motion na pista (3 a 5 % dos
+quadros; também sem as armas, de antes da 4.1c) — uma tarefa à parte; a mão do gatilho dos fuzis fora da tela nas três
+posições prontas (decisão do usuário na P2, como a AK); as miras, os acessórios e as skins novas (desenho próprio).
+
+Como testar: `npm test`; `npm run blender -- provar pecas`; `npm run blender -- construir todas` (e `--forcar`);
+`npm run blender -- conferir glock|m4a4|knife` (as vistas de perto e a primeira pessoa); no jogo, `arsenal` (Tab: a roda
+com as sete, "Segurar (primeira pessoa)" com as luvas e o seletor de facção, a planta, "Explodir") e `map pista` +
+`arma glock` (ou `m4a4`, `knife`), `luvas_contato`, `viewmodel_presetpos 1|2|3`, `skin knife
+guarnicao=madeira:areia,marromSiena`; `node tools/cotovelos.mjs pistola` (a varredura dos cotovelos).
+
+### Próxima: subfase 4.1d — AWP, Nova e P90
+
+Pelo mesmo caminho (ficha, script do Blender — que pode partir de um modelo CC0 do Blend Swap, seção 0.7 —,
+`construir`, pega e jogo), com as receitas de massinha das três saindo de `src/data/armas/` (e a pasta com elas).

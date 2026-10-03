@@ -221,14 +221,18 @@ export function validarSaida(id, raiz) {
     if (resumo.lods[lod] && t !== resumo.lods[lod].triangulos) problemas.push(`${lod}: o relatório diz ${t} triângulos e o .glb tem ${resumo.lods[lod].triangulos}`);
   }
   // A pega das luvas (Fase 4.1b): nas armas com a regra (armaComPega), os nós e o clipe no .glb, a seção do relatório e
-  // a marca igual à do luvas.glb (se as luvas já foram construídas).
+  // a marca igual à do luvas.glb e a palma afundada até o que ela cede nele (se as luvas já foram construídas).
   if (armaComPega(id)) {
     try {
       const glbLuvas = join(raiz, LUVAS.pasta, 'luvas.glb');
-      const marcaLuvas = existsSync(glbLuvas)
-        ? lerGlb(readFileSync(glbLuvas)).json.nodes?.find((n) => n.name === 'luvas')?.extras?.marca ?? null
-        : null;
-      problemas.push(...validarPega(relatorio, lerPega(json), marcaLuvas, ARMAS_REAIS[id].categoria));
+      const nos = existsSync(glbLuvas) ? lerGlb(readFileSync(glbLuvas)).json.nodes ?? [] : null;
+      const marcaLuvas = nos?.find((n) => n.name === 'luvas')?.extras?.marca ?? null;
+      // a capacidade da palma de cada braço (a palma que cede, 4.1c): o `palma` das correções nos extras das luvas
+      const palmaLuvas = nos && Object.fromEntries(['d', 'e'].map((l) => {
+        const c = nos.find((n) => n.name === `luva_${l}`)?.extras?.correcoes;
+        return [l, (typeof c === 'string' ? JSON.parse(c) : c)?.palma ?? null];
+      }));
+      problemas.push(...validarPega(relatorio, lerPega(json), marcaLuvas, ARMAS_REAIS[id].categoria, palmaLuvas));
     } catch (e) {
       problemas.push(e.message);
     }

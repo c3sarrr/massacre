@@ -8,7 +8,7 @@
 
 import { EV } from '../core/events.js';
 import { ACABAMENTOS } from '../data/acabamentos.js';
-import { ZONAS } from '../data/armasReais.js';
+import { zonasDaArma } from '../data/armasReais.js';
 import { CORES_SKIN } from '../data/coresSkin.js';
 import { SKINS_ARMA } from '../data/skinsArma.js';
 import { VIEWMODEL } from '../data/viewmodel.js';
@@ -77,7 +77,7 @@ export function registerWeaponCommands(con, s, { goState, matchState }) {
   });
 
   reg({
-    name: 'arsenal', aliases: ['bancada'], help: 'abre a bancada de armas (a AK realista e as de massinha; Tab para o painel)',
+    name: 'arsenal', aliases: ['bancada'], help: 'abre a bancada de armas (as realistas e as de massinha; Tab para o painel)',
     run: () => {
       goState('match', { map: 'arsenal', mode: 'livre' });
       return 'montando a bancada de armas…';
@@ -130,9 +130,13 @@ export function registerWeaponCommands(con, s, { goState, matchState }) {
     name: 'skin',
     usage: '[<arma> [fabrica | <nome da skin> | <zona>=<acabamento>:<cor>[,<cor2>] … desgaste=<0..1>]]',
     help: 'skin de cor e acabamento das armas realistas: mostra, troca pela de fábrica ou por uma nomeada, ou pinta por zona',
-    complete: (index) => (index === 0
-      ? realistas()
-      : [FABRICA, ...Object.keys(SKINS_ARMA), ...ZONAS.map((z) => `${z}=`), 'desgaste=']),
+    // as zonas que o completar oferece são as da arma do primeiro argumento (a faca sem carregador nem interno)
+    complete: (index, _partial, [nome] = []) => {
+      if (index === 0) return realistas();
+      const id = resolveWeaponId(nome) ?? nome;
+      if (!realistas().includes(id)) return [];
+      return [FABRICA, ...Object.keys(SKINS_ARMA), ...zonasDaArma(id).map((z) => `${z}=`), 'desgaste='];
+    },
     run: ([nome, ...args]) => {
       const reais = realistas();
       if (!nome) {

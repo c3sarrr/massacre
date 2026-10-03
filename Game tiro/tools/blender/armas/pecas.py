@@ -13,6 +13,10 @@ import bmesh
 import bpy
 from mathutils import Matrix, Quaternion, Vector
 
+from . import canonica
+from .contornos import (  # noqa: F401 (a API de sempre da biblioteca: P.simplificar, P.arco...)
+    arco, faixa_poligono, reamostrar, ret_arredondado, simplificar, suavizar, suavizar_trecho,
+)
 from .unidades import S, ficha, v3
 
 _estado = {'nivel': 'alto', 'colecao': None}
@@ -41,6 +45,10 @@ def objeto(nome, bm, mat, zona, peca='base', so_alto=False, chanfro=(0.6, 3)):
     me = bpy.data.meshes.new(nome)
     bm.to_mesh(me)
     bm.free()
+    # a ordem canônica já ao nascer (ver finalizar): os cortes e as deformações que vêm depois (fatiar, deslocar)
+    # partem da mesma malha em toda execução — partindo de outra ordem, o corte por planos dava vértices com outro
+    # ruído de ponto flutuante na soleira e na coronha da AK
+    canonica.canonizar(me, grade=False)
     ob = bpy.data.objects.new(nome, me)
     _estado['colecao'].objects.link(ob)
     if mat is not None:
@@ -52,53 +60,6 @@ def objeto(nome, bm, mat, zona, peca='base', so_alto=False, chanfro=(0.6, 3)):
     ob['so_alto'] = bool(so_alto)
     ob['chanfro'] = chanfro
     return ob
-
-
-# ------------------------------------------------------------------------------------------------ contornos 2D
-def suavizar(pts, it=2):
-    """Chaikin em polígono fechado: tira o serrilhado de contorno lido de foto de baixa resolução."""
-    for _ in range(it):
-        novo = []
-        for i, (ax, ay) in enumerate(pts):
-            bx, by = pts[(i + 1) % len(pts)]
-            novo += [(0.75 * ax + 0.25 * bx, 0.75 * ay + 0.25 * by), (0.25 * ax + 0.75 * bx, 0.25 * ay + 0.75 * by)]
-        pts = novo
-    return pts
-
-
-def reamostrar(poli, n):
-    """n pontos igualmente espaçados ao longo de uma polilinha."""
-    comp = [0.0]
-    for (ax, ay), (bx, by) in zip(poli, poli[1:]):
-        comp.append(comp[-1] + math.hypot(bx - ax, by - ay))
-    out = []
-    for i in range(n):
-        alvo = comp[-1] * i / (n - 1)
-        k = max(1, next((j for j, c in enumerate(comp) if c >= alvo), len(comp) - 1))
-        t = (alvo - comp[k - 1]) / max(1e-9, comp[k] - comp[k - 1])
-        (ax, ay), (bx, by) = poli[k - 1], poli[k]
-        out.append((ax + (bx - ax) * t, ay + (by - ay) * t))
-    return out
-
-
-def faixa_poligono(linha, larg):
-    """Contorno de uma tira de largura `larg` em volta de uma polilinha (nervuras, frisos)."""
-    esq, dir_ = [], []
-    for i, (x, y) in enumerate(linha):
-        a = linha[max(0, i - 1)]
-        b = linha[min(len(linha) - 1, i + 1)]
-        tx, ty = b[0] - a[0], b[1] - a[1]
-        L = math.hypot(tx, ty) or 1.0
-        nx, ny = -ty / L * larg / 2, tx / L * larg / 2
-        esq.append((x + nx, y + ny))
-        dir_.append((x - nx, y - ny))
-    return esq + dir_[::-1]
-
-
-def arco(cx, cy, r, a0, a1, n):
-    """n + 1 pontos de um arco (graus) em volta de (cx, cy)."""
-    return [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / n)), cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / n)))
-            for i in range(n + 1)]
 
 
 # ------------------------------------------------------------------------------------------------ sólidos
@@ -248,19 +209,6 @@ def rosca(nome, x0, x1, raio, passo, profundidade, mat, zona, peca='base', seg=2
 def tira(nome, linha, largura, plano, a, b, mat, zona, peca='base', chanfro=0.4, seg=2, so_alto=False):
     """Prisma de uma tira de `largura` mm em volta de uma polilinha (nervuras de carregador, frisos)."""
     return prisma(nome, faixa_poligono(linha, largura), plano, a, b, mat, zona, peca, chanfro, seg, so_alto)
-
-
-def ret_arredondado(u0, u1, v0, v1, raio, n=4):
-    """Contorno 2D (anti-horário) de um retângulo de cantos arredondados, com n segmentos por canto (os anéis de um
-    lofting). O raio fica limitado à metade do lado menor."""
-    r = max(0.0, min(raio, (u1 - u0) / 2 - 1e-4, (v1 - v0) / 2 - 1e-4))
-    cantos = ((u1 - r, v0 + r, -90.0), (u1 - r, v1 - r, 0.0), (u0 + r, v1 - r, 90.0), (u0 + r, v0 + r, 180.0))
-    pts = []
-    for cu, cv, a0 in cantos:
-        for i in range(n + 1):
-            a = math.radians(a0 + 90.0 * i / n)
-            pts.append((cu + r * math.cos(a), cv + r * math.sin(a)))
-    return pts
 
 
 def lofting(nome, aneis, mat, zona, peca='base', so_alto=False, chanfro=(0, 0)):
@@ -414,7 +362,11 @@ def fatiar(ob, eixo, valores, onde=None):
         ponto = [0.0, 0.0, 0.0]
         ponto[i] = valor * S
         faces = [f for f in bm.faces if onde is None or onde(*(c / S for c in f.calc_center_median()))]
-        geom = list({v for f in faces for v in f.verts}) + list({e for f in faces for e in f.edges}) + faces
+        # sem repetição e na ordem das faces: um `set` de elementos do bmesh sai na ordem dos endereços de memória, que
+        # muda a cada execução — os vértices novos do corte saíam em outra ordem, e o booleano exato da soleira da AK
+        # com os sulcos do alçapão (cortados por estes laços) às vezes devolvia a malha vazia
+        geom = (list(dict.fromkeys(v for f in faces for v in f.verts))
+                + list(dict.fromkeys(e for f in faces for e in f.edges)) + faces)
         bmesh.ops.bisect_plane(bm, geom=geom, dist=1e-7, plane_co=ponto, plane_no=normal)
     bm.to_mesh(ob.data)
     bm.free()
@@ -444,6 +396,14 @@ def marcar_chanfro(ob, pred):
     valores = [1.0 if pred(mm(e.vertices[0]), mm(e.vertices[1])) else 0.0 for e in me.edges]
     peso.data.foreach_set('value', valores)
     ob['chanfro_peso'] = True
+
+
+def esquadro_reto(ob):
+    """O esquadro de fora do chanfro reto (MITER_SHARP) em vez do arco: o arco do Blender 5.2 deixa vértices sem posição
+    calculada (lixo de memória, ~10³⁶ mm) onde dois chanfros chegam quase alinhados a um vértice com uma aresta que não
+    chanfra — os cantos das fendas do quebra-chamas da M4A4 (4.1c, Tarefa 15)."""
+    if ob is not None:
+        ob['esquadro'] = 'MITER_SHARP'
 
 
 ANGULO_VIVO = 40.0  # graus entre as faces a partir dos quais a aresta fica viva no sombreado (arestas_vivas)
@@ -479,11 +439,12 @@ def _grupo_arestas_vivas():
 
 def acabar(ob):
     """Chanfro, solda e normais pelo nível: o alto usa os segmentos da peça (no mínimo 3); o de jogo, 1 segmento nos
-    chanfros finos (< 1 mm) e 2 nos outros. A solda (0,001 mm) junta os vértices repetidos que os chanfros deixam onde se
-    encontram numa parede fina (cabeça de pino) ou tocam as faces de um booleano — sem ela sobram faces de área zero.
+    chanfros finos (< 1 mm) e 2 nos outros. A solda (0,005 mm) junta os vértices repetidos que os chanfros deixam onde se
+    encontram numa parede fina (cabeça de pino) ou tocam as faces de um booleano — sem ela sobram faces de área zero; na
+    armação da Glock (4.1c) o chanfro deixava, nas quinas dos rebaixos, remendos de 0,6 a 1,1 µm, que 0,001 mm não pegava.
     Arestas vivas acima de ANGULO_VIVO e normais ponderadas por área, mantendo as vivas. Peça com `chanfro_peso`
     (marcar_chanfro) chanfra só as arestas marcadas; os cortes feitos com `depois_do_chanfro` vão para depois do chanfro
-    na pilha."""
+    na pilha; o esquadro de fora é em arco, ou reto na peça marcada com esquadro_reto."""
     largura, seg = ob.get('chanfro', (0.6, 3))
     if largura > 0:
         m = ob.modifiers.new('chanfro', 'BEVEL')
@@ -495,13 +456,13 @@ def acabar(ob):
             m.limit_method = 'ANGLE'
             m.angle_limit = math.radians(32.0)
         m.harden_normals = True
-        m.miter_outer = 'MITER_ARC'
+        m.miter_outer = ob.get('esquadro', 'MITER_ARC')
         m.use_clamp_overlap = True
         for nome in [md.name for md in ob.modifiers if md.name.startswith('corte final')]:
             ob.modifiers.move(ob.modifiers.find(nome), len(ob.modifiers) - 1)
     s = ob.modifiers.new('solda', 'WELD')
     s.mode = 'ALL'
-    s.merge_threshold = 0.001 * S
+    s.merge_threshold = 0.005 * S
     vivas = ob.modifiers.new('arestas vivas', 'NODES')
     vivas.node_group = _grupo_arestas_vivas()
     w = ob.modifiers.new('normais', 'WEIGHTED_NORMAL')
@@ -511,7 +472,16 @@ def acabar(ob):
 
 def finalizar(colecao):
     """Chanfro, solda e normais em todas as peças da coleção (os cortadores ficam de fora). Chamar logo depois de
-    construir o nível, antes de iniciar o próximo."""
+    construir o nível, antes de iniciar o próximo. Antes, toda malha da coleção — as peças e os cortadores — vai para a
+    ordem canônica, com as posições intactas (canonica.canonizar sem a grade): as operações do bmesh (a extrusão, as
+    normais recalculadas, o corte por planos) devolvem as mesmas formas com os polígonos e os vértices em outra ordem a
+    cada execução (153 das 270 peças da AK em duas construções), e o booleano exato, determinístico para a mesma
+    entrada, muda com a ordem dela — a soleira da AK com os sulcos do alçapão saía vazia, e o quebra-chamas da M4A4 com
+    arestas soltas, em parte das construções. Na grade de 1 µm (como nas saídas) as posições arredondadas punham faces
+    no mesmo plano e o booleano errava em outras peças."""
+    for ob in colecao.objects:
+        if ob.type == 'MESH':
+            canonica.canonizar(ob.data, grade=False)
     for ob in colecao.objects:
         if ob.type == 'MESH' and not ob.get('cortador'):
             acabar(ob)

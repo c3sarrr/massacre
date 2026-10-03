@@ -91,7 +91,10 @@ O método da 4.1 (massinha por SDF) não chega numa arma realista: não é ajust
 
 - a **variante real** e as **medidas oficiais** (comprimento, cano, raio de mira, altura) com a fonte de cada número;
 - as **fotos de referência** do Wikimedia Commons de licença livre ou domínio público (título, autor, licença, página):
-  o lado direito é obrigatório (é o lado do viewmodel); cima e frente quando existirem;
+  a de maior resolução, de qualquer lado, dá o contorno (`contorno: true`; a do lado esquerdo é espelhada na régua,
+  `espelhada: true`, para a boca ficar em +X), e a de cada lado dá as peças de um lado só (`usos`); cima e frente quando
+  existirem. A primeira pessoa mostra o lado **esquerdo** da arma (correção da 4.1c: até a 4.1b este item dizia que o
+  direito era o do viewmodel — é o direito que a arma deitada na fileira da bancada mostra);
 - o **contorno geral** e os **contornos por peça** em milímetros, no referencial da foto (boca do cano em x = 0, eixo
   do cano em y = 0, +X para a boca, +Y para cima), mais os buracos (guarda-mato, frestas);
 - as **cores medidas** em cada material (sRGB e linear) e a correção de exposição usada para chegar à cor de fábrica.
@@ -104,16 +107,19 @@ fonte, como na 4.1.
 | Arma do jogo | Variante real | Medidas oficiais | Foto de lado |
 |---|---|---|---|
 | AK-47 | AK-47 tipo 3 (receptor fresado, coronha fixa de madeira) | 870 mm; cano 415 mm; raio de mira 378 mm | "AK-47 assault rifle.jpg" (Ickybicky, domínio público) — já medida |
-| Glock-18 | Glock 18 | 186 mm | escolhida na 4.1c |
-| M4A4 | carabina M4A1, coronha aberta | 840 mm | escolhida na 4.1c |
-| Faca | baioneta M9 (EUA, 1986; decisão do usuário de 2026-09-26): lâmina clip point de 178 mm, guarda com a argola que encaixa na boca do cano, cabo e bainha de polímero; o resto (serrilha do dorso, furo do corta-arame, quadriculado do cabo, pomo com a trava) sai da ficha da 4.1c | 305 mm | escolhida na 4.1c |
+| Glock-18 | Glock 18 de 3ª geração, sem compensador (o trilho de uma fenda, os sulcos dos dedos, o seletor na traseira esquerda do ferrolho, o carregador de 17) | 204 mm (Glock, ficha da G18); ferrolho 186 mm; cano 114 mm; raio de mira 165 mm (ficha de 2000) | contorno: "GLOCK 17 Gen 4 Pistol MOD 45160305.jpg" (Steve Dock, Ministério da Defesa do Reino Unido, OGL v1.0; lado esquerdo espelhado, 0,134 mm/px); peças: "Glock 18C.jpg" (AmmuNation, CC BY-SA 4.0; o seletor) e "Glock35Right.jpg" (BlaqueandBlue, domínio público; o lado direito) |
+| M4A4 | carabina M4A1: cano de 14,5 pol., receptor plano com a alça de transporte e a mira A2, guarda-mão de trilhos de quatro lados (RAS), torre A2, quebra-chamas A2, coronha de quatro posições aberta, carregador de 30 de alumínio | 838,2 mm aberta e 755,7 mm fechada; cano 368,3 mm (TM 9-1005-319-23&P); raio de mira 361 mm (régua) | contorno composto: "PEO M4 Carbine RAS noBG.png" (PEO Soldier, CC BY-SA 4.0; a frente, os receptores, o punho e o carregador, 0,226 mm/px) e "M4A1 Carbine.jpg" (Jeff Johnson, NSWC, domínio público; a coronha e a alça); peças: "Coltm4a1.jpeg" (Jackolmos, CC BY-SA 3.0; a mira traseira) e "M4w-att.jpg" (Exército dos EUA, domínio público; o lado esquerdo) |
+| Faca | baioneta M9 (EUA, 1986; decisão do usuário de 2026-09-26) de lâmina fixa, a preta: lâmina clip point com o gume, o contrafio, a serrilha do dorso, o sulco e o furo do corta-arame; guarda com a argola da boca do cano; cabo cilíndrico com os anéis e o quadriculado; pomo com a trava | 311,2 mm (NMAH, Smithsonian); lâmina 177,8 mm; espessura 5,84 mm; guarda 82,6 mm | "US Military M9 Bajonett COMPO.jpg" (Auge=mit, CC BY-SA 4.0; a faca preta recortada da foto das duas, 0,379 mm/px) |
 | AWP | Accuracy International AWM .338 | 1230 mm | escolhida na 4.1d |
 | Nova | Benelli Nova, cano de 18,5" | 995 mm | escolhida na 4.1d |
 | P90 | FN P90 | 500 mm | escolhida na 4.1d |
 
-Critério de escolha da foto: lado direito, fundo limpo, a maior resolução disponível (a precisão do contorno é a
-resolução da foto: 1 px da foto de 900 px da AK-47 é 1 mm). As plantas da 4.1 de variantes diferentes (AK-47 tipo II,
-AW PSG 90, Benelli M3) são substituídas.
+Critério de escolha da foto: fundo limpo e a maior resolução disponível, de qualquer lado, para o contorno (a precisão
+do contorno é a resolução da foto: 1 px da foto de 900 px da AK-47 é 1 mm), e a de cada lado para as peças de um lado
+só (4.1c; a ficha da AK, sem a marca de contorno, vale pela do lado direito). Sem uma foto livre da configuração inteira,
+o contorno é composto de duas fotos registradas por uma peça comum, na escala de uma medida oficial (a M4A4: a coronha e
+a alça da foto da NSWC, pelos receptores, no comprimento fechado do TM, conferido pelo passo do trilho). As plantas da
+4.1 de variantes diferentes (AK-47 tipo II, AW PSG 90, Benelli M3) são substituídas.
 
 ### 3.3 Régua
 
@@ -166,14 +172,28 @@ de foto de 0,45 mm/px.
 ### 4.2 Construção
 
 - A construção é em milímetros, no referencial da ficha; a exportação converte para u (÷ 25,4) e para o referencial da
-  arma da 4.1: +X para a boca, +Y para cima, +Z para o lado direito, origem no eixo do cano em cima do gatilho.
+  arma da 4.1: +X para a boca, +Y para cima, +Z para o lado direito, origem no eixo do cano em cima do gatilho (o
+  `ORIGEM_MM` do script, que o relatório traz como `origemMM`; na faca, a frente da guarda no eixo do cabo). A planta da
+  ficha (relativa à boca; na faca, à ponta) vai para o jogo pela origem da ficha (`origemDaFicha`, 4.1c).
+- **Construção determinística (4.1c; `CLAUDE.md`, seção 0.7):** as entradas (cada peça ao nascer e as malhas no
+  `finalizar`) em ordem canônica sem mexer nas posições, e as cópias avaliadas na forma canônica (a grade de 1 µm) antes
+  de juntar, triangular, dizimar e assar (`armas/canonica.py`). A malha avaliada ruim (sem polígonos, posição que não é
+  número ou a mais de 10 m do centro, aresta solta) é reavaliada, e o lançador refaz o `construir` num processo novo
+  quando ela persiste (`MalhaRuim`, até três vezes); as gravações (as texturas, o `.glb`, o relatório e a `.blend`)
+  esperam e tentam de novo quando o Windows prende o arquivo (`armas/gravar.py`). O caso que motivou isso (o
+  quebra-chamas da M4A4, que caía num processo inteiro) era o esquadro em arco do chanfro, que deixa vértices sem
+  posição calculada onde dois chanfros chegam quase alinhados a um vértice com uma aresta que não chanfra: a peça assim
+  leva o esquadro reto (`pecas.esquadro_reto`; 4.1c, Tarefa 15).
 - **Zonas** (grupos de material, a base das skins): `corpo` (metal principal), `guarnicao` (madeira ou polímero),
   `carregador`, `detalhes` (miras, gatilho, seletor, pinos, parafusos) e `interno` (ferrolho, alma, molas — só
-  acabamentos metálicos).
+  acabamentos metálicos). Por classe desde a 4.1c (`CLASSES` em `src/data/armasReais.js`): o fuzil e a pistola com as
+  cinco; a faca com `corpo` (a lâmina), `guarnicao` (o cabo) e `detalhes` (a guarda e o pomo).
 - **Soquetes** (nós vazios com posição e orientação): `boca`, `ejecao`, `carregador`, `mira_tras` e `mira_frente` (a
   linha de mira), `mao_d` (empunhadura) e `mao_e` (apoio), mais os da categoria (`luneta`, `bomba` da Nova).
 - **Peças móveis** como nós próprios, com o pivô no eixo real: `ferrolho`, `carregador`, `gatilho`, `cao`, `seletor` e
-  as da arma (bomba da Nova, alavanca do ferrolho da AWP).
+  as da arma (a alavanca de manejo e a tampa da janela da M4A4, a bomba da Nova, a alavanca do ferrolho da AWP); o eixo
+  de deslizar (`eixo`) ou de girar (`eixo_giro`) vai nos extras do nó (o carregador da Glock desce pelo eixo do punho).
+  A faca não tem peça móvel.
 
 ### 4.3 Modelo alto, modelo de jogo e LOD
 
@@ -382,6 +402,24 @@ com correção nos nós dos dedos e no punho.
 3. Regras por categoria: o indicador vai à face do gatilho; o polegar cruza o outro lado do punho; a mão de apoio abraça
    o guarda-mão nos fuzis, segura a bomba na Nova, a empunhadura dianteira na P90, fica sob o guarda-mão na AWP;
    nas pistolas, as duas mãos com os polegares para a frente; na faca, empunhadura de martelo.
+   **Pistola (4.1c; desenho da 4.1c, seção 4.2):** a mão do gatilho alta no punho, girada atrás da arma, com o
+   indicador indexado reto na lateral da armação, acima do guarda-mato e fora do gatilho (decisão do usuário de
+   2026-10-02: o dedo no gatilho fica para a animação de tiro), o médio logo embaixo do guarda-mato e o polegar reto
+   para a frente, deitado por cima do polegar de apoio; a mão de apoio com o calcanhar no lado esquerdo do punho, os
+   quatro dedos por cima dos da mão do gatilho e o polegar reto ao longo da armação, abaixo do ferrolho. A sequência é a
+   da pega de polegares para a frente (American Shooting Journal): a mão do gatilho primeiro, com o polegar erguido; a
+   de apoio encaixando com a luva do gatilho de obstáculo (**luva com luva**: a malha posada numa BVH); e o polegar do
+   gatilho deitando por último sobre o de apoio. **A palma cede** (decisão do usuário de 2026-10-02): o tecido mole da
+   palma afunda até o que a ficha mede em cada ponto (Pérez-González, Vergara e Sancho-Bru, 2013; até 5,6 mm), e só as
+   duas mãos da pistola chegam apertando (`aperto`); nas outras regras a palma encosta sem ceder.
+   **Faca (4.1c; seção 4.3):** uma mão só, a direita — o cabo atravessando a palma, os quatro dedos fechados em volta dele
+   lado a lado, o indicador na guarda e o polegar dobrado por cima da falange média do indicador; o formato da pega diz
+   quais mãos tem (`maos`), e o viewmodel monta só o braço direito.
+   **Cotovelos de luva (4.1c):** os de cada categoria — e, quando a pega de uma arma pede, os dela, lado a lado sobre os
+   da categoria (`VIEWMODEL.weapons.<id>.gloveElbows`: a M4A4) — saem da varredura minimax dos ângulos do pulso com a
+   arma e as luvas de verdade (`tools/cotovelos.mjs`), com o cotovelo fora da tela e abaixo do pulso, cada antebraço do
+   seu lado e a 3 mm da arma e do outro braço; cada ângulo do pulso a no máximo 93 % do limite da AAOS nas três
+   posições prontas.
    **Mão da frente (regra do usuário de 2026-09-27, válida para toda arma que tem mão da frente):** só o polegar fica de
    um lado da arma e os outros quatro dedos do outro, como a pega da AK no CS:GO — o polegar reto e deitado no lado
    esquerdo, encostado na arma e apontando para a frente, sem curva (a pega "thumb break"), e os quatro dedos abraçando
@@ -392,7 +430,11 @@ com correção nos nós dos dedos e no punho.
 ### 7.4 Validação e exportação
 
 - Nenhum dedo atravessando a arma mais que 0,3 mm; cada ponto de contato a no máximo 1 mm; renders de perto de cada
-  mão.
+  mão. Na pistola (4.1c), também: a luva de apoio a no máximo 0,3 mm dentro da do gatilho e cada dedo de apoio a no
+  máximo 1 mm dela, os dois polegares a pelo menos 2 mm do ferrolho (o recuo) e a até 20° do eixo do cano, o indicador
+  indexado acima do alto do gatilho e a palma afundada até o que cede — tudo medido na malha com o afundamento; na faca,
+  o polegar encostando no indicador. O jogo mede a mesma pega (`luvas_contato`: a diferença para o Blender até
+  0,05 mm).
 - `assets/maos/luvas.glb` leva a malha com esqueleto e as zonas; a pose de empunhadura de cada arma vai no `.glb` da
   arma como o clipe `empunhadura` (as animações da 4.3 entram ao lado).
 
@@ -410,7 +452,7 @@ massinha usam as mesmas luvas, no braço de massinha deles e adaptadas às propo
 | 4.1 (massinha) | ✅ 2026-09-26 — substituída por este desenho; fica registrada |
 | 4.1a | Pipeline realista e a AK-47 tipo 3 no nível final: régua e ficha, biblioteca de peças, construir, assar, exportar e validar; `GLTFLoader` no vendor e o novo `weaponModels`; material com zonas e acabamentos, reflexo do set e luz do viewmodel; a AK na bancada `arsenal` e em primeira pessoa, ainda sem mãos (as de massinha não servem na geometria nova; as luvas chegam na 4.1b); comando `skin` e as três skins de exemplo; atualização das regras e da memória |
 | 4.1b | Luvas no braço de massinha do boneco (sem manga e sem roupa, decisão de 2026-09-26), rig e o solver de empunhadura com a mão da frente em "thumb break"; a AK segurada em primeira pessoa, com uma mão só na tela (decisão de 2026-09-27); o rebatedor da bancada |
-| 4.1c | Glock-18, M4A4 e a faca — a baioneta M9 (EUA, 1986) — no caminho provado, com as empunhaduras |
+| 4.1c | ✅ 2026-10-02 — Glock-18 (3ª geração), M4A4 (a carabina M4A1) e a faca — a baioneta M9 (EUA, 1986) — no caminho provado, com as empunhaduras: a M4A4 na regra do fuzil, a pistola de duas mãos com os polegares para a frente e a luva com luva, a faca na empunhadura de martelo de uma mão; a palma que cede; a construção determinística; os cotovelos de luva pela varredura; a bancada, as plantas e as skins por classe (desenho e plano da 4.1c, `docs/superpowers/specs/2026-09-28-4.1c-glock-m4a4-m9-design.md`) |
 | 4.1d | AWP (com a luneta real), Nova e P90, com as empunhaduras |
 | 4.2 | Tiro e dano, como no plano |
 | 4.3 | Animações suaves e a opção stop-motion; carregador de metal e cápsulas de latão que quicam e param no chão (e amassam a massinha do cenário); a marca de dedo na inspeção; efeitos de estúdio |
@@ -429,6 +471,9 @@ A troca é em etapas, para nenhuma subfase deixar arma faltando nem pôr placeho
 - **4.1b:** as luvas substituem as mãos de massinha na AK; as armas ainda de massinha continuam com as mãos de massinha.
   O antebraço de massinha das luvas (`src/characters/hands/antebracoMassa.js`) e a braçadeira de massa (`armband.js`)
   são o braço do boneco: ficam depois da 4.1d.
+- **4.1c:** saíram as receitas de massinha da Glock, da M4A4 e da faca (`src/data/armas/glock.js`, `m4a4.js`,
+  `knife.js`) e os testes que só existiam por elas; as plantas da 4.1 viraram as fichas no formato 2
+  (`tools/blender/refs/<id>.json`). A AWP, a Nova e a P90 continuam de massinha até a 4.1d.
 - **4.1c e 4.1d:** cada arma refeita perde a receita e a planta antigas. No fim da 4.1d saem de vez o gerador de SDF das
   armas (`src/weapons/model/recipe.js`, `silhouette.js`, `weaponModel.js`), as receitas restantes, as mãos de 4 dedos
   de massinha (`src/characters/hands/handShape.js`, `handRig.js`, `handSkin.js`, `handLibrary.js` e

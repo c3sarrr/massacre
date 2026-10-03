@@ -1,15 +1,18 @@
 // Plantas a lápis da bancada `arsenal` (Fase 4.1; QBP3, QBP13, QBP15 no item 13 do moodboard): uma folha de papel
 // creme quadriculado por arma, com o contorno da planta de referência (o `info(id).plan` da biblioteca de armas: a
-// planta de tools/blender/refs/<id>.json, ou a ficha da arma realista convertida) em grafite, a
-// linha do eixo do cano em traço-ponto, a cota do comprimento com as setas, o nome escrito à caneta e o crédito da
-// foto de origem em letra miúda. A faca não tem planta: a folha dela é a silhueta lateral da própria receita, sombreada
-// a lápis ("desenhada de cabeça").
+// planta de tools/blender/refs/<id>.json, ou a ficha da arma realista convertida) em grafite, a linha do eixo em
+// traço-ponto (o do cano; na faca, o do cabo), a cota do comprimento com as setas, o nome escrito à caneta e o crédito
+// da foto de origem em letra miúda. A planta fica no referencial da arma pela origem dela (`placeReference`: a boca da
+// de massinha, a origem da ficha da realista — na faca, a ponta; Fase 4.1c, Tarefa 13), a mesma conta do contorno
+// sobreposto à arma na roda. A de massinha sem planta (sem `refs.planta`; nenhuma hoje — a faca de massinha era a única
+// e virou a M9 realista na 4.1c) tem na folha a silhueta lateral da própria receita, sombreada a lápis ("desenhada de
+// cabeça").
 
 import * as THREE from 'three';
 import { RNG } from '../../core/rng.js';
 import { drawHandwriting } from '../../clay/set/labelAtlas.js';
 import { createSetMaterial } from '../../clay/set/setShader.js';
-import { gridFor, sideMask } from '../../weapons/model/silhouette.js';
+import { gridFor, placeReference, sideMask } from '../../weapons/model/silhouette.js';
 import { recipeWholeTree } from '../../weapons/model/recipe.js';
 
 function sketchPath(g, ring, map, rng, jitter) {
@@ -31,6 +34,37 @@ function arrowHead(g, x, y, dir, size) {
   g.moveTo(x, y);
   g.lineTo(x - dir * size, y + size * 0.45);
   g.stroke();
+}
+
+/**
+ * O que a folha desenha, sem o canvas: os anéis da planta no referencial da arma (o contorno e os buracos, pela origem
+ * da planta), a área do desenho (a caixa da arma e a da planta juntas, em u) e o crédito da foto.
+ * @param {{id:string, info:object, plan:object|null}} item
+ * @returns {{rings:number[][][]|null, x0:number, x1:number, y0:number, y1:number, credit:string}}
+ */
+export function planSheetLayout(item) {
+  const box = item.info.bounds;
+  let rings = null;
+  if (item.plan) {
+    const { outline, holes } = placeReference(item.info, item.plan);
+    rings = [outline, ...holes];
+  }
+  let x0 = box.min[0];
+  let x1 = box.max[0];
+  let y0 = box.min[1];
+  let y1 = box.max[1];
+  if (rings) {
+    for (const [x, y] of rings[0]) {
+      x0 = Math.min(x0, x);
+      x1 = Math.max(x1, x);
+      y0 = Math.min(y0, y);
+      y1 = Math.max(y1, y);
+    }
+  }
+  const credit = item.plan
+    ? `planta: ${item.plan.source.file.replace(/^File:/, '')} · ${item.plan.source.license} · ${item.plan.source.artist}`
+    : 'desenhada de cabeça (sem foto de referência)';
+  return { rings, x0, x1, y0, y1, credit };
 }
 
 /**
@@ -66,23 +100,7 @@ export function drawPlanSheet(item, def, font) {
     g.stroke();
   }
   // Área do desenho: a arma inteira com margem, escala única nos dois eixos.
-  const box = item.info.bounds;
-  const boca = item.info.anchors.boca?.pos ?? [0, 0, 0];
-  const rings = item.plan
-    ? [item.plan.points, ...(item.plan.holes ?? [])].map((r) => r.map(([x, y]) => [x + boca[0], y + boca[1]]))
-    : null;
-  let x0 = box.min[0];
-  let x1 = box.max[0];
-  let y0 = box.min[1];
-  let y1 = box.max[1];
-  if (rings) {
-    for (const [x, y] of rings[0]) {
-      x0 = Math.min(x0, x);
-      x1 = Math.max(x1, x);
-      y0 = Math.min(y0, y);
-      y1 = Math.max(y1, y);
-    }
-  }
+  const { rings, x0, x1, y0, y1, credit } = planSheetLayout(item);
   const area = { x: W * 0.07, y: H * 0.2, w: W * 0.86, h: H * 0.56 };
   const s = Math.min(area.w / (x1 - x0), area.h / (y1 - y0));
   const ox = area.x + (area.w - (x1 - x0) * s) / 2;
@@ -102,7 +120,8 @@ export function drawPlanSheet(item, def, font) {
       }
     }
   } else {
-    // Sem planta (só a faca de massinha): a silhueta da receita, sombreada a lápis (tom leve por baixo e hachuras a 45°).
+    // Sem planta (a de massinha sem `refs.planta`): a silhueta da receita, sombreada a lápis (tom leve por baixo e
+    // hachuras a 45°).
     if (!item.info.recipe) throw new Error(`${item.id}: arma sem planta e sem receita para desenhar a silhueta`);
     const grid = gridFor(x0, y0, x1, y1, Math.max(0.03, (x1 - x0) / 260));
     const mask = sideMask(recipeWholeTree(item.info.recipe), grid);
@@ -151,7 +170,8 @@ export function drawPlanSheet(item, def, font) {
     }
     g.stroke();
   }
-  // Eixo do cano em traço-ponto, passando da boca.
+  // O eixo em traço-ponto, passando das pontas: o do cano (y = 0 é o eixo do cano no referencial da arma) e, na faca,
+  // o do cabo (a origem dela fica no eixo do cabo).
   g.globalAlpha = 0.5;
   g.lineWidth = 1;
   g.setLineDash([14, 5, 3, 5]);
@@ -193,9 +213,6 @@ export function drawPlanSheet(item, def, font) {
   g.font = `${Math.round(H * 0.032)}px ui-monospace, "Cascadia Mono", Consolas, monospace`;
   g.fillStyle = def.graphite;
   g.globalAlpha = 0.8;
-  const credit = item.plan
-    ? `planta: ${item.plan.source.file.replace(/^File:/, '')} · ${item.plan.source.license} · ${item.plan.source.artist}`
-    : 'desenhada de cabeça (sem foto de referência)';
   g.fillText(credit.length > 96 ? `${credit.slice(0, 93)}…` : credit, W * 0.05, H * 0.95);
   g.globalAlpha = 1;
   return canvas;

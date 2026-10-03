@@ -3,8 +3,9 @@
 // as fotos do Commons, o contorno geral, os buracos, os contornos por peça e as linhas abertas em milímetros no
 // referencial da foto (boca do cano — na faca, a ponta — em x = 0, eixo do cano — do cabo — em y = 0, +X para a boca,
 // +Y para cima), os pontos nomeados e as cores medidas com a correção de exposição. Aqui: a validação (o Node confere
-// antes de o Blender construir) e a conversão para a planta da 4.1 (formato 1: pontos em u relativos à boca), que a
-// bancada desenha na folha quadriculada e sobrepõe à arma.
+// antes de o Blender construir) e a conversão para a planta da 4.1 (formato 1: pontos em u relativos à boca — na faca,
+// à ponta), que a bancada desenha na folha quadriculada e sobrepõe à arma, posta pela origem da ficha no jogo
+// (`origemDaFicha`).
 // Desde a 4.1c (plano da 4.1c, D2 e D3): as medidas-chave são as da classe da arma (src/data/armasReais.js); a foto do
 // contorno é a marcada com `contorno: true`, de qualquer lado (a do lado esquerdo espelhada na régua, `espelhada: true`,
 // para a boca ficar em +X) — sem marca, a do lado direito, como na ficha da AK —, e cada foto diz o que deu (`usos`):
@@ -109,6 +110,21 @@ export function fichaParaPlanta(ficha) {
     holes: (ficha.buracos ?? []).map((b) => b.map(u)),
     source: { file: foto.arquivo, page: foto.pagina, license: foto.licenca, artist: foto.autor },
   };
+}
+
+/**
+ * Onde o (0, 0) da ficha (a boca do cano; na faca, a ponta) fica no referencial da arma no jogo, em u: a origem do jogo
+ * é o `ORIGEM_MM` do script do Blender (o pino do gatilho nas armas de fogo, a frente da guarda na faca), que o relatório
+ * do `construir` traz como `origemMM` — o ponto (x, y) da ficha vai para ((x, y) − origemMM) / 25,4.
+ * @param {number[]} origemMM o `origemMM` do relatório
+ * @returns {number[]} [x, y] em u
+ */
+export function origemDaFicha(origemMM, arma = '?') {
+  if (!Array.isArray(origemMM) || origemMM.length !== 2 || !origemMM.every(Number.isFinite)) {
+    throw new Error(`${arma}: o relatório sem a origemMM (construa a arma de novo no Blender)`);
+  }
+  // 0 − o (e não −o): sem o −0 da origem no eixo
+  return [(0 - origemMM[0]) / MM_POR_U, (0 - origemMM[1]) / MM_POR_U];
 }
 
 /** A planta de um arquivo de tools/blender/refs/: a ficha (formato 2) vira planta; a planta da 4.1 passa como está. */

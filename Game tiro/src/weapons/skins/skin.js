@@ -43,15 +43,22 @@ function zonaValida(zona, def) {
   return { acabamento, cor, cor2, desgaste };
 }
 
+/**
+ * Pintura completa e válida para uma lista de zonas (as de uma arma, as das luvas): acabamento e cores reconhecidos e
+ * desgaste de 0 a 1 em cada zona.
+ */
+export function validarPintura(zonasDaPeca, pintura, rotulo = 'pintura') {
+  const zonas = {};
+  for (const z of zonasDaPeca) {
+    if (!pintura?.zonas?.[z]) throw new Error(`${rotulo} sem a zona ${z}`);
+    zonas[z] = zonaValida(z, pintura.zonas[z]);
+  }
+  return { chave: pintura.chave ?? PERSONALIZADA, nome: pintura.nome ?? 'Personalizada', zonas };
+}
+
 /** Skin completa e válida para a arma (todas as zonas dela). */
 export function validarSkin(id, skin) {
-  const a = arma(id);
-  const zonas = {};
-  for (const z of a.zonas) {
-    if (!skin?.zonas?.[z]) throw new Error(`skin de ${id} sem a zona ${z}`);
-    zonas[z] = zonaValida(z, skin.zonas[z]);
-  }
-  return { chave: skin.chave ?? PERSONALIZADA, nome: skin.nome ?? 'Personalizada', zonas };
+  return validarPintura(arma(id).zonas, skin, `skin de ${id}`);
 }
 
 /** A pintura de fábrica da arma. */
@@ -136,7 +143,7 @@ export function aplicarZonas(id, atual, pedido) {
   const a = arma(id);
   const zonas = {};
   const citadas = Object.keys(pedido.zonas ?? {});
-  for (const z of citadas) if (!a.zonas.includes(z)) throw new Error(`${id} não tem a zona ${z}`);
+  for (const z of citadas) if (!a.zonas.includes(z)) throw new Error(`${id} não tem a zona ${z} (tem: ${a.zonas.join(', ')})`);
   for (const z of a.zonas) {
     const velha = atual.zonas[z];
     const nova = pedido.zonas?.[z];

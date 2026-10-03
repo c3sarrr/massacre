@@ -2,8 +2,10 @@
 // arma na mão em primeira pessoa numa camada própria do pipeline (postPipeline.addLayer) — cena com a arma e os braços
 // de massinha, câmera que copia a do jogador com o FOV do viewmodel (viewmodel_fov) e a luz do mapa copiada
 // (viewmodelLights.js). A arma fica na posição da categoria (src/data/viewmodel.js) mais os offsets; nas de massinha,
-// cada mão vai para a âncora da receita com a pose da âncora e o antebraço aponta para um cotovelo fixo fora da tela; a
-// realista (o .glb do Blender, com o reflexo do set) aparece sem braços até as luvas da 4.1b. Ainda não anima (4.3).
+// cada mão vai para a âncora da receita com a pose da âncora e o antebraço aponta para um cotovelo fixo fora da tela.
+// Fase 4.1b: a realista com pega (o .glb do Blender, com o reflexo do set) é segurada pelas luvas (bracosLuva.js: a pega
+// da arma nos dedos, o osso `mao` no referencial da pega, a facção do time ou a do boneco, a braçadeira só com time); a
+// realista sem pega aparece sem braços. Ainda não anima (4.3).
 // Tudo sai do `info(id)` da biblioteca de armas, o mesmo para as duas origens. Quem decide o que segurar e quando
 // aparece é o MatchState (placement.js: viewmodelVisible).
 
@@ -14,9 +16,10 @@ import { PALETTE } from '../../data/palette.js';
 import { HAND } from '../../data/hands.js';
 import { armbandColor } from '../../characters/hands/armband.js';
 import { ViewmodelLights } from './viewmodelLights.js';
+import { BracosDeLuva } from './bracosLuva.js';
 import {
-  HAND_ANCHOR, anchorPose, categoryPlacement, elbowTarget, handSides, viewCategory, viewFaction, viewPlacement,
-  viewmodelVerticalFov, weaponNudge,
+  HAND_ANCHOR, anchorPose, categoryPlacement, elbowTarget, gloveElbowTarget, gloveFaction, handSides, viewCategory, viewFaction,
+  viewPlacement, viewmodelVerticalFov, weaponNudge,
 } from './placement.js';
 
 const SIDES = Object.freeze(['direita', 'esquerda']);
@@ -31,13 +34,19 @@ export class Viewmodel {
    * @param {import('../../characters/hands/handLibrary.js').HandLibrary} deps.hands
    * @param {import('../../core/config.js').Config} deps.config
    * @param {import('../../core/events.js').EventBus} deps.events
+   * @param {import('../../characters/hands/luvasSource.js').LuvasSource|null} [deps.luvas] as luvas das armas com pega
    * @param {object|null} [deps.log]
    * @param {string} [deps.armColor] massa dos braços (a do boneco; terracota no de referência)
+   * @param {string} [deps.dollFaction] facção do boneco (a das luvas sem time; Massa Crua até o criador da Fase 5)
    */
-  constructor({ render, weapons, hands, config, events, log = null, armColor = PALETTE.terracotta }) {
+  constructor({ render, weapons, hands, luvas = null, config, events, log = null, armColor = PALETTE.terracotta, dollFaction = 'massaCrua' }) {
     this.render = render;
     this.weapons = weapons;
     this.hands = hands;
+    this.dollFaction = dollFaction;
+    this.gloves = luvas ? new BracosDeLuva({ luvas, log, corDaMassa: armColor, faccao: gloveFaction(null, dollFaction) }) : null;
+    this.armsKind = null; // 'luvas' | 'massinha' | null (a arma na mão)
+    this.gloveOverride = null; // facção das luvas forçada (a bancada); null: a do time ou a do boneco
     this.config = config;
     this.log = log;
     this.armColor = armColor;
@@ -110,7 +119,15 @@ export class Viewmodel {
     this.team = v === 'tr' || v === 'ct' ? v : null;
     const color = armbandColor(this.team, this.armColor);
     for (const side of SIDES) this.arms[side]?.setArmband(color);
+    this.gloves?.setBracadeira(color);
+    this.#applyGloveFaction();
     this.#invalidate(); // o acento das armas dos dois lados muda com o time
+  }
+
+  /** A pintura das luvas: a forçada pela bancada ou, sem ela, a do time (ou a do boneco sem time). */
+  #applyGloveFaction() {
+    this.gloves?.setFaccao(this.gloveOverride ?? gloveFaction(this.team, this.dollFaction))
+      .catch((err) => this.log?.error('viewmodel: facção das luvas', err));
   }
 
   /** Esquece o pedido: o próximo quadro pede a arma de novo (receita relida, time trocado). */
@@ -166,8 +183,9 @@ export class Viewmodel {
       return;
     }
     const [wid, wlod, wfaction] = key.split(':');
-    // A realista vem sem braços até a 4.1b; as variantes de shader compilam antes de a arma aparecer (sem travada).
-    const arms = this.weapons.source(wid) === 'glb' ? null : this.#ensureArms();
+    // A realista com pega vem com as luvas (a outra, sem braços); as variantes de shader compilam antes de a arma e os
+    // braços aparecerem (sem travada).
+    const arms = this.weapons.source(wid) === 'glb' ? this.#glovesFor(wid) : this.#ensureArms();
     Promise.all([this.weapons.instance(wid, { lod: wlod, faction: wfaction }), arms]).then(async ([instance]) => {
       if (this.disposed || token !== this.token) return;
       await this.render.renderer.compileAsync(instance, this.camera, this.scene);
@@ -178,6 +196,14 @@ export class Viewmodel {
     });
   }
 
+  /** Os braços de luva, se a arma realista tem pega (criados uma vez, compilados antes de aparecer). */
+  #glovesFor(id) {
+    return this.weapons.describe(id).then((info) => {
+      if (!info?.pega || !this.gloves) return null;
+      return this.gloves.garantir(this.root, (o) => this.render.renderer.compileAsync(o, this.camera, this.scene));
+    });
+  }
+
   /** Troca a arma da mão pela instância nova: centro e raio, as mãos que ela usa e as poses pela âncora, posição a refazer. */
   #swap(instance, key) {
     this.#drop();
@@ -185,15 +211,22 @@ export class Viewmodel {
     this.weapon = instance;
     this.info = this.weapons.info(w.id);
     this.sides = new Set(handSides(this.info));
+    this.armsKind = this.sides.size ? (this.info.pega ? 'luvas' : 'massinha') : null;
+    if (this.armsKind === 'luvas' && !(this.gloves?.prontos && this.gloves.aplicarPega(this.info.pega))) {
+      this.sides = new Set(); // a pega de outro rig (o erro já foi ao log): a arma sem braços
+      this.armsKind = null;
+    }
     this.loadedKey = key;
     this.category = viewCategory(w.id);
     instance.updateMatrixWorld(true);
     new THREE.Box3().setFromObject(instance).getCenter(this.center);
     this.radius = w.radius;
     this.holder.add(instance);
-    for (const side of this.sides) {
-      const anchor = this.#anchor(HAND_ANCHOR[side]);
-      if (anchor) this.arms[side]?.setPose(anchor.pose ?? 'aberta');
+    if (this.armsKind === 'massinha') {
+      for (const side of this.sides) {
+        const anchor = this.#anchor(HAND_ANCHOR[side]);
+        if (anchor) this.arms[side]?.setPose(anchor.pose ?? 'aberta');
+      }
     }
     this.dirty = true;
   }
@@ -213,7 +246,9 @@ export class Viewmodel {
     this.sides = new Set();
     this.loadedKey = null;
     this.category = null;
+    this.armsKind = null;
     for (const side of SIDES) if (this.arms[side]) this.arms[side].mesh.visible = false;
+    this.gloves?.esconder();
   }
 
   /** Arma e mãos no referencial da câmera: a posição da categoria + offsets, os pulsos nas âncoras, os cotovelos. */
@@ -236,15 +271,23 @@ export class Viewmodel {
       const anchor = this.#anchor(name);
       if (anchor) pts.push(anchorPose(pl, anchor, this._pose).position.clone());
     }
-    for (const side of SIDES) {
-      const arm = this.arms[side];
-      const anchor = this.sides.has(side) ? this.#anchor(HAND_ANCHOR[side]) : null;
-      if (!arm) continue;
-      arm.mesh.visible = Boolean(anchor);
-      if (!anchor) continue;
-      const pose = anchorPose(pl, anchor, this._pose);
-      arm.place(pose.position, pose.quaternion, elbowTarget(cat, side, this.tune[cat] ?? null, this._elbow));
-      radius = Math.max(radius, pose.position.distanceTo(center) + HAND_REACH);
+    if (this.armsKind === 'luvas') {
+      for (const side of SIDES) if (this.arms[side]) this.arms[side].mesh.visible = false;
+      const tune = this.tune[cat] ?? null;
+      const wrists = this.gloves.colocar(pl, (side) => gloveElbowTarget(cat, side, tune, new THREE.Vector3(), this.info.id), this.sides);
+      for (const w of wrists) radius = Math.max(radius, w.distanceTo(center) + this.gloves.alcance);
+    } else {
+      this.gloves?.esconder();
+      for (const side of SIDES) {
+        const arm = this.arms[side];
+        const anchor = this.sides.has(side) ? this.#anchor(HAND_ANCHOR[side]) : null;
+        if (!arm) continue;
+        arm.mesh.visible = Boolean(anchor);
+        if (!anchor) continue;
+        const pose = anchorPose(pl, anchor, this._pose);
+        arm.place(pose.position, pose.quaternion, elbowTarget(cat, side, this.tune[cat] ?? null, this._elbow));
+        radius = Math.max(radius, pose.position.distanceTo(center) + HAND_REACH);
+      }
     }
     this.localPoints = pts;
     while (this.worldPoints.length < pts.length) this.worldPoints.push(new THREE.Vector3());
@@ -255,14 +298,20 @@ export class Viewmodel {
 
   /**
    * Um quadro. `item`: o que a mão segura (id, ou null); `visible`: a regra de quando aparece (placement.js) já
-   * avaliada por quem chama; `faction`/`lod` forçam o acento e o nível (a bancada).
+   * avaliada por quem chama; `faction`/`lod` forçam o acento e o nível (a bancada); `gloves` força a facção das luvas
+   * (a bancada; null: a do time).
    * @param {THREE.PerspectiveCamera} camera câmera do jogador (já posta neste quadro)
    * @param {number} dt
-   * @param {{item:string|null, visible:boolean, faction?:string|null, lod?:string}} state
+   * @param {{item:string|null, visible:boolean, faction?:string|null, lod?:string, gloves?:string|null}} state
    */
-  frame(camera, dt, { item, visible, faction = null, lod = 'perto' }) {
+  frame(camera, dt, { item, visible, faction = null, lod = 'perto', gloves = null }) {
+    if (gloves !== this.gloveOverride) {
+      this.gloveOverride = gloves;
+      this.#applyGloveFaction();
+    }
     this.#want(item, { lod, faction });
-    const show = Boolean(visible && this.weapon && (!this.sides.size || this.arms.direita) && this.loadedKey === this.itemKey);
+    const armsReady = this.armsKind === 'luvas' ? this.gloves?.prontos : this.arms.direita;
+    const show = Boolean(visible && this.weapon && (!this.sides.size || armsReady) && this.loadedKey === this.itemKey);
     this.layer.visible = show;
     if (!show) return;
     // Câmera e raiz: a do jogador (posição, olhar e rolagem), com o FOV do viewmodel.
@@ -303,11 +352,15 @@ export class Viewmodel {
     this._shadowForced = false;
   }
 
-  /** Ajuste ao vivo da posição de uma categoria (viewmodel_ajuste): `pos`, `angles` ou `elbows.{lado}`. */
+  /** Ajuste ao vivo da posição de uma categoria (viewmodel_ajuste): `pos`, `angles`, `elbows.{lado}` ou `gloveElbows.{lado}`. */
   setTune(category, patch) {
     if (!VIEWMODEL.categories[category]) throw new Error(`categoria desconhecida: ${category}`);
     const cur = this.tune[category] ?? {};
-    this.tune[category] = { ...cur, ...patch, elbows: { ...(cur.elbows ?? {}), ...(patch.elbows ?? {}) } };
+    this.tune[category] = {
+      ...cur, ...patch,
+      elbows: { ...(cur.elbows ?? {}), ...(patch.elbows ?? {}) },
+      gloveElbows: { ...(cur.gloveElbows ?? {}), ...(patch.gloveElbows ?? {}) },
+    };
     this.dirty = true;
   }
 
@@ -345,14 +398,18 @@ export class Viewmodel {
   tuneLine(category) {
     const p = categoryPlacement(category, this.tune[category] ?? null);
     const f = (a) => `F([${a.map((v) => Number(v.toFixed(2))).join(', ')}])`;
-    return `${category}: F({ pos: ${f(p.pos)}, angles: ${f(p.angles)}, elbows: F({ direita: ${f(p.elbows.direita)}, esquerda: ${f(p.elbows.esquerda)} }) }),`;
+    const luva = VIEWMODEL.categories[category].gloveElbows || this.tune[category]?.gloveElbows?.direita || this.tune[category]?.gloveElbows?.esquerda
+      ? `, gloveElbows: F({ direita: ${f(p.gloveElbows.direita)}, esquerda: ${f(p.gloveElbows.esquerda)} })` : '';
+    return `${category}: F({ pos: ${f(p.pos)}, angles: ${f(p.angles)}, elbows: F({ direita: ${f(p.elbows.direita)}, esquerda: ${f(p.elbows.esquerda)} })${luva} }),`;
   }
 
   /** Estado para o console e os testes. */
   status() {
     return {
       item: this.loadedKey?.split(':')[0] ?? null, wanted: this.itemKey, category: this.category, visible: this.layer.visible,
-      team: this.team, arms: SIDES.filter((s) => this.arms[s]?.mesh.visible),
+      team: this.team,
+      arms: this.armsKind === 'luvas' ? this.gloves.visiveis() : SIDES.filter((s) => this.arms[s]?.mesh.visible),
+      bracos: this.armsKind, faccao: this.gloves?.faccao ?? null, avisos: this.armsKind === 'luvas' ? this.gloves.avisos : null,
     };
   }
 
@@ -366,6 +423,7 @@ export class Viewmodel {
       this.arms[side]?.dispose();
       this.arms[side] = null;
     }
+    this.gloves?.dispose();
     this.lights.dispose();
     this.scene.clear();
   }

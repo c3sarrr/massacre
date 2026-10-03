@@ -42,7 +42,8 @@ function malha(bin, m, comMassas, nMateriais) {
   return { pos, nv };
 }
 
-for (const id of ['knife', 'glock']) {
+// Duas das receitas de massinha que sobraram (a faca e a Glock, as de antes, viraram as realistas da 4.1c).
+for (const id of ['p90', 'awp']) {
   test(`prévia do jogo (${id}): blocos, contagens, grupos, braços nas âncoras e a câmera do viewmodel`, async () => {
     const recipe = ARMAS[id];
     const dir = mkdtempSync(join(tmpdir(), 'massacre-previa-'));

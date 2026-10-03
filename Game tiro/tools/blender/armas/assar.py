@@ -2,15 +2,17 @@
 # seções 4.3 e 4.4; plano da 4.1a, D3): UV automático por peça com um empacotamento só (a mesma textura para a arma
 # inteira), conferência de densidade de texel e de sobreposição, e o assar no Cycles na GPU — normal em espaço tangente
 # (convenção OpenGL), sombra de contato com todas as peças juntas, e os canais dos materiais de fábrica por emissão
-# (canal_aspereza, canal_borda, canal_cor). Empacota `_n` (RGB) e `_m` (R sombra, G aspereza, B borda, A cor) e grava em
-# WebP sem perdas (qualidade 100 no Blender = VP8L).
+# (canal_aspereza, canal_borda, canal_cor). Empacota `_n` (RGB a normal, A o relevo moldado — correções da P1 da 4.1c:
+# o tipo da textura do molde, 1 − 32·id/255, relevo.py) e `_m` (R sombra, G aspereza, B borda, A cor) e grava em WebP
+# sem perdas (qualidade 100 no Blender = VP8L). As luvas (Fase 4.1b) desdobram pelas costuras (`uv_por_costuras`)
+# e conferem a densidade por ilha de UV (`densidade_por_ilha`: são uma malha só, base e peças juntas).
 import math
 
 import bmesh
 import bpy
 import numpy as np
 
-from . import estudio
+from . import canonica, estudio, gravar
 from .unidades import S
 
 
@@ -51,6 +53,67 @@ def uv_automatico(objetos, lado_px, margem_px=8, tentativas=4):
             return
         _cada_uma_no_seu_plano(objetos, marcadas)
         _empacotar(objetos, lado_px, margem_px)
+
+
+def uv_por_costuras(objetos, lado_px, margem_px=8):
+    """Desdobramento pelas costuras marcadas (Fase 4.1b: as ilhas seguem os painéis costurados da luva, e cada peça de
+    reforço é as suas), pelo método de ângulos (ABF, conforme: sem cisalhar a trama do tecido e o grão do couro) e o
+    empacotamento de sempre, com a margem exata."""
+    for ob in objetos:
+        if not ob.data.uv_layers:
+            ob.data.uv_layers.new(name='UVMap')
+    selecionar(objetos)
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.uv.unwrap(method='ANGLE_BASED', fill_holes=True, correct_aspect=True, margin_method='FRACTION',
+                      margin=margem_px / lado_px)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    _empacotar(objetos, lado_px, margem_px)
+
+
+def densidade_por_ilha(ob, lado_px):
+    """A densidade de texel (pixels por mm) de cada ilha de UV de uma malha — as faces ligadas por arestas que não são
+    costura e em que as UV dos dois lados batem —, relativa à mediana das ilhas; e a das faces (percentis 1 e 99), que
+    mostra a distorção de área dentro das ilhas."""
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    uv = bm.loops.layers.uv.active
+    bm.faces.ensure_lookup_table()
+    pai = list(range(len(bm.faces)))
+
+    def raiz(i):
+        while pai[i] != i:
+            pai[i] = pai[pai[i]]
+            i = pai[i]
+        return i
+
+    for e in bm.edges:
+        if e.seam or len(e.link_faces) != 2:
+            continue
+        la, lb = e.link_loops
+        # a UV de cada ponta da aresta nos dois lados (pelo vértice, qualquer que seja o sentido das faces)
+        ua = {la.vert: la[uv].uv, la.link_loop_next.vert: la.link_loop_next[uv].uv}
+        ub = {lb.vert: lb[uv].uv, lb.link_loop_next.vert: lb.link_loop_next[uv].uv}
+        if all((ua[v] - ub[v]).length < 1e-6 for v in e.verts):
+            pai[raiz(la.face.index)] = raiz(lb.face.index)
+    area_mm, area_uv = {}, {}
+    faces = []
+    for f in bm.faces:
+        pts = [l[uv].uv for l in f.loops]
+        auv = abs(sum(pts[i].x * pts[i - 1].y - pts[i - 1].x * pts[i].y for i in range(len(pts)))) / 2
+        amm = f.calc_area() / (S * S)
+        r = raiz(f.index)
+        area_mm[r] = area_mm.get(r, 0.0) + amm
+        area_uv[r] = area_uv.get(r, 0.0) + auv
+        if amm > 1e-9:
+            faces.append(math.sqrt(auv * lado_px * lado_px / amm))
+    bm.free()
+    ilhas = {r: math.sqrt(area_uv[r] * lado_px * lado_px / area_mm[r]) for r in area_mm if area_mm[r] > 1e-9}
+    med = float(np.median(list(ilhas.values())))
+    rel = [v / med for v in ilhas.values()]
+    f1, f99 = np.percentile(np.array(faces) / med, [1, 99])
+    return {'ilhas': len(ilhas), 'medianaPxPorMm': round(med, 3), 'minimo': round(min(rel), 3),
+            'maximo': round(max(rel), 3), 'faces1': round(float(f1), 3), 'faces99': round(float(f99), 3)}
 
 
 def _triangulo_na_grade(uv, tri, grade):
@@ -197,7 +260,7 @@ def _gravar_webp(pasta, nome, rgba, alfa):
     caminho = f'{pasta}/{nome}.webp'
     img.filepath_raw = caminho
     img.file_format = 'WEBP'
-    img.save(filepath=caminho, quality=100)
+    gravar.com_novas_tentativas(lambda: img.save(filepath=caminho, quality=100), caminho)
     bpy.data.images.remove(img)
     return caminho
 
@@ -213,12 +276,13 @@ def _suavizar(canal):
 
 
 def _juntar_copias(objetos, nome):
-    """Uma cópia juntada das peças, com os modificadores aplicados (mantém as UVs e os materiais): o alvo único do assar
-    (as peças de jogo) e a fonte única (o modelo alto — uma árvore de raios em vez de uma por peça)."""
-    dg = bpy.context.evaluated_depsgraph_get()
+    """Uma cópia juntada das peças, com os modificadores aplicados (mantém as UVs e os materiais) e na forma canônica
+    (canonica.avaliada: o Cycles triangula cada polígono pela ordem dos cantos; a avaliação ruim do booleano é refeita):
+    o alvo único do assar (as peças de jogo) e a fonte única (o modelo alto — uma árvore de raios em vez de uma por
+    peça)."""
     copias = []
     for ob in objetos:
-        me = bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+        me = canonica.avaliada(ob)
         c = bpy.data.objects.new(f'{nome}.{ob.name}', me)
         c.matrix_world = ob.matrix_world.copy()
         bpy.context.scene.collection.objects.link(c)
@@ -243,8 +307,9 @@ def _ligar_imagem(alvo, img):
     return nos
 
 
-def _emitir_canal(fontes, canal):
-    """Liga o `canal` de cada material de fábrica das fontes numa emissão na saída; devolve como desfazer."""
+def _emitir_canal(fontes, canal, neutro=0.5):
+    """Liga o `canal` de cada material de fábrica das fontes numa emissão na saída (o `neutro` no material que não tem o
+    canal: 1 no relevo, o liso); devolve como desfazer."""
     desfazer = []
     vistos = set()
     for ob in fontes:
@@ -259,7 +324,7 @@ def _emitir_canal(fontes, canal):
             em = nt.nodes.new('ShaderNodeEmission')
             no = nt.nodes.get(canal)
             if no is None:
-                em.inputs['Color'].default_value = (0.5, 0.5, 0.5, 1)
+                em.inputs['Color'].default_value = (neutro, neutro, neutro, 1)
             else:
                 nt.links.new(no.outputs[0], em.inputs['Color'])
             nt.links.new(em.outputs['Emission'], saida.inputs['Surface'])
@@ -274,75 +339,165 @@ def _desfazer(desfazer):
         nt.nodes.remove(em)
 
 
+def _desligar_finos(fontes):
+    """Zera a força dos relevos `fino` dos materiais das fontes (materiais._relevo): os que a textura não guarda. Devolve
+    como religar."""
+    religar = []
+    vistos = set()
+    for ob in fontes:
+        for slot in ob.material_slots:
+            m = slot.material
+            if m is None or m.name in vistos or not m.use_nodes:
+                continue
+            vistos.add(m.name)
+            for no in m.node_tree.nodes:
+                if no.type == 'BUMP' and no.label == 'fino':
+                    religar.append((no, no.inputs['Strength'].default_value))
+                    no.inputs['Strength'].default_value = 0.0
+    return religar
+
+
 def _pixels(img, lado):
     a = np.empty(lado * lado * 4, np.float32)
     img.pixels.foreach_get(a)
     return a.reshape(lado, lado, 4)
 
 
+def _cobertura(alvo, lado):
+    """Os texels (linhas de baixo para cima, como os pixels do Blender) com o centro dentro de algum triângulo da UV."""
+    cob = np.zeros((lado, lado), bool)
+    me = alvo.data
+    uv = me.uv_layers.active.data
+    me.calc_loop_triangles()
+    for tri in me.loop_triangles:
+        r = _triangulo_na_grade(uv, tri, lado)
+        if r is not None:
+            y0, x0, dentro = r
+            cob[y0:y0 + dentro.shape[0], x0:x0 + dentro.shape[1]] |= dentro
+    return cob
+
+
+def _estender(img, coberto, passos):
+    """A margem das ilhas: cada texel fora delas, vizinho de um coberto, recebe a média dos vizinhos cobertos, `passos`
+    vezes (o EXTEND do Blender, feito aqui para compor imagens assadas em grupos)."""
+    img, cob = img.copy(), coberto.copy()
+    for _ in range(passos):
+        soma = np.zeros_like(img)
+        conta = np.zeros(cob.shape, np.float32)
+        cp = np.pad(cob, 1)
+        ip = np.pad(img, ((1, 1), (1, 1), (0, 0)))
+        for dy in (0, 1, 2):
+            for dx in (0, 1, 2):
+                if dy == 1 and dx == 1:
+                    continue
+                c = cp[dy:dy + cob.shape[0], dx:dx + cob.shape[1]]
+                soma += ip[dy:dy + cob.shape[0], dx:dx + cob.shape[1]] * c[..., None]
+                conta += c
+        novo = ~cob & (conta > 0)
+        img[novo] = soma[novo] / conta[novo][:, None]
+        cob |= novo
+    return img
+
+
 def assar_conjunto(fontes, pecas_jogo, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=64, amostras_aa=16,
                    extrusao_mm=2.0):
-    """Assa o conjunto de texturas de um nível: normal, sombra de contato e os três canais. Grava `_n` e `_m`. O relevo
-    e os canais usam `amostras_aa` por pixel (antisserrilhado: o detalhe menor que o texel vira a média dele, não ruído);
-    a sombra de contato, `amostras_ao`; a sombra e a aspereza passam pelo filtro binomial e os canais de dados são
-    quantizados em degraus que não aparecem."""
+    """O conjunto de texturas de um nível de uma arma: um grupo só (as fontes para as peças de jogo, a gaiola de
+    `extrusao_mm` e o raio do dobro). Ver assar_grupos."""
+    return assar_grupos([(fontes, pecas_jogo, extrusao_mm, 2 * extrusao_mm)], lado_px, margem_px, pasta, nome_n, nome_m,
+                        amostras_ao, amostras_aa)
+
+
+def assar_grupos(grupos, lado_px, margem_px, pasta, nome_n, nome_m, amostras_ao=64, amostras_aa=16):
+    """Assa o conjunto de texturas: normal, sombra de contato e os três canais, e grava `_n` e `_m`. `grupos` =
+    [(fontes, alvos, extrusão da gaiola em mm, raio em mm)]: cada grupo casa os alvos (malhas de jogo) só com as fontes
+    dele (o modelo alto), na sua imagem, e as imagens são compostas pela cobertura de UV de cada grupo, com a margem
+    estendida depois (a margem de um grupo assada pelo Blender invadiria as ilhas do outro). A sombra de contato vê
+    todas as fontes (as peças fazem sombra na base). As luvas assam a base e as peças separadas: as bordas das peças
+    altas são arredondadas 1,6 mm para dentro das de jogo, e com tudo junto o raio da borda da peça atravessava e
+    pegava a base embaixo (manchas tortas nos cantos). O relevo e os canais usam `amostras_aa` por pixel
+    (antisserrilhado: o detalhe menor que o texel vira a média dele, não ruído); a sombra de contato, `amostras_ao`; a
+    sombra e a aspereza passam pelo filtro binomial e os canais de dados são quantizados em degraus que não aparecem.
+    Os relevos `fino` das fontes (o grão, a trama, o pontilhado das luvas, o relevo moldado das armas) ficam fora: com
+    um período de poucos texels, viravam moiré e ruído no WebP; no jogo eles vêm do shader — o do molde pelo tipo que o
+    canal `canal_relevo` grava no alfa do _n."""
     sc = bpy.context.scene
     estudio.gpu()
     sc.render.bake.use_selected_to_active = True
     # Sem limpar a imagem antes: o fundo neutro de cada canal fica onde nenhuma ilha é assada (limpar zerava tudo).
     sc.render.bake.use_clear = False
-    sc.render.bake.cage_extrusion = extrusao_mm * S
-    sc.render.bake.max_ray_distance = extrusao_mm * 2 * S
-    sc.render.bake.margin = margem_px
+    sc.render.bake.margin = 2  # só para não sobrar texel de borda sem valor; a margem de verdade é a composta
     sc.render.bake.margin_type = 'EXTEND'
-    alvo = _juntar_copias(pecas_jogo, f'alvo_{nome_n}')
-    fonte = _juntar_copias(fontes, f'fonte_{nome_n}')
-    for vis in ('visible_diffuse', 'visible_glossy', 'visible_shadow', 'visible_transmission', 'visible_volume_scatter'):
-        setattr(alvo, vis, False)
-    # Só a cópia do modelo alto faz sombra de contato: as peças (as do alto também), os LODs e o estúdio saem do assar.
-    fora = [o for o in bpy.context.scene.objects if o is not fonte and o is not alvo and not o.hide_render]
+    pares = []
+    for k, (fontes, alvos, extrusao_mm, raio_mm) in enumerate(grupos):
+        alvo = _juntar_copias(alvos, f'alvo_{nome_n}_{k}')
+        fonte = _juntar_copias(fontes, f'fonte_{nome_n}_{k}')
+        for vis in ('visible_diffuse', 'visible_glossy', 'visible_shadow', 'visible_transmission',
+                    'visible_volume_scatter'):
+            setattr(alvo, vis, False)
+        pares.append((fonte, alvo, extrusao_mm, raio_mm, _cobertura(alvo, lado_px)))
+    todas_as_fontes = [f for g in grupos for f in g[0]]
+    # Só as cópias do modelo alto fazem sombra de contato: os originais, os LODs e o estúdio saem do assar.
+    nossos = {o for par in pares for o in par[:2]}
+    fora = [o for o in sc.objects if o not in nossos and not o.hide_render]
     for o in fora:
         o.hide_render = True
-    imgs = {}
+    religar = _desligar_finos([par[0] for par in pares])
+    coberto = np.zeros((lado_px, lado_px), bool)
+    for par in pares:
+        coberto |= par[4]
+    arrays = {}
 
     def assar(tipo, chave, fundo, amostras=1, canal=None):
-        img = _imagem(f'{nome_n}_{chave}', lado_px, fundo=fundo)
-        nos = _ligar_imagem(alvo, img)
-        desfazer = _emitir_canal(fontes, canal) if canal else []
+        desfazer = _emitir_canal(todas_as_fontes, canal, fundo[0]) if canal else []
         sc.cycles.samples = amostras
-        selecionar([fonte, alvo], ativo=alvo)
         if tipo == 'NORMAL':
             sc.render.bake.normal_space = 'TANGENT'
             sc.render.bake.normal_r, sc.render.bake.normal_g, sc.render.bake.normal_b = 'POS_X', 'POS_Y', 'POS_Z'
-        bpy.ops.object.bake(type=tipo)
+        final = np.empty((lado_px, lado_px, 4), np.float32)
+        final[...] = fundo
+        for k, (fonte, alvo, extrusao_mm, raio_mm, cob) in enumerate(pares):
+            img = _imagem(f'{nome_n}_{chave}_{k}', lado_px, fundo=fundo)
+            nos = _ligar_imagem(alvo, img)
+            sc.render.bake.cage_extrusion = extrusao_mm * S
+            sc.render.bake.max_ray_distance = raio_mm * S
+            selecionar([fonte, alvo], ativo=alvo)
+            bpy.ops.object.bake(type=tipo)
+            for nt, n in nos:
+                nt.nodes.remove(n)
+            final[cob] = _pixels(img, lado_px)[cob]
+            bpy.data.images.remove(img)
         _desfazer(desfazer)
-        for nt, n in nos:
-            nt.nodes.remove(n)
-        imgs[chave] = img
+        arrays[chave] = _estender(final, coberto, margem_px)
 
     assar('NORMAL', 'normal', (0.5, 0.5, 1.0, 1.0), amostras_aa)
     assar('AO', 'ao', (1.0, 1.0, 1.0, 1.0), amostras_ao)
-    for chave, canal, neutro in (('aspereza', 'canal_aspereza', 0.5), ('borda', 'canal_borda', 0.0), ('cor', 'canal_cor', 0.5)):
+    for chave, canal, neutro in (('aspereza', 'canal_aspereza', 0.5), ('borda', 'canal_borda', 0.0), ('cor', 'canal_cor', 0.5),
+                                 ('relevo', 'canal_relevo', 1.0)):
         assar('EMIT', chave, (neutro, neutro, neutro, 1.0), amostras_aa, canal)
-    n = _pixels(imgs['normal'], lado_px)[..., :3]
-    ao = _suavizar(_pixels(imgs['ao'], lado_px)[..., 0])
-    aspereza = _suavizar(_pixels(imgs['aspereza'], lado_px)[..., 0])
-    m = np.stack([ao, aspereza] + [_pixels(imgs[k], lado_px)[..., 0] for k in ('borda', 'cor')], axis=2)
+    n = arrays['normal'][..., :3]
+    ao = _suavizar(arrays['ao'][..., 0])
+    aspereza = _suavizar(arrays['aspereza'][..., 0])
+    m = np.stack([ao, aspereza] + [arrays[k][..., 0] for k in ('borda', 'cor')], axis=2)
     # Os canais de dados só modulam o material (no oxidado, ±16 % de aspereza e ±6 % de cor): degraus de 4/255 na
     # aspereza e na cor e de 2/255 na sombra de contato não aparecem no jogo e cortam cerca de 30 % do WebP sem perdas
-    # (a `_m` da AK fica em 2,97 MB). A borda (o desgaste) fica inteira.
-    for canal, passo in ((0, 2.0), (1, 4.0), (3, 4.0)):
+    # (a `_m` da AK fica em 2,97 MB). A borda (o desgaste) também em degraus de 4/255 desde a 4.1c: é a rampa larga do
+    # gasto nas quinas, que o shader corta pelo desgaste da skin; inteira, os dentes dos trilhos da M4 a punham em 1,13
+    # MB (a `_m` da M4 de 3,29 para 2,61 MB).
+    for canal, passo in ((0, 2.0), (1, 4.0), (2, 4.0), (3, 4.0)):
         m[..., canal] = np.round(m[..., canal] * 255.0 / passo) * passo / 255.0
     # O WebP sem perdas pode trocar o RGB dos pixels de alfa 0: a variação de cor (o alfa) fica em 1/255 no mínimo.
     m[..., 3] = np.maximum(m[..., 3], 1.0 / 255.0)
+    # O relevo moldado no alfa do _n: o tipo (1 − 32·id/255) nunca chega a 0, então o RGB da normal fica intacto no WebP.
+    relevo = np.clip(arrays['relevo'][..., :1], 0.5, 1.0)
     caminhos = {
-        nome_n: _gravar_webp(pasta, nome_n, np.concatenate([n, np.ones((lado_px, lado_px, 1), np.float32)], axis=2), False),
+        nome_n: _gravar_webp(pasta, nome_n, np.concatenate([n, relevo], axis=2), True),
         nome_m: _gravar_webp(pasta, nome_m, m, True),
     }
-    bpy.data.objects.remove(alvo)
-    bpy.data.objects.remove(fonte)
+    for no, forca in religar:
+        no.inputs['Strength'].default_value = forca
+    for fonte, alvo, *_ in pares:
+        bpy.data.objects.remove(alvo)
+        bpy.data.objects.remove(fonte)
     for o in fora:
         o.hide_render = False
-    for img in imgs.values():
-        bpy.data.images.remove(img)
     return caminhos

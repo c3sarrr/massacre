@@ -3,8 +3,8 @@
 #   blender -b --factory-startup --python-exit-code 1 -P tools/blender/armas/principal.py -- <ação> <contexto.json>
 # Ações: construir (modelo alto e de jogo, zonas, peças móveis, soquetes, UV, assar, LODs, validar, gravar a .blend da
 # conferência e exportar), validar (reabre a .blend e refaz a validação, sem exportar) e conferir (reabre a .blend e
-# renderiza as vistas). O contexto (JSON) traz a ficha, a pintura de fábrica, as peças, as zonas, os soquetes, o
-# orçamento, as pastas e o hash das entradas. As linhas `MASSACRE-*` da saída são lidas pelo lançador; reprovado sai com
+# renderiza as vistas). Desde a 4.1b o construir resolve também a pega das luvas (empunhadura_pega.py) e o validar a refaz. O contexto (JSON) traz a ficha, a pintura de fábrica, as peças, as zonas, os soquetes, o
+# orçamento, as pastas e o hash das entradas. O alvo `luvas` (Fase 4.1b) tem as mesmas três ações em luvas.py. As linhas `MASSACRE-*` da saída são lidas pelo lançador; reprovado sai com
 # código 1 (o lançador mostra os problemas).
 import importlib
 import json
@@ -17,7 +17,8 @@ sys.path.insert(0, os.path.dirname(AQUI))
 
 import bpy  # noqa: E402
 
-from armas import assar, conferir, exportar, lod, materiais, pecas, soquetes, validar, zonas  # noqa: E402
+from armas import (assar, conferir, empunhadura_pega, exportar, gravar, lod, luvas, materiais, pecas,  # noqa: E402
+                   relevo, soquetes, validar, zonas)
 
 
 def _colecao(nome):
@@ -56,13 +57,12 @@ def _validar(ctx, arma, lods, jogo):
     triângulos, peças, zonas), os soquetes, as texturas gravadas e as UVs dos dois conjuntos (perto e mundo; o longe
     usa as do mundo)."""
     pecas_jogo = _malhas(jogo)
-    canos = [o for o in pecas_jogo if o.name.split('.')[0] == 'cano']
     soquetes_def = arma.soquetes(ctx['ficha'])
     nomes_soq = [o.name[len('soquete_'):] for o in bpy.data.collections['soquetes'].objects]
     perto = _pecas(lods['perto'])
     uv = assar.sobreposicao_uv(perto) + assar.sobreposicao_uv(_pecas(lods['mundo']))
     densidade = assar.densidade_texel(perto, ctx['orcamento']['textura'])
-    return validar.relatorio_e_problemas(ctx, ctx['ficha'], lods, soquetes_def, nomes_soq, canos, pecas_jogo, _lados(ctx),
+    return validar.relatorio_e_problemas(ctx, ctx['ficha'], lods, soquetes_def, nomes_soq, pecas_jogo, _lados(ctx),
                                          uv, densidade, ctx['conferencia'])
 
 
@@ -74,7 +74,10 @@ def construir(ctx):
     orc = ctx['orcamento']
     os.makedirs(ctx['saida'], exist_ok=True)
     os.makedirs(ctx['conferencia'], exist_ok=True)
-    M = materiais.materiais_de_fabrica(ctx['fabrica'])
+    M = materiais.materiais_de_fabrica(ctx['fabrica'], ctx['veio'])
+    # O relevo moldado (correções da P1 da 4.1c): as regiões de textura do molde que o script da arma declara, nos
+    # materiais de zona (as renders do modelo alto) e no canal do alfa do _n (o assar).
+    caixas_relevo = relevo.montar(M, arma.relevos(ficha) if hasattr(arma, 'relevos') else [], ctx.get('relevos', {}))
     alto = pecas.iniciar('alto', 'alto')
     arma.construir(ficha, M)
     pecas.finalizar(alto)
@@ -90,6 +93,19 @@ def construir(ctx):
     lista_perto = [perto[p] for p in pivos]
     fontes = _malhas(alto)
     _etapa(t0, 'peças móveis e soquetes')
+    # A pega (Fase 4.1b): as luvas refeitas pelo mesmo script e o solver na arma de jogo (o perto, peças em repouso).
+    # Só nas categorias que já têm a regra (src/data/luvas.js, CATEGORIAS_COM_PEGA: o fuzil, a faca e a pistola) e nas
+    # armas que não esperam a regra delas (`pega: false` em src/data/armasReais.js): nas outras a arma sai sem a pega,
+    # como no jogo, que monta as luvas só onde ela existe.
+    com_pega = ctx.get('pega', True)
+    if com_pega:
+        mao, bracos = empunhadura_pega.montar_luvas(ctx, _colecao('luvas'))
+        pega, rel_pega, problemas_pega = empunhadura_pega.resolver(ctx, mao, bracos, perto, soqs,
+                                                                   getattr(arma, 'EMPUNHADURA', None))
+        empunhadura_pega.guardar(bracos, pega)
+        _etapa(t0, f"empunhadura ({rel_pega['segundos']} s)")
+    else:
+        rel_pega, problemas_pega = None, []
     assar.uv_automatico(lista_perto, orc['textura'], 8)
     assar.assar_conjunto(fontes, lista_perto, orc['textura'], 8, ctx['saida'], f"{ctx['id']}_n", f"{ctx['id']}_m")
     _etapa(t0, f"UV e assar o perto ({orc['textura']} px)")
@@ -104,20 +120,29 @@ def construir(ctx):
     lods = {'perto': perto, 'mundo': mundo, 'longe': longe}
     _etapa(t0, 'longe: LOD')
     rel, problemas = _validar(ctx, arma, lods, jogo)
+    problemas += problemas_pega
     _etapa(t0, 'validar')
+    if rel_pega is not None:
+        rel['empunhadura'] = rel_pega
     rel.update({
         'arma': ctx['id'], 'versao': 1, 'blender': bpy.app.version_string, 'gerado': time.strftime('%Y-%m-%dT%H:%M:%S'),
         'entradas': {'hash': ctx['hash']}, 'origemMM': list(arma.ORIGEM_MM),
         'dizimacao': {'mundo': round(razao_mundo, 4), 'longe': round(razao_longe, 4)},
         'facesEscondidasRemovidas': perto['_removidas'],
+        # as zonas com relevo moldado e a caixa da máscara (mm, x0 x1 z0 z1): o validador do Node só exige o alfa do _n
+        # nelas — sem relevo o alfa é todo 255 e o WebP o descarta (o jogo lê 1: liso)
+        'relevos': {z: [round(v, 2) for v in c] for z, c in sorted(caixas_relevo.items())},
     })
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ctx['conferencia'], f"{ctx['id']}.blend"))
+    blend = os.path.join(ctx['conferencia'], f"{ctx['id']}.blend")
+    gravar.com_novas_tentativas(lambda: bpy.ops.wm.save_as_mainfile(filepath=blend), blend)
     if problemas:
         rel.update({'aprovado': False, 'problemas': problemas})
         exportar.gravar_relatorio(ctx['saida'], ctx['id'], rel)
         print('MASSACRE-REPROVADO', json.dumps(problemas, ensure_ascii=False))
         sys.exit(1)
-    exportar.exportar(ctx, arma.ORIGEM_MM, lods, soqs, ctx['saida'])
+    objetos_pega = (empunhadura_pega.objetos_da_saida(mao, bracos, pega, rel_pega['marca'], _colecao('pega'))
+                    if com_pega else None)
+    exportar.exportar(ctx, arma.ORIGEM_MM, lods, soqs, ctx['saida'], objetos_pega)
     _etapa(t0, 'exportar')
     tamanhos = {nome: os.path.getsize(os.path.join(ctx['saida'], nome)) for nome in sorted(os.listdir(ctx['saida']))
                 if nome.startswith(ctx['id']) and not nome.endswith('.relatorio.json')}
@@ -139,15 +164,28 @@ def revalidar(ctx):
     for nivel in ('perto', 'mundo', 'longe'):
         lods[nivel] = {o.name[len(nivel) + 1:]: o for o in bpy.data.collections[nivel].objects if o.type == 'MESH'}
     rel, problemas = _validar(ctx, arma, lods, bpy.data.collections['jogo'])
-    print('MASSACRE-VALIDACAO', json.dumps({'silhueta': rel['silhueta'], 'medidas': rel['medidas'], 'problemas': problemas},
-                                           ensure_ascii=False))
+    rel_pega = None
+    if ctx.get('pega', True):
+        mao, bracos = empunhadura_pega.luvas_da_blend(ctx)
+        soqs = list(bpy.data.collections['soquetes'].objects)
+        _pega, rel_pega, problemas_pega = empunhadura_pega.resolver(ctx, mao, bracos, lods['perto'], soqs,
+                                                                    getattr(arma, 'EMPUNHADURA', None))
+        problemas += problemas_pega
+    print('MASSACRE-VALIDACAO', json.dumps({'silhueta': rel['silhueta'], 'medidas': rel['medidas'],
+                                            'empunhadura': rel_pega, 'problemas': problemas}, ensure_ascii=False))
     if problemas:
         sys.exit(1)
 
 
 def acao_conferir(ctx):
     bpy.ops.wm.open_mainfile(filepath=os.path.join(ctx['conferencia'], f"{ctx['id']}.blend"))
-    arquivos, dispositivo = conferir.conferir(ctx, ctx['conferencia'])
+    arquivos, dispositivo = conferir.conferir(ctx, ctx['conferencia'], arma=importlib.import_module(f"armas.{ctx['id']}"))
+    print('MASSACRE-CONFERIR', json.dumps(arquivos, ensure_ascii=False))
+    print('MASSACRE-DISPOSITIVO', dispositivo)
+
+
+def conferir_luvas(ctx):
+    arquivos, dispositivo = luvas.conferir(ctx)
     print('MASSACRE-CONFERIR', json.dumps(arquivos, ensure_ascii=False))
     print('MASSACRE-DISPOSITIVO', dispositivo)
 
@@ -157,7 +195,11 @@ def principal():
     acao, caminho = args[0], args[1]
     with open(caminho, encoding='utf-8') as f:
         ctx = json.load(f)
-    {'construir': construir, 'validar': revalidar, 'conferir': acao_conferir}[acao](ctx)
+    if ctx['id'] == 'luvas':
+        acoes = {'construir': luvas.construir, 'validar': luvas.validar, 'conferir': conferir_luvas}
+    else:
+        acoes = {'construir': construir, 'validar': revalidar, 'conferir': acao_conferir}
+    acoes[acao](ctx)
 
 
 principal()

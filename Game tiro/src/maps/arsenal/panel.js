@@ -4,11 +4,13 @@
 // detalhe; explodir as peças, mostrar as âncoras e os soquetes, sobrepor a planta, parar a roda, medir a silhueta contra
 // a planta (a realista traz a medida do Blender), reler do disco depois de exportar do Blender e "segurar" a arma (o
 // viewmodel com a câmera parada). Linha de informação com a origem, os triângulos e o tempo de carga ou de geração.
+// Fase 4.1b: na realista com pega, o seletor da facção das luvas (a pintura do "Segurar"; a arma não tem acento).
 
 import { h } from '../../ui/dom.js';
 import { WEAPONS } from '../../data/weapons.js';
 import { CLAY_SKINS, CLAY_SKIN_IDS } from '../../data/claySkins.js';
 import { SKINS_ARMA } from '../../data/skinsArma.js';
+import { FACCOES_DAS_LUVAS, LUVAS } from '../../data/luvas.js';
 import { FABRICA, PERSONALIZADA } from '../../weapons/skins/skin.js';
 import { section, segmented, slider, switchRow } from '../../debug/panelControls.js';
 
@@ -29,6 +31,7 @@ const pct = (v) => `${(v * 100).toFixed(1).replace('.', ',')} %`;
 export function createArsenalPanel(s, { bench, onClose, onHold = null, isHolding = () => false }) {
   const weaponSeg = segmented('Arma na roda', bench.ids.map((id) => ({ id, label: WEAPONS[id]?.name ?? id })), (id) => bench.select(id));
   const factionSeg = segmented('Facção do acento', FACTIONS, (id) => bench.setFaction(id));
+  const glovesSeg = segmented('Facção das luvas', FACCOES_DAS_LUVAS.map((id) => ({ id, label: LUVAS.pinturas[id].nome })), (id) => bench.setGloveFaction(id));
   const lodSeg = segmented('Nível de detalhe', LODS, (id) => bench.setLod(id));
   const skinSelect = h('select.clay-select', { 'aria-label': 'Skin' });
   let skinKind = null; // 'glb' ou 'massinha': o jogo de opções que o seletor tem agora
@@ -91,7 +94,7 @@ export function createArsenalPanel(s, { bench, onClose, onHold = null, isHolding
     h('header.vt-head', null, h('h2.vt-title', null, 'Bancada de armas'),
       h('p.vt-note', null, 'As armas realistas saem do Blender (assets/armas/); as de massinha, das receitas em src/data/armas/. Clique na cena ou Tab/Esc para voltar à câmera.'), close),
     section('Arma', weaponSeg.el, hold, info),
-    section('Aparência', h('div.vt-row', null, h('span.vt-label', null, 'Skin'), skinSelect), factionSeg.el, lodSeg.el),
+    section('Aparência', h('div.vt-row', null, h('span.vt-label', null, 'Skin'), skinSelect), factionSeg.el, glovesSeg.el, lodSeg.el),
     section('Oficina', explode.el, anchors.el, plan.el, spin.el, measure, measureOut, reload, reloadOut),
   );
   root.addEventListener('keydown', (e) => {
@@ -108,6 +111,8 @@ export function createArsenalPanel(s, { bench, onClose, onHold = null, isHolding
     weaponSeg.set(st.id);
     factionSeg.el.hidden = glb;
     factionSeg.set(st.faction);
+    glovesSeg.el.hidden = !(glb && s.weaponModels.info(st.id)?.pega);
+    glovesSeg.set(st.gloves);
     for (const b of lodSeg.buttons) b.hidden = b.dataset.pick === 'longe' && !glb;
     lodSeg.set(st.lod);
     fillSkins(glb ? 'glb' : 'massinha');

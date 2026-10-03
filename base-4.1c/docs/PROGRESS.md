@@ -1104,12 +1104,85 @@ desgaste=0,5`.
 
 Git: a 4.1a está na árvore de trabalho da `fase-3.1`, junto com a 3.5 e a 4.1, sem commit, esperando o pedido.
 
-### Em andamento: subfase 4.1b — Luvas, braço de massinha e empunhadura
+### Subfase 4.1b — Luvas, braço de massinha e empunhadura ✅ (2026-09-27; o FPS na máquina do usuário a medir)
 
-Luvas táticas de 5 dedos feitas no Blender como as armas, no braço de massinha do boneco (sem manga e sem roupa, decisão
-de 2026-09-26), com a braçadeira de massa em modo de time; o rig das mãos e o solver de empunhadura (nenhum dedo
-atravessando a arma nem flutuando; a mão da frente com o polegar reto de um lado e os quatro dedos do outro, regra de
-2026-09-27); a AK segurada em primeira pessoa, com uma mão só na tela; o rebatedor da bancada. Desenho em
-`docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md`, plano em
-`docs/superpowers/plans/2026-09-26-4.1b-luvas-e-empunhadura.md` (Tarefas 0 a 13 feitas; faltam o aceite no navegador e
-o relatório, que entra aqui no lugar deste resumo).
+Desenho em `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md`; plano de desenho em
+`docs/superpowers/plans/2026-09-26-4.1b-luvas-e-empunhadura.md`; plano executado (gerado do diff da cópia de trabalho,
+validado numa cópia limpa e aplicado aqui pelo mesmo roteiro): `docs/phases/phase-4.1b-plan.md`. Referências na seção 15
+do moodboard: as fontes da ficha das luvas (ANSUR II, Buryanov e Kotiuk, Greiner, AAOS, Cooney), os boards QTG, QGL e
+QFH, as buscas das luvas táticas e do TPR moldado, e a imagem da AK no CS:GO que o usuário mandou na parada P2.
+
+Decisões do usuário: sem manga e sem roupa por enquanto (as próximas fases furam o boneco de massinha); a luva tática
+realista no braço de massinha do boneco, com a braçadeira de massa em modo de time; o protetor de borracha moldada nos
+nós; na mão da frente de toda arma, só o polegar de um lado — reto, deitado e encostado, sem curva — e os quatro dedos
+do outro, como a AK no CS:GO; uma mão só na tela; o rebatedor branco na bancada; texturas CC0 de bibliotecas abertas
+liberadas para o Blender (cgbookcase, Poly Haven, ambientCG e o CC0 Asset Index; seção 0.7 do `CLAUDE.md`).
+
+O que entrou:
+- **Ficha das luvas** (`tools/blender/refs/luvas.json`, validada por `src/characters/hands/fichaLuvas.js`): cada número
+  com a fonte — a mão média, os ossos entre as juntas, a largura e a volta nas juntas, os limites das juntas e a rotação
+  do metacarpo do polegar.
+- **Luvas no Blender** (`tools/blender/armas/`): o gerador de quadriláteros (`maos.py`, com medidas, limites, gaiola e
+  cápsulas), os detalhes que fazem silhueta e o modelo alto assado no relevo (`maos_detalhes.py`, `maos_alto.py`),
+  couro, tecido e borracha em `materiais.py`, o rig de 20 ossos por braço com os pesos do gerador e as correções das
+  dobras (`maos_rig.py`, `maos_correcoes.py`), a validação das poses (`validar_maos.py`), a UV por costuras, o assar e a
+  exportação (`luvas.py`); `npm run blender -- construir|validar|conferir|abrir luvas`.
+- **Solver de empunhadura** dentro do `construir` de cada arma (`empunhadura*.py`): a palma no soquete, os dedos
+  fechando juntos até encostar, os vizinhos sem se atravessar (e, na mão da frente, lado a lado), o indicador no
+  gatilho pela IK, o polegar deitado na face esquerda na mão da frente; a pega vai no `.glb` da arma (nós `pega_mao_*`,
+  o clipe `empunhadura`, a marca do rig, as sondas). A validação bloqueia a exportação: penetração, contatos, os lados
+  (o polegar de um, os dedos do outro), o polegar reto e deitado, os dedos lado a lado, a luva sem se atravessar e os
+  ângulos no limite da ficha; a saída do Node (`tools/blender/saidaLuvas.mjs`, `saidaPega.mjs`) repete as contas.
+- **Jogo**: `src/data/luvas.js` (zonas, pinturas por facção, limites da pega), os acabamentos de couro e tecido e a
+  borracha moldada, a carga das luvas (`luvasSource.js`), o braço de luva com o modelo das dobras igual ao do Blender
+  (`bracoLuva.js`, `modeloDobras.js`, `moldeLuva.js`), o antebraço de massinha em SDF (`antebracoMassa.js`, a forma
+  `tronco`), o viewmodel com as luvas na arma com pega e a massinha nas outras (`bracosLuva.js`), os cotovelos do
+  `rifle` com o pulso dentro dos limites nas três posições do CS, a bancada com "Segurar" e o seletor de facção, os
+  comandos `luvas` e `luvas_contato` (a luva deformada de verdade contra a arma, comparada com o Blender) e o rebatedor
+  de isopor (`src/maps/arsenal/rebatedor.js`, `set.foam`).
+- **Documentos**: regras 3 e 4 e a tabela de paridade em "as armas e as luvas"; a seção 0.7 "Mãos" e a nova "Texturas
+  CC0 no Blender"; a 0.12 com o "sem roupa por enquanto"; o desenho geral com cada mudança e o que era; a seção 15 do
+  moodboard.
+
+Números medidos:
+- `construir luvas`: 6 748 triângulos por luva (base 5 568, detalhes 1 180; orçamento 7 000); medidas 0,00 % no
+  comprimento e na largura, −0,35 % no pulso; poses de teste com penetração de 0,049 mm e a pior junta a 0,90 da
+  espessura; 3,66 MB (`luvas.glb` 0,34, `_n` 1,69, `_m` 1,61; orçamento 6 MB).
+- `construir ak47` com a pega: aprovada, silhueta 99,9 %, 5,10 MB; mão do gatilho entrando 0,044 mm; mão da frente com o
+  polegar a 0° de curva e +20,1 mm do meio da arma, os dedos de −16,2 a −25,3 mm do outro lado e a falange média de
+  cada dedo a 1,55 / 2,64 / 6,77 mm da do vizinho.
+- No jogo (Chromium com SwiftShader na nuvem, preset Leve): `luvas_contato` nas duas facções e nas três posições do CS
+  com a pior diferença para o Blender de 0,02 mm (limite 0,05), a luva entrando no máximo 0,06 mm e cada contato a até
+  0,03 mm; memória igual do segundo ciclo em diante (menu 32/26/49, bancada 109/35/66, pista 86/93/76) e nas 30 trocas
+  de arma (76/95/60, heap 77,6 MB); o rebatedor clareia o receptor de 0,0024 para 0,0390 e de 0,0004 para 0,0269 de
+  luminância; nenhum erro do jogo no console. **FPS e quadro p95 na pista com a AK: a medir na máquina do usuário** (o
+  SwiftShader desenha na CPU): `map pista`, `arma ak47`, `r_preset alto`, `overlay completo`.
+
+Revisão crítica (achado → correção; o detalhe de cada uma no plano de desenho, paradas P1 e P2 e Tarefas 12 a 14):
+- O polegar da mão da frente subia na vertical, depois dobrava em arco com só a ponta encostada → o polegar reto e
+  deitado na face esquerda (a IK pelo comprimento, com a face e o eixo), e a validação da curva e da folga.
+- Os dedos da mão da frente do lado do polegar → a regra dos lados (a polpa de cada um a pelo menos 5 mm do meio).
+- Os dedos da mão da frente em leque pelo lado direito → `juntar_dedos` e a validação dos dedos lado a lado.
+- O sinal da abertura na mão esquerda (espelhada) invertido → `para_fora(dedo, lado)`.
+- A penetração passava despercebida além de 6 mm → a validação mede sem o limite das buscas.
+- O coiote saía no mesmo laranja da madeira da AK → mais escuro e puxado para o oliva, com o teste do contraste.
+- O grão do couro parecia craquelado → seixinhos arredondados com o vale largo e raso.
+- O pulso da mão da frente perto do limite → os cotovelos por minimax, cada ângulo a no máximo 91 % do limite.
+- O receptor quase preto na bancada → o rebatedor de isopor aceso pelo rim, sem sombra no tapete.
+
+Ficou de fora (com o porquê, no plano): as facetas de perto no protetor dos nós e nas pontas (não aparecem na primeira
+pessoa; entram com a inspeção da 4.3 — pedem triângulos das costas e da palma ou mais orçamento); o gancho do polegar da
+mão do gatilho (a IP a 78,8° de 80°; a mão fica fora da tela até a inspeção e a terceira pessoa); a memória
+(`massacre-workflow-rules`, `massacre-game-project`) fica para a próxima sessão no Windows, com o que acrescentar
+anotado no plano.
+
+Como testar: `npm test` (454 testes, 84 novos); `npm run blender -- construir luvas` e `construir ak47 --forcar`;
+`npm run blender -- conferir ak47` (as vistas de perto das mãos); no jogo, `map pista`, `arma ak47`, `luvas`,
+`luvas_contato`, `cl_bracadeira tr|ct`, `viewmodel_presetpos 1|2|3`; `arsenal` com "Segurar (primeira pessoa)" e o
+seletor de facção no painel (Tab).
+
+### Próxima: subfase 4.1c — Glock-18, M4A4 e a baioneta M9
+
+As três armas no caminho provado, cada uma com a ficha, a régua e a pega (a regra da mão da frente vale na M4A4; as
+regras da pistola e da faca entram com elas), no desenho geral (`docs/superpowers/specs/2026-09-26-armas-realistas-
+design.md`, seção 8.1).
