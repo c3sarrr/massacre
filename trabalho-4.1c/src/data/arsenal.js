@@ -85,12 +85,23 @@ export const ARSENAL = F({
   ]),
   label: SHOWCASE_SET.label,
   // "Explodir" do painel: cada grupo (massinha) ou peça móvel (realista) se afasta do corpo nessa direção (u por unidade
-  // da régua). O cão da realista sai por cima e para a direita; o seletor, para a direita.
+  // da régua; referencial da arma: +X a boca, +Y em cima, +Z o lado direito). Pela tabela do nome (as peças da AK e os
+  // grupos das de massinha): o cão da AK sai por cima e para a direita; o ferrolho e o seletor, para a direita, o lado
+  // deles. O carregador que desliza sai pelo eixo dele (o `eixo` do .glb: o da Glock pelo eixo do punho, para baixo e
+  // para trás, sem atravessar a frente do punho). `byWeapon` vale sobre os dois quando a peça da arma está noutro lugar
+  // (4.1c, Tarefa 13): o ferrolho da Glock (a corrediça por cima da armação) sobe; o seletor da Glock e o da M4 (a
+  // alavanca do lado esquerdo) saem pela esquerda, pelo eixo de giro; a alavanca de manejo da M4 sai para trás pelo
+  // trilho dela e sobe acima da coronha; a tampa da janela da M4 (no lado direito, sem direção na tabela) sai para a
+  // direita.
   explode: F({
     max: 8,
     dirs: F({
       carregador: F([0, -1, 0]), ferrolho: F([0, 0, 1]), slide: F([0, 1, 0]), gatilho: F([0, -0.8, 0.6]),
       bomba: F([1, -0.2, 0]), alavanca: F([0, 0.3, 1]), silenciador: F([1, 0, 0]), cao: F([0, 0.5, 1]), seletor: F([0, 0, 1]),
+    }),
+    byWeapon: F({
+      glock: F({ ferrolho: F([0, 1, 0]), seletor: F([0, 0, -1]) }),
+      m4a4: F({ alavanca: F([-0.8, 0.6, 0]), seletor: F([0, 0, -1]), tampa: F([0, 0, 1]) }),
     }),
   }),
   anchorSize: 2.4, // eixos das âncoras

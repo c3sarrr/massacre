@@ -203,7 +203,8 @@ async function abrir(id) {
 }
 
 /**
- * Como rodarSemJanela, mas mostra as etapas (`MASSACRE-ETAPA`) enquanto o Blender trabalha: o construir leva minutos.
+ * Como rodarSemJanela, mas mostra as etapas (`MASSACRE-ETAPA`) e os avisos (`MASSACRE-AVISO`) enquanto o Blender
+ * trabalha: o construir leva minutos.
  * Devolve a saída inteira; com código diferente de zero lança com as últimas linhas, como o rodarSemJanela.
  */
 function rodarComEtapas(args, script, rotulo) {
@@ -221,6 +222,8 @@ function rodarComEtapas(args, script, rotulo) {
       const linhas = (resto + pedaco).split('\n');
       resto = linhas.pop();
       for (const linha of linhas) {
+        // os avisos (a avaliação ruim do booleano refeita, tools/blender/armas/canonica.py) aparecem como chegam
+        if (linha.startsWith('MASSACRE-AVISO ')) console.log(`  ${rotulo} · aviso: ${linha.slice('MASSACRE-AVISO '.length).trim()}`);
         if (!linha.startsWith('MASSACRE-ETAPA ')) continue;
         const { etapa, s } = JSON.parse(linha.slice('MASSACRE-ETAPA '.length));
         console.log(`  ${rotulo} · ${etapa} (${s} s)`);
@@ -419,6 +422,13 @@ async function abrirLuvas() {
   return `Blender aberto com ${blend}`;
 }
 
+// O booleano exato do Blender 5.2 às vezes sai ruim num processo inteiro: a malha avaliada de uma peça com vértices que
+// não são número e arestas soltas, a mesma em todas as reavaliações dentro dele (tools/blender/armas/canonica.py,
+// TENTATIVAS: o quebra-chamas da M4A4 em 2 de 3 construções por aqui, nenhuma em 14 do Blender chamado direto), e num
+// processo novo a certa, sempre a mesma. O construir que cai nisso (MalhaRuim) é refeito num processo novo, até
+// PROCESSOS vezes.
+const PROCESSOS = 3;
+
 async function construirReal(id, forcar) {
   const { arquivo, ctx } = await contextoReal(id, { forcar });
   const rel = join(ctx.saida, `${id}.relatorio.json`);
@@ -429,7 +439,17 @@ async function construirReal(id, forcar) {
     }
   }
   const t0 = Date.now();
-  await rodarComEtapas(['construir', arquivo], SCRIPT_REAIS, id);
+  for (let k = 1; ; k++) {
+    try {
+      await rodarComEtapas(['construir', arquivo], SCRIPT_REAIS, id);
+      break;
+    } catch (err) {
+      if (k >= PROCESSOS || !/MalhaRuim/.test(err.message)) throw err;
+      const linha = err.message.split('\n').find((l) => l.includes('MalhaRuim:')) ?? '';
+      console.log(`  ${id} · o booleano saiu ruim neste processo do Blender (${linha.split('MalhaRuim:')[1]?.trim() ?? '?'}); `
+        + `construindo de novo num processo novo (${k + 1} de ${PROCESSOS})`);
+    }
+  }
   return `${id}: construída em ${((Date.now() - t0) / 1000).toFixed(0)} s — ${resumoSaida(id)}`;
 }
 

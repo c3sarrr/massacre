@@ -3,11 +3,15 @@
 // primitivas, materiais e acessores), do cabeçalho de cada .webp (lado e se é sem perdas) e do relatório que o Blender
 // gravou. `validarSaida` confere tudo contra o registro das armas realistas (src/data/armasReais.js): os três níveis com
 // as peças da arma, as zonas, os soquetes da categoria, os triângulos e as texturas do orçamento, as tangentes e as UV
-// do nível de perto, o total dos arquivos e os números do relatório (medidas ±1 %, silhueta ≥ 98 % com tolerância).
+// do nível de perto, o total dos arquivos e os números do relatório (medidas ±1 %, silhueta ≥ 98 % com tolerância); desde
+// a 4.1b, a pega das luvas nas categorias com regra (saidaPega.mjs e src/characters/hands/pega.js).
 
 import { readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ARMAS_REAIS, LODS_REAIS, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
+import { ARMAS_REAIS, LODS_REAIS, armaComPega, medidasDaArma, orcamentoDaArma, soquetesDaArma } from '../../src/data/armasReais.js';
+import { LUVAS } from '../../src/data/luvas.js';
+import { lerPega } from '../../src/characters/hands/pega.js';
+import { validarPega } from './saidaPega.mjs';
 
 const GLTF = 0x46546c67;
 const JSON_CHUNK = 0x4e4f534a;
@@ -74,8 +78,8 @@ export function resumoGlb(json, id) {
             const zona = materiais[p.material]?.name ?? null;
             if (zona && !zonas.includes(zona)) zonas.push(zona);
             if (zona) zonasUsadas.add(zona);
-            if (!p.attributes.TANGENT) lod.tangentes = false;
-            if (!p.attributes.TEXCOORD_0) lod.uv = false;
+            if (p.attributes.TANGENT === undefined) lod.tangentes = false; // pela chave: o acessor 0 é válido
+            if (p.attributes.TEXCOORD_0 === undefined) lod.uv = false;
           }
         }
         pilha.push(...filhos(n));
@@ -129,6 +133,22 @@ export function ladoWebp(buf) {
   throw new Error('.webp sem o bloco da imagem');
 }
 
+/**
+ * As medidas-chave do relatório contra as da classe da arma (Fase 4.1c; plano da 4.1c, D3): cada uma presente e a ±1 %
+ * do alvo da ficha, e nenhuma fora da lista.
+ * @returns {string[]}
+ */
+export function problemasDasMedidas(relatorio, medidas) {
+  const p = [];
+  const tem = relatorio?.medidas ?? {};
+  for (const m of medidas) if (!tem[m]) p.push(`o relatório não tem a medida ${m}`);
+  for (const [m, d] of Object.entries(tem)) {
+    if (!medidas.includes(m)) p.push(`medida ${m} fora das da classe`);
+    if (!(Math.abs(d.erro) <= 0.01)) p.push(`medida ${m}: ${d.mm} mm contra ${d.alvo} mm (erro ${d.erro >= 0 ? '+' : ''}${(d.erro * 100).toFixed(2)} %)`);
+  }
+  return p;
+}
+
 /** Arquivos que a construção grava para uma arma (pasta do registro). */
 export function arquivosDaArma(id) {
   return {
@@ -158,7 +178,8 @@ export function validarSaida(id, raiz) {
   for (const f of Object.values(arqs)) bytes += statSync(join(pasta, f)).size;
   if (bytes > orc.arquivosMB * 1024 * 1024) problemas.push(`arquivos: ${(bytes / 1048576).toFixed(2)} MB (orçamento ${orc.arquivosMB} MB)`);
 
-  const resumo = resumoGlb(lerGlb(readFileSync(join(pasta, arqs.glb))).json, id);
+  const json = lerGlb(readFileSync(join(pasta, arqs.glb))).json;
+  const resumo = resumoGlb(json, id);
   const pecas = ['base', ...a.pecas];
   for (const lod of LODS_REAIS) {
     const l = resumo.lods[lod];
@@ -178,24 +199,43 @@ export function validarSaida(id, raiz) {
   for (const z of a.zonas) if (!resumo.zonas.includes(z)) problemas.push(`falta a zona ${z}`);
   for (const s of soquetesDaArma(id)) if (!resumo.soquetes[s]) problemas.push(`falta o soquete ${s}`);
 
+  const relatorio = JSON.parse(readFileSync(join(pasta, arqs.relatorio), 'utf8'));
+  // o alfa do _n é o relevo moldado (correções da P1 da 4.1c): o tipo da textura do molde, liso = 255; numa arma sem
+  // nenhuma região (a AK) o alfa é todo 255 e o WebP o descarta — o jogo lê 1, liso
+  const comRelevo = Object.keys(relatorio.relevos ?? {}).length > 0;
   const texturas = { [arqs.n]: orc.textura, [arqs.m]: orc.textura, [arqs.mundoN]: orc.texturaMundo, [arqs.mundoM]: orc.texturaMundo };
   for (const [arq, lado] of Object.entries(texturas)) {
     const w = ladoWebp(readFileSync(join(pasta, arq)));
     if (w.largura !== lado || w.altura !== lado) problemas.push(`${arq}: ${w.largura}×${w.altura} (esperava ${lado}×${lado})`);
     if (!w.semPerdas) problemas.push(`${arq}: WebP com perdas (os canais empacotados precisam do sem perdas)`);
     if (arq.endsWith('_m.webp') && !w.alfa) problemas.push(`${arq}: sem o canal alfa (variação de cor)`);
+    if (comRelevo && arq.endsWith('_n.webp') && !w.alfa) problemas.push(`${arq}: sem o canal alfa (relevo moldado)`);
   }
 
-  const relatorio = JSON.parse(readFileSync(join(pasta, arqs.relatorio), 'utf8'));
   if (relatorio.arma !== id) problemas.push(`relatório de ${relatorio.arma}, esperava ${id}`);
   if (!relatorio.aprovado) problemas.push(`o Blender reprovou: ${(relatorio.problemas ?? []).join('; ')}`);
-  for (const [m, d] of Object.entries(relatorio.medidas ?? {})) {
-    if (!(Math.abs(d.erro) <= 0.01)) problemas.push(`medida ${m}: ${d.mm} mm contra ${d.alvo} mm (erro ${(d.erro * 100).toFixed(2)} %)`);
-  }
+  problemas.push(...problemasDasMedidas(relatorio, medidasDaArma(id)));
   if (!(relatorio.silhueta?.iouTolerancia >= 0.98)) problemas.push(`silhueta: ${relatorio.silhueta?.iouTolerancia} com tolerância (mínimo 0,98)`);
   for (const lod of LODS_REAIS) {
     const t = relatorio.lods?.[lod]?.triangulos;
     if (resumo.lods[lod] && t !== resumo.lods[lod].triangulos) problemas.push(`${lod}: o relatório diz ${t} triângulos e o .glb tem ${resumo.lods[lod].triangulos}`);
+  }
+  // A pega das luvas (Fase 4.1b): nas armas com a regra (armaComPega), os nós e o clipe no .glb, a seção do relatório e
+  // a marca igual à do luvas.glb e a palma afundada até o que ela cede nele (se as luvas já foram construídas).
+  if (armaComPega(id)) {
+    try {
+      const glbLuvas = join(raiz, LUVAS.pasta, 'luvas.glb');
+      const nos = existsSync(glbLuvas) ? lerGlb(readFileSync(glbLuvas)).json.nodes ?? [] : null;
+      const marcaLuvas = nos?.find((n) => n.name === 'luvas')?.extras?.marca ?? null;
+      // a capacidade da palma de cada braço (a palma que cede, 4.1c): o `palma` das correções nos extras das luvas
+      const palmaLuvas = nos && Object.fromEntries(['d', 'e'].map((l) => {
+        const c = nos.find((n) => n.name === `luva_${l}`)?.extras?.correcoes;
+        return [l, (typeof c === 'string' ? JSON.parse(c) : c)?.palma ?? null];
+      }));
+      problemas.push(...validarPega(relatorio, lerPega(json), marcaLuvas, ARMAS_REAIS[id].categoria, palmaLuvas));
+    } catch (e) {
+      problemas.push(e.message);
+    }
   }
   return { problemas, resumo, relatorio, bytes };
 }

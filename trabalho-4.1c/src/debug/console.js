@@ -143,7 +143,9 @@ export class DebugConsole {
     if (!cmd?.complete) return { index: -1, list: [] };
     const argIndex = endsWithSpace ? tokens.length - 1 : tokens.length - 2;
     const partial = endsWithSpace ? '' : tokens[tokens.length - 1];
-    return { index: argIndex + 1, list: cmd.complete(argIndex, partial.toLowerCase()).filter((c) => c.toLowerCase().startsWith(partial.toLowerCase())) };
+    // o comando recebe também os argumentos já escritos (o `skin` completa as zonas da arma do primeiro)
+    const list = cmd.complete(argIndex, partial.toLowerCase(), tokens.slice(1, argIndex + 1));
+    return { index: argIndex + 1, list: list.filter((c) => c.toLowerCase().startsWith(partial.toLowerCase())) };
   }
 
   #complete() {

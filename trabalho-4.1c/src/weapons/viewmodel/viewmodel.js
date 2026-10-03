@@ -274,7 +274,7 @@ export class Viewmodel {
     if (this.armsKind === 'luvas') {
       for (const side of SIDES) if (this.arms[side]) this.arms[side].mesh.visible = false;
       const tune = this.tune[cat] ?? null;
-      const wrists = this.gloves.colocar(pl, (side) => gloveElbowTarget(cat, side, tune, new THREE.Vector3()), this.sides);
+      const wrists = this.gloves.colocar(pl, (side) => gloveElbowTarget(cat, side, tune, new THREE.Vector3(), this.info.id), this.sides);
       for (const w of wrists) radius = Math.max(radius, w.distanceTo(center) + this.gloves.alcance);
     } else {
       this.gloves?.esconder();

@@ -5,23 +5,27 @@
 // desgaste pela borda, anisotropia no eixo da arma. Os números vêm da função pura acabamentoParaMaterial. Os recursos do
 // material físico (verniz, iridescência, anisotropia) só ligam quando o acabamento pede: cada combinação é uma variante
 // de shader, e a chave do programa diz qual (defines + customProgramCacheKey), para a compilação no carregamento
-// (renderer.compileAsync, no viewmodel e na bancada) cobrir todas.
+// (renderer.compileAsync, no viewmodel e na bancada) cobrir todas. As luvas (Fase 4.1b) usam o mesmo material, com o
+// brilho de tecido no tecido e o padrão pela pose de repouso (`repouso`: a malha delas se deforma na CPU).
 
 import * as THREE from 'three';
 import { acabamentoParaMaterial } from '../skins/acabamento.js';
 import {
-  ARMA_ANISOTROPIA, ARMA_ASPEREZA, ARMA_COR, ARMA_FRAGMENT_PARS, ARMA_METAL, ARMA_VERTEX, ARMA_VERTEX_PARS,
+  ARMA_ANISOTROPIA, ARMA_ASPEREZA, ARMA_COR, ARMA_FRAGMENT_PARS, ARMA_METAL, ARMA_NORMAL, ARMA_RELEVO_PARS, ARMA_VERTEX,
+  ARMA_VERTEX_PARS,
 } from './glsl/acabamentos.js';
 
 const linear = (c) => new THREE.Color().setRGB(c[0], c[1], c[2], THREE.LinearSRGBColorSpace);
 
 /**
  * @param {{zona:string, def:{acabamento:string, cor:string, cor2?:string|null, desgaste?:number},
- *   texturas:{n:THREE.Texture, m:THREE.Texture}, ambiente?:THREE.Texture|null, intensidade?:number, nome?:string}} o
- *   `ambiente` = o reflexo do set (null: o ambiente da cena); `intensidade` = a dele no material
+ *   texturas:{n:THREE.Texture, m:THREE.Texture}, ambiente?:THREE.Texture|null, intensidade?:number, nome?:string,
+ *   repouso?:boolean}} o
+ *   `ambiente` = o reflexo do set (null: o ambiente da cena); `intensidade` = a dele no material; `repouso` = o padrão
+ *   pelos atributos de repouso da malha (`repouso`, `normalRepouso`), nas malhas que se deformam na CPU (as luvas)
  * @returns {THREE.MeshPhysicalMaterial} marcado `userData.shared` (quem cria descarta)
  */
-export function criarMaterialZona({ zona, def, texturas, ambiente = null, intensidade = 1, nome = `arma:${zona}` }) {
+export function criarMaterialZona({ zona, def, texturas, ambiente = null, intensidade = 1, nome = `arma:${zona}`, repouso = false }) {
   const p = acabamentoParaMaterial(def);
   const m = new THREE.MeshPhysicalMaterial({
     name: nome,
@@ -40,12 +44,19 @@ export function criarMaterialZona({ zona, def, texturas, ambiente = null, intens
     iridescenceIOR: p.iridescenceIOR,
     iridescenceThicknessRange: p.iridescenceThicknessRange,
     anisotropy: p.anisotropy,
+    sheen: p.sheen,
+    sheenRoughness: p.sheenRoughness,
+    sheenColor: linear(p.sheenColor),
   });
   m.userData.zona = zona;
   m.userData.acabamento = p.acabamento;
   m.userData.shared = true;
   m.defines = { ARMA_PADRAO: p.padraoId };
   if (p.anisotropy > 0) m.defines.ARMA_ESCOVADO = '';
+  // O relevo moldado (correções da P1 da 4.1c) nas armas: o tipo vem do alfa do _n (sem o _n, nada a ler). As luvas
+  // não têm molde.
+  if (repouso) m.defines.ARMA_REPOUSO = '';
+  else if (texturas.n) m.defines.ARMA_RELEVO = '';
   const u = {
     mapaM: { value: texturas.m },
     corDois: { value: linear(p.color2 ?? p.color) },
@@ -62,14 +73,17 @@ export function criarMaterialZona({ zona, def, texturas, ambiente = null, intens
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${ARMA_VERTEX_PARS}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>\n${ARMA_VERTEX}`);
+    // O relevo lê o normalMap: as declarações dele vêm depois do <common>, junto com as do mapa de normal.
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${ARMA_FRAGMENT_PARS}`)
+      .replace('#include <normalmap_pars_fragment>', `#include <normalmap_pars_fragment>\n${ARMA_RELEVO_PARS}`)
       .replace('#include <color_fragment>', `#include <color_fragment>\n${ARMA_COR}`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>\n${ARMA_ASPEREZA}`)
       .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\n${ARMA_METAL}`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${ARMA_NORMAL}`)
       .replace('#include <lights_physical_fragment>', `#include <lights_physical_fragment>\n${ARMA_ANISOTROPIA}`);
   };
-  m.customProgramCacheKey = () => `arma:${p.padrao}:${p.recursos.join('+')}`;
+  m.customProgramCacheKey = () => `arma:${p.padrao}:${p.recursos.join('+')}${repouso ? ':repouso' : ''}`;
   return m;
 }
 

@@ -3,7 +3,7 @@
 # perspectiva e ortográfica, Cycles na GPU (OptiX, senão CUDA) e AgX com contraste médio-alto.
 import bmesh
 import bpy
-from mathutils import Vector
+from mathutils import Matrix, Vector
 
 
 def montar(centro=(-0.45, 0.0, -0.05)):
@@ -45,8 +45,10 @@ def montar(centro=(-0.45, 0.0, -0.05)):
     return fundo
 
 
-def camera(nome, pos, alvo, lente=50, orto=None):
-    """Câmera em `pos` olhando para `alvo` (metros); `orto` = largura da vista ortográfica (metros)."""
+def camera(nome, pos, alvo, lente=50, orto=None, cima=None):
+    """Câmera em `pos` olhando para `alvo` (metros); `orto` = largura da vista ortográfica (metros); `cima` = o alto da
+    câmera (sem ele, o Z do mundo: a câmera sem rolagem; com ele, a da primeira pessoa do jogo, no referencial da
+    arma)."""
     sc = bpy.context.scene
     d = bpy.data.cameras.new(nome)
     d.lens = lente
@@ -57,7 +59,14 @@ def camera(nome, pos, alvo, lente=50, orto=None):
     o = bpy.data.objects.new(nome, d)
     sc.collection.objects.link(o)
     o.location = pos
-    o.rotation_euler = (Vector(alvo) - Vector(pos)).to_track_quat('-Z', 'Y').to_euler()
+    frente = (Vector(alvo) - Vector(pos)).normalized()
+    if cima is None:
+        o.rotation_euler = frente.to_track_quat('-Z', 'Y').to_euler()
+    else:
+        # as colunas da rotação são os eixos da câmera no mundo: X à direita, Y o alto, Z para trás (ela olha para −Z)
+        z = -frente
+        x = Vector(cima).cross(z).normalized()
+        o.rotation_euler = Matrix((x, z.cross(x), z)).transposed().to_euler()
     return o
 
 

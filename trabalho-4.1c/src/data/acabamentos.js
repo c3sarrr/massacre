@@ -5,8 +5,8 @@
 // metal nu nas pinturas, o aço claro nos metais, a madeira lixada, o plástico raspado. `varAspereza` e `varCor` dosam o
 // quanto a variação assada (_m.g e _m.a, em torno de 0,5) mexe na aspereza e na cor. `verniz` liga a camada de verniz
 // (clearcoat), `iridescencia` o filme fino, `anisotropia` o escovado ao longo do X da arma, `brilhoTecido` o brilho de
-// tecido (o sheen do material físico: a intensidade, a aspereza e o quanto a cor dele clareia a do fio) — só quando o
-// acabamento pede, para limitar as variantes de shader. `cor2Fator` faz a segunda cor (veio, trama, o fundo do grão)
+// tecido (o sheen do material físico: a intensidade, a aspereza e a cor dele — `superficie` + `ganho` × a cor do fio) —
+// só quando o acabamento pede, para limitar as variantes de shader. `cor2Fator` faz a segunda cor (veio, trama, o fundo do grão)
 // quando a skin não traz uma. Os das luvas (Fase 4.1b; desenho da 4.1b, seção 7.2): o couro sintético da palma e das
 // pontas, com o grão fino; o tecido elástico das costas, com a trama e o brilho de tecido; a borracha moldada (TPR) do
 // protetor dos nós, das almofadas e da tira, pontilhada. O grão, a trama e o pontilhado são finos demais para o assar
@@ -90,9 +90,16 @@ export const ACABAMENTOS = F({
   borracha: F({ nome: 'Borracha', metal: 0, aspereza: 0.68, padrao: 'pontilhado', varAspereza: 0.06, varCor: 0.04, gasto: F({ cor: '#55575B', metal: 0, aspereza: 0.5 }) }),
   // Couro sintético: brilho leve, o grão pequeno com o fundo das dobrinhas mais escuro; gasto, alisa e clareia.
   couro: F({ nome: 'Couro', metal: 0, aspereza: 0.56, padrao: 'grao', cor2Fator: 0.8, varAspereza: 0.08, varCor: 0.06, gasto: F({ cor: '#9C8468', metal: 0, aspereza: 0.4 }) }),
-  // Tecido elástico: bem fosco, a trama com o fundo mais escuro e o brilho de tecido rente à superfície.
+  // Tecido elástico: bem fosco, a trama com o fundo mais escuro e o brilho de tecido rente à superfície. A cor do brilho
+  // tem duas partes (4.1c, Tarefa 13): o reflexo sem cor da superfície do fio, um dielétrico (o poliéster e o náilon,
+  // n ≈ 1,55: F0 ≈ 4,5 %), e a luz que entra no fio e volta tingida por ele — o tecido escuro brilha escuro. Antes o
+  // brilho clareava o fio 35 % rumo ao branco, e o preto da Tropa ganhava um brilho cinza de 0,36 que, na pista, o
+  // levava de rgb(24, 9, 3) a (86, 51, 29): a luva preta lia cinza-parda (nas fotos, a luva preta continua preta). O
+  // ganho deixa o brilho do coiote com a luminância de antes (0,389, a aprovada na 4.1b), agora na cor do fio; o do
+  // preto cai para 0,14.
   tecido: F({
-    nome: 'Tecido', metal: 0, aspereza: 0.88, padrao: 'trama', cor2Fator: 0.72, brilhoTecido: F({ intensidade: 1, aspereza: 0.5, clareia: 0.35 }),
+    nome: 'Tecido', metal: 0, aspereza: 0.88, padrao: 'trama', cor2Fator: 0.72,
+    brilhoTecido: F({ intensidade: 1, aspereza: 0.5, superficie: 0.045, ganho: 5.78 }),
     varAspereza: 0.04, varCor: 0.05, gasto: F({ cor: '#8A7F74', metal: 0, aspereza: 0.95 }),
   }),
 });

@@ -11,7 +11,7 @@ import { HAND } from '../src/data/hands.js';
 import { VIEWMODEL } from '../src/data/viewmodel.js';
 import {
   HAND_ANCHOR, WEAPON_TO_VIEW, anchorPose, applyViewmodelPreset, categoryPlacement, currentViewmodelPreset, elbowTarget,
-  handSides, viewCategory, viewFaction, viewPlacement, viewmodelVerticalFov, viewmodelVisible, weaponNudge,
+  gloveElbowTarget, handSides, viewCategory, viewFaction, viewPlacement, viewmodelVerticalFov, viewmodelVisible, weaponNudge,
 } from '../src/weapons/viewmodel/placement.js';
 
 const near = (a, b, eps = 1e-9, msg = '') => assert.ok(Math.abs(a - b) <= eps, `${msg} esperado ${b}, veio ${a}`);
@@ -69,6 +69,19 @@ test('viewmodel: ângulos (guinada + boca para a esquerda, arfagem + boca para c
   assert.throws(() => categoryPlacement('bazuca'), /categoria/);
 });
 
+test('viewmodel: os cotovelos de luva — o do ajuste, senão o da arma, senão o da categoria, lado a lado', () => {
+  const cat = VIEWMODEL.categories.rifle.gloveElbows;
+  const arma = VIEWMODEL.weapons.m4a4.gloveElbows;
+  assert.ok(arma?.direita && arma.esquerda, 'a M4A4 com os dela');
+  assert.deepEqual(categoryPlacement('rifle', null, 'm4a4').gloveElbows, { direita: [...arma.direita], esquerda: [...arma.esquerda] });
+  assert.deepEqual(categoryPlacement('rifle', null, 'ak47').gloveElbows, { direita: [...cat.direita], esquerda: [...cat.esquerda] });
+  // o ajuste ao vivo vale sobre os dois, lado a lado
+  const tune = { gloveElbows: { esquerda: [1, 2, 3] } };
+  assert.deepEqual(categoryPlacement('rifle', tune, 'm4a4').gloveElbows, { direita: [...arma.direita], esquerda: [1, 2, 3] });
+  assert.deepEqual(gloveElbowTarget('rifle', 'esquerda', null, new THREE.Vector3(), 'm4a4').toArray(), [...arma.esquerda]);
+  assert.deepEqual(gloveElbowTarget('rifle', 'esquerda').toArray(), [...cat.esquerda]);
+});
+
 test('viewmodel: cada mão na âncora da receita, no referencial da câmera', () => {
   for (const id of Object.keys(ARMAS)) {
     const r = ARMAS[id];
@@ -82,10 +95,10 @@ test('viewmodel: cada mão na âncora da receita, no referencial da câmera', ()
       const q = pl.quaternion.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(...a.rot, 'XYZ')));
       assert.ok(Math.abs(Math.abs(pose.quaternion.dot(q)) - 1) < 1e-9, `${id}.${side}: giro`);
     }
-    assert.deepEqual(handSides(r), id === 'knife' ? ['direita'] : ['direita', 'esquerda'], id);
+    assert.deepEqual(handSides(r), r.anchors.maoEsquerda ? ['direita', 'esquerda'] : ['direita'], id);
   }
   // A arma realista sem as luvas (4.1a): as âncoras das mãos existem (os soquetes), mas nenhuma mão aparece.
-  assert.deepEqual(handSides({ hands: false, anchors: ARMAS.glock.anchors }), []);
+  assert.deepEqual(handSides({ hands: false, anchors: ARMAS.awp.anchors }), []);
 });
 
 test('viewmodel: com os valores padrão em 16:9, a arma aparece e os cotovelos ficam fora da tela', () => {

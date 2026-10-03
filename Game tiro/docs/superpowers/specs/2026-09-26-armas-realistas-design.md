@@ -5,6 +5,10 @@
   2026-09-26; o plano da 4.1a está em `docs/superpowers/plans/2026-09-26-4.1a-pipeline-realista-ak47.md`.
 - **Substitui:** a direção de arte da subfase 4.1 ("fiel e gordinha", mãos de 4 dedos de massinha, o Blender gerando a
   receita de SDF e o acento da facção nas armas), registrada em `docs/phases/phase-4.md`.
+- **Atualizado na 4.1b (2026-09-26 e 2026-09-27):** sem manga e sem roupa — a luva vai no braço de massinha do próprio
+  boneco (desenho da 4.1b, `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md`, seção 0); a mão da
+  frente com o polegar reto de um lado e os quatro dedos do outro; texturas CC0 de bibliotecas abertas como base dos
+  materiais no Blender. As seções 1, 2, 4.1, 4.4, 5.1, 5.3, 6.5, 7, 8.1 e 8.2 trazem cada mudança no lugar, com o que era.
 - **Referências:** `docs/art/moodboard.md`, seção 14 (boards QVM a QMP), e as fotos do Wikimedia Commons da seção 3.
 - **Escopo:** o redesenho inteiro das armas e das mãos da Fase 4. Cada subfase da seção 8.1 tem o seu plano de
   implementação; o primeiro é o da 4.1a.
@@ -31,10 +35,15 @@ O método da 4.1 (massinha por SDF) não chega numa arma realista: não é ajust
 1. **Realismo de fábrica, tipo CS2.** A arma real em peças, medidas e materiais, limpa, com desgaste leve nas bordas;
    descartados o hiper-realismo sujo (CoD MW, Tarkov), o realismo estilizado (Valorant) e o visual de maquete aparente
    (parafusos exagerados, marcas de montagem).
-2. **Luva tática de 5 dedos com a manga de tecido da facção** em primeira pessoa.
+2. **Luva tática de 5 dedos com a manga de tecido da facção** em primeira pessoa. **Atualizado na 4.1b (decisão do
+   usuário de 2026-09-26): sem manga e sem roupa** — do punho para trás, o braço é o de massinha do boneco, porque nas
+   próximas fases a bala fura o boneco e atravessa o corpo de massa, e o corpo não pode ficar escondido por roupa.
 3. **Exceção à regra 4 (e à paridade "100% gerado em código") só para armas e mãos:** scripts Python nossos no
-   Blender constroem os modelos e as texturas assadas, entregues como `.glb` e `.webp`. Nada é baixado de terceiros; o
-   resto do jogo continua 100% procedural.
+   Blender constroem os modelos e as texturas assadas, entregues como `.glb` e `.webp`. Nenhum modelo é baixado de
+   terceiros; o resto do jogo continua 100% procedural. **Atualizado em 2026-09-27 (decisão do usuário):** os scripts
+   do Blender podem usar texturas CC0 de bibliotecas abertas (cgbookcase, Poly Haven, ambientCG e o CC0 Asset Index)
+   como base dos materiais, e elas chegam ao jogo só assadas no `.webp` (seção 4.4; a lista e as regras ficam na seção
+   0.7 do `CLAUDE.md`).
 4. **Faca, granadas, carregadores e cápsulas, e lunetas passam a ser realistas.** A espátula, a bola de massa, o pote de
    tinta, o pão de massa, as bolinhas amarelas e o anel de massinha ficam como ideias de skin temática.
 5. **Animação suave em primeira pessoa, com a opção "viewmodel em stop-motion"** (a mesma animação a 12 poses/s).
@@ -58,12 +67,14 @@ O método da 4.1 (massinha por SDF) não chega numa arma realista: não é ajust
   adereços realistas e as roupas de tecido dos bonecos de *O Fantástico Sr. Raposo* (QMP1, QMP5, QMP7, QMP11). O mundo,
   os bonecos, os amassados de tiro na massinha e os efeitos (fumaça de algodão, fogo de celofane, respingos) continuam de
   estúdio.
-- **Boil zero** em armas, luvas, mangas, carregadores, cápsulas, granadas e lunetas. O resto do mundo mantém o boil (a
+- **Boil zero** em armas, luvas (e no antebraço de massinha delas no viewmodel, desde a 4.1b), carregadores, cápsulas,
+  granadas e lunetas. O resto do mundo mantém o boil (a
   opção de desligar já existe nas configurações).
 - **Sem marcas registradas** (regra 9): nenhum logotipo nem nome de fabricante; as marcações são genéricas (letras do
   seletor, números de série, marcas de prova), estampadas no metal.
-- **Mãos:** luva tática de 5 dedos e manga de tecido na cor do time, com a braçadeira (seção 7). O "acento da facção" da
-  4.1 sai das armas: a identidade do time fica na manga e na luva.
+- **Mãos:** luva tática de 5 dedos na cor da facção, no braço de massinha do boneco, com a braçadeira de massa em modo
+  de time (seção 7; era "e manga de tecido na cor do time" até a 4.1b). O "acento da facção" da 4.1 sai das armas: a
+  identidade do time fica na luva e na braçadeira.
 - **Itens que ficam realistas:** a faca, que é a baioneta M9 (EUA, 1986) de lâmina fixa (seção 3.2), granadas (fragmentação, atordoante,
   fumaça, molotov de garrafa com pano, incendiária e decoy, na 4.7), carregadores de metal ou polímero, cápsulas de
   latão (4.3) e lunetas reais com lente, retícula gravada e sombra de ocular (4.5).
@@ -80,7 +91,10 @@ O método da 4.1 (massinha por SDF) não chega numa arma realista: não é ajust
 
 - a **variante real** e as **medidas oficiais** (comprimento, cano, raio de mira, altura) com a fonte de cada número;
 - as **fotos de referência** do Wikimedia Commons de licença livre ou domínio público (título, autor, licença, página):
-  o lado direito é obrigatório (é o lado do viewmodel); cima e frente quando existirem;
+  a de maior resolução, de qualquer lado, dá o contorno (`contorno: true`; a do lado esquerdo é espelhada na régua,
+  `espelhada: true`, para a boca ficar em +X), e a de cada lado dá as peças de um lado só (`usos`); cima e frente quando
+  existirem. A primeira pessoa mostra o lado **esquerdo** da arma (correção da 4.1c: até a 4.1b este item dizia que o
+  direito era o do viewmodel — é o direito que a arma deitada na fileira da bancada mostra);
 - o **contorno geral** e os **contornos por peça** em milímetros, no referencial da foto (boca do cano em x = 0, eixo
   do cano em y = 0, +X para a boca, +Y para cima), mais os buracos (guarda-mato, frestas);
 - as **cores medidas** em cada material (sRGB e linear) e a correção de exposição usada para chegar à cor de fábrica.
@@ -93,16 +107,19 @@ fonte, como na 4.1.
 | Arma do jogo | Variante real | Medidas oficiais | Foto de lado |
 |---|---|---|---|
 | AK-47 | AK-47 tipo 3 (receptor fresado, coronha fixa de madeira) | 870 mm; cano 415 mm; raio de mira 378 mm | "AK-47 assault rifle.jpg" (Ickybicky, domínio público) — já medida |
-| Glock-18 | Glock 18 | 186 mm | escolhida na 4.1c |
-| M4A4 | carabina M4A1, coronha aberta | 840 mm | escolhida na 4.1c |
-| Faca | baioneta M9 (EUA, 1986; decisão do usuário de 2026-09-26): lâmina clip point de 178 mm, guarda com a argola que encaixa na boca do cano, cabo e bainha de polímero; o resto (serrilha do dorso, furo do corta-arame, quadriculado do cabo, pomo com a trava) sai da ficha da 4.1c | 305 mm | escolhida na 4.1c |
+| Glock-18 | Glock 18 de 3ª geração, sem compensador (o trilho de uma fenda, os sulcos dos dedos, o seletor na traseira esquerda do ferrolho, o carregador de 17) | 204 mm (Glock, ficha da G18); ferrolho 186 mm; cano 114 mm; raio de mira 165 mm (ficha de 2000) | contorno: "GLOCK 17 Gen 4 Pistol MOD 45160305.jpg" (Steve Dock, Ministério da Defesa do Reino Unido, OGL v1.0; lado esquerdo espelhado, 0,134 mm/px); peças: "Glock 18C.jpg" (AmmuNation, CC BY-SA 4.0; o seletor) e "Glock35Right.jpg" (BlaqueandBlue, domínio público; o lado direito) |
+| M4A4 | carabina M4A1: cano de 14,5 pol., receptor plano com a alça de transporte e a mira A2, guarda-mão de trilhos de quatro lados (RAS), torre A2, quebra-chamas A2, coronha de quatro posições aberta, carregador de 30 de alumínio | 838,2 mm aberta e 755,7 mm fechada; cano 368,3 mm (TM 9-1005-319-23&P); raio de mira 361 mm (régua) | contorno composto: "PEO M4 Carbine RAS noBG.png" (PEO Soldier, CC BY-SA 4.0; a frente, os receptores, o punho e o carregador, 0,226 mm/px) e "M4A1 Carbine.jpg" (Jeff Johnson, NSWC, domínio público; a coronha e a alça); peças: "Coltm4a1.jpeg" (Jackolmos, CC BY-SA 3.0; a mira traseira) e "M4w-att.jpg" (Exército dos EUA, domínio público; o lado esquerdo) |
+| Faca | baioneta M9 (EUA, 1986; decisão do usuário de 2026-09-26) de lâmina fixa, a preta: lâmina clip point com o gume, o contrafio, a serrilha do dorso, o sulco e o furo do corta-arame; guarda com a argola da boca do cano; cabo cilíndrico com os anéis e o quadriculado; pomo com a trava | 311,2 mm (NMAH, Smithsonian); lâmina 177,8 mm; espessura 5,84 mm; guarda 82,6 mm | "US Military M9 Bajonett COMPO.jpg" (Auge=mit, CC BY-SA 4.0; a faca preta recortada da foto das duas, 0,379 mm/px) |
 | AWP | Accuracy International AWM .338 | 1230 mm | escolhida na 4.1d |
 | Nova | Benelli Nova, cano de 18,5" | 995 mm | escolhida na 4.1d |
 | P90 | FN P90 | 500 mm | escolhida na 4.1d |
 
-Critério de escolha da foto: lado direito, fundo limpo, a maior resolução disponível (a precisão do contorno é a
-resolução da foto: 1 px da foto de 900 px da AK-47 é 1 mm). As plantas da 4.1 de variantes diferentes (AK-47 tipo II,
-AW PSG 90, Benelli M3) são substituídas.
+Critério de escolha da foto: fundo limpo e a maior resolução disponível, de qualquer lado, para o contorno (a precisão
+do contorno é a resolução da foto: 1 px da foto de 900 px da AK-47 é 1 mm), e a de cada lado para as peças de um lado
+só (4.1c; a ficha da AK, sem a marca de contorno, vale pela do lado direito). Sem uma foto livre da configuração inteira,
+o contorno é composto de duas fotos registradas por uma peça comum, na escala de uma medida oficial (a M4A4: a coronha e
+a alça da foto da NSWC, pelos receptores, no comprimento fechado do TM, conferido pelo passo do trilho). As plantas da
+4.1 de variantes diferentes (AK-47 tipo II, AW PSG 90, Benelli M3) são substituídas.
 
 ### 3.3 Régua
 
@@ -140,7 +157,10 @@ de foto de 0,45 mm/px.
   - `zonas.py`, `soquetes.py`: marcação de zona por peça e criação dos soquetes e das peças móveis;
   - `assar.py`: modelo alto e de jogo, UV, assar e empacotar texturas; `lod.py`: versões do mundo e de longe;
   - `exportar.py`: glTF, texturas e relatório; `validar.py`: as validações da seção 4.6; `conferir.py`: renders;
-  - `maos.py` (luvas e mangas) e `empunhadura.py` (rig e solver, seção 7);
+  - `maos.py` (as luvas; sem manga desde a 4.1b) e `empunhadura.py` (rig e solver, seção 7) — na 4.1b viraram
+    `luvas.py` (o alvo do lançador), os módulos `maos_*.py` (malha, detalhes, modelo alto, rig, poses, medidas,
+    contato) e `validar_maos.py`, e o solver em `empunhadura.py` com os módulos `empunhadura_*.py` (regras, arma,
+    polegar, pega);
   - um script por arma: `ak47.py`, `glock.py`, `m4a4.py`, `faca.py`, `awp.py`, `nova.py`, `p90.py`.
 - `tools/blender.mjs` (o lançador da 4.1) ganha as ações `construir`, `validar`, `conferir` e `abrir` para
   `<arma|maos|todas>`.
@@ -152,14 +172,28 @@ de foto de 0,45 mm/px.
 ### 4.2 Construção
 
 - A construção é em milímetros, no referencial da ficha; a exportação converte para u (÷ 25,4) e para o referencial da
-  arma da 4.1: +X para a boca, +Y para cima, +Z para o lado direito, origem no eixo do cano em cima do gatilho.
+  arma da 4.1: +X para a boca, +Y para cima, +Z para o lado direito, origem no eixo do cano em cima do gatilho (o
+  `ORIGEM_MM` do script, que o relatório traz como `origemMM`; na faca, a frente da guarda no eixo do cabo). A planta da
+  ficha (relativa à boca; na faca, à ponta) vai para o jogo pela origem da ficha (`origemDaFicha`, 4.1c).
+- **Construção determinística (4.1c; `CLAUDE.md`, seção 0.7):** as entradas (cada peça ao nascer e as malhas no
+  `finalizar`) em ordem canônica sem mexer nas posições, e as cópias avaliadas na forma canônica (a grade de 1 µm) antes
+  de juntar, triangular, dizimar e assar (`armas/canonica.py`). A malha avaliada ruim (sem polígonos, posição que não é
+  número ou a mais de 10 m do centro, aresta solta) é reavaliada, e o lançador refaz o `construir` num processo novo
+  quando ela persiste (`MalhaRuim`, até três vezes); as gravações (as texturas, o `.glb`, o relatório e a `.blend`)
+  esperam e tentam de novo quando o Windows prende o arquivo (`armas/gravar.py`). O caso que motivou isso (o
+  quebra-chamas da M4A4, que caía num processo inteiro) era o esquadro em arco do chanfro, que deixa vértices sem
+  posição calculada onde dois chanfros chegam quase alinhados a um vértice com uma aresta que não chanfra: a peça assim
+  leva o esquadro reto (`pecas.esquadro_reto`; 4.1c, Tarefa 15).
 - **Zonas** (grupos de material, a base das skins): `corpo` (metal principal), `guarnicao` (madeira ou polímero),
   `carregador`, `detalhes` (miras, gatilho, seletor, pinos, parafusos) e `interno` (ferrolho, alma, molas — só
-  acabamentos metálicos).
+  acabamentos metálicos). Por classe desde a 4.1c (`CLASSES` em `src/data/armasReais.js`): o fuzil e a pistola com as
+  cinco; a faca com `corpo` (a lâmina), `guarnicao` (o cabo) e `detalhes` (a guarda e o pomo).
 - **Soquetes** (nós vazios com posição e orientação): `boca`, `ejecao`, `carregador`, `mira_tras` e `mira_frente` (a
   linha de mira), `mao_d` (empunhadura) e `mao_e` (apoio), mais os da categoria (`luneta`, `bomba` da Nova).
 - **Peças móveis** como nós próprios, com o pivô no eixo real: `ferrolho`, `carregador`, `gatilho`, `cao`, `seletor` e
-  as da arma (bomba da Nova, alavanca do ferrolho da AWP).
+  as da arma (a alavanca de manejo e a tampa da janela da M4A4, a bomba da Nova, a alavanca do ferrolho da AWP); o eixo
+  de deslizar (`eixo`) ou de girar (`eixo_giro`) vai nos extras do nó (o carregador da Glock desce pelo eixo do punho).
+  A faca não tem peça móvel.
 
 ### 4.3 Modelo alto, modelo de jogo e LOD
 
@@ -180,6 +214,13 @@ de foto de 0,45 mm/px.
   qualquer zona. WebP sem perdas, gravado de uma imagem de 8 bits (a de ponto flutuante do Blender divide o RGB pelo
   alfa ao gravar); a sombra de contato e a variação de aspereza passam por um filtro de 1 pixel e os canais de dados são
   quantizados em degraus que não aparecem no jogo (2/255 na sombra, 4/255 na aspereza e na cor; decisão 8).
+- **Texturas CC0 de base (decisão do usuário de 2026-09-27):** os materiais de fábrica do Blender podem partir de
+  texturas de domínio público (CC0) de cgbookcase (https://www.cgbookcase.com/textures), Poly Haven
+  (https://polyhaven.com/textures), ambientCG (https://ambientcg.com/list?type=substance&sort=popular) e do CC0 Asset
+  Index (https://github.com/xiaoqianran/Blender-cc0-asset-index) — o grão do couro e do polímero, a trama do tecido, a
+  borracha, a madeira, o metal. Só CC0, conferido na página de cada uma; cada textura usada fica registrada em
+  `tools/blender/texturas/fontes.json` (site, página, nome, licença, data e resolução) e a ficha do material diz qual
+  usou. Elas entram só no assar: o jogo carrega apenas `_n` e `_m`, e a cor continua vindo do acabamento.
 - **Tamanhos:** 2048 px para fuzis, escopetas e submetralhadoras e para as luvas; 1024 px para pistolas e a faca; 512
   px (256 nas pistolas e na faca) para as versões do mundo.
 
@@ -216,11 +257,12 @@ revisão crítica compara render e foto lado a lado até não sobrar defeito.
 | Fuzil, escopeta, submetralhadora | ≤ 40 mil triângulos | ≤ 6 mil | ≤ 1,5 mil | 2 × 2048² | 2 × 512² | ≤ 6 MB |
 | Pistola | ≤ 20 mil | ≤ 3 mil | ≤ 800 | 2 × 1024² | 2 × 256² | ≤ 3 MB |
 | Faca | ≤ 8 mil | ≤ 1,5 mil | ≤ 400 | 2 × 1024² | 2 × 256² | ≤ 2 MB |
-| Luvas e mangas (dois braços) | ≤ 14 mil | — (Fase 5) | — | 2 × 2048² | — | ≤ 6 MB |
+| Luvas (dois braços; sem manga desde a 4.1b) | ≤ 14 mil | — (Fase 5) | — | 2 × 2048² | — | ≤ 6 MB |
 
 Os orçamentos de arquivos são os da decisão 8 (os de 2,5 / 1,2 / 0,8 / 2,5 MB da primeira versão deste desenho não
 fechavam com as texturas de 2048 sem perdas). A AK-47 tipo 3 medida: `.glb` 0,29 MB, `_n` 1,34 MB, `_m` 2,97 MB e o
-conjunto do mundo 0,54 MB — 5,1 MB.
+conjunto do mundo 0,54 MB — 5,1 MB. As luvas medidas na 4.1b: 6 748 triângulos por luva (13 496 nos dois braços),
+`luvas.glb` 0,34 MB, `_n` 1,69 MB e `_m` 1,61 MB — 3,6 MB.
 
 Memória de vídeo: o conjunto de alta de um fuzil ocupa cerca de 45 MB (duas texturas de 2048² com mipmaps); só a arma na
 mão e as outras do loadout ficam em alta, o resto usa as texturas do mundo.
@@ -243,7 +285,7 @@ mão e as outras do loadout ficam em alta, o resto usa as texturas do mundo.
 - `MeshPhysicalMaterial` com um trecho próprio de shader (`onBeforeCompile`) que lê `_m` (sombra, aspereza, borda,
   variação de cor) e aplica o acabamento de cada zona. Os recursos do material físico entram só quando o acabamento
   pede (verniz para brilhante, metálico, perolado, madeira e carbono; iridescência para perolado e anodizado;
-  anisotropia para aço escovado; brilho de tecido para luvas e mangas), para limitar as variantes de shader; as
+  anisotropia para aço escovado; brilho de tecido para o tecido das luvas), para limitar as variantes de shader; as
   variantes são compiladas no carregamento, sem travada na primeira aparição.
 - Uma função pura converte acabamento + cor + desgaste em parâmetros de material (testável no Node).
 - Nenhum boil, nenhuma digital de massinha.
@@ -322,19 +364,29 @@ Caneta, lápis, skate, arma de água e outras trocam o modelo inteiro e são fei
 
 ### 6.5 Luvas
 
-As luvas e mangas também têm zonas (`couro`, `tecido`, `reforco`, `manga`), prontas para skins de luva.
+As luvas também têm zonas, prontas para skins de luva: `couro` (palma, pontas e o reforço entre o polegar e o
+indicador), `tecido` (costas e lados elásticos) e `reforco` (o protetor de borracha moldada dos nós, as almofadas e a
+tira do punho). A zona `manga` saiu com a manga na 4.1b; a pintura de cada facção fica em `src/data/luvas.js`.
 
-## 7. Mãos: luvas, mangas e empunhadura
+## 7. Mãos: luvas, braço de massinha e empunhadura
+
+(Até a 4.1b: "luvas, mangas e empunhadura". O detalhe do que foi construído está no desenho da 4.1b.)
 
 ### 7.1 Modelo
 
 - Proporção humana real (comprimento da mão 190 mm, largura da palma 85 mm), feita por script: um esqueleto de juntas
-  com raios (punho, palma, três falanges por dedo, polegar com o metacarpo) vira malha pelo modificador Skin, recebe
-  subdivisão e a forma da luva.
-- Detalhes: reforço acolchoado nos nós dos dedos, costuras aparentes (geometria no modelo alto, assada no relevo), palma
-  antiderrapante, punho com tira de velcro, pontas reforçadas.
-- Manga de tecido com dobras e o punho da manga, com a braçadeira do time (seção 0.12 da spec).
-- Padrão por facção: Massa Crua com manga terracota e luva marrom; Tropa do Estúdio com manga azul e luva preta.
+  com raios (punho, palma, três falanges por dedo, polegar com o metacarpo) vira malha, recebe subdivisão e a forma da
+  luva. **Na 4.1b** a malha sai de um gerador de quadriláteros próprio (anéis elípticos em cada junta, portas na palma
+  de onde saem os dedos) no lugar do modificador Skin, que torcia os quadriláteros onde os cinco dedos saem da palma.
+- Detalhes: protetor de borracha moldada nos nós dos dedos (decisão do usuário de 2026-09-26, no lugar do reforço
+  acolchoado), costuras aparentes (geometria no modelo alto, assada no relevo), palma antiderrapante, punho com tira de
+  velcro, pontas reforçadas.
+- **Sem manga e sem roupa** (decisão do usuário de 2026-09-26; era a manga de tecido com dobras e o punho da manga):
+  do punho da luva para trás, o antebraço é de massinha, gerado em código (SDF), na cor da massa do boneco, com as
+  digitais, a translucidez e o brilho de massinha e sem boil no viewmodel; a braçadeira do time é uma faixa de massa
+  nele, só em modo de time (seção 0.12 da spec).
+- Padrão por facção: Massa Crua com a luva coiote (couro `#5C5139`) e Tropa do Estúdio com a luva preta (era: manga
+  terracota e luva marrom, manga azul e luva preta).
 
 ### 7.2 Rig
 
@@ -350,19 +402,46 @@ com correção nos nós dos dedos e no punho.
 3. Regras por categoria: o indicador vai à face do gatilho; o polegar cruza o outro lado do punho; a mão de apoio abraça
    o guarda-mão nos fuzis, segura a bomba na Nova, a empunhadura dianteira na P90, fica sob o guarda-mão na AWP;
    nas pistolas, as duas mãos com os polegares para a frente; na faca, empunhadura de martelo.
+   **Pistola (4.1c; desenho da 4.1c, seção 4.2):** a mão do gatilho alta no punho, girada atrás da arma, com o
+   indicador indexado reto na lateral da armação, acima do guarda-mato e fora do gatilho (decisão do usuário de
+   2026-10-02: o dedo no gatilho fica para a animação de tiro), o médio logo embaixo do guarda-mato e o polegar reto
+   para a frente, deitado por cima do polegar de apoio; a mão de apoio com o calcanhar no lado esquerdo do punho, os
+   quatro dedos por cima dos da mão do gatilho e o polegar reto ao longo da armação, abaixo do ferrolho. A sequência é a
+   da pega de polegares para a frente (American Shooting Journal): a mão do gatilho primeiro, com o polegar erguido; a
+   de apoio encaixando com a luva do gatilho de obstáculo (**luva com luva**: a malha posada numa BVH); e o polegar do
+   gatilho deitando por último sobre o de apoio. **A palma cede** (decisão do usuário de 2026-10-02): o tecido mole da
+   palma afunda até o que a ficha mede em cada ponto (Pérez-González, Vergara e Sancho-Bru, 2013; até 5,6 mm), e só as
+   duas mãos da pistola chegam apertando (`aperto`); nas outras regras a palma encosta sem ceder.
+   **Faca (4.1c; seção 4.3):** uma mão só, a direita — o cabo atravessando a palma, os quatro dedos fechados em volta dele
+   lado a lado, o indicador na guarda e o polegar dobrado por cima da falange média do indicador; o formato da pega diz
+   quais mãos tem (`maos`), e o viewmodel monta só o braço direito.
+   **Cotovelos de luva (4.1c):** os de cada categoria — e, quando a pega de uma arma pede, os dela, lado a lado sobre os
+   da categoria (`VIEWMODEL.weapons.<id>.gloveElbows`: a M4A4) — saem da varredura minimax dos ângulos do pulso com a
+   arma e as luvas de verdade (`tools/cotovelos.mjs`), com o cotovelo fora da tela e abaixo do pulso, cada antebraço do
+   seu lado e a 3 mm da arma e do outro braço; cada ângulo do pulso a no máximo 93 % do limite da AAOS nas três
+   posições prontas.
+   **Mão da frente (regra do usuário de 2026-09-27, válida para toda arma que tem mão da frente):** só o polegar fica de
+   um lado da arma e os outros quatro dedos do outro, como a pega da AK no CS:GO — o polegar reto e deitado no lado
+   esquerdo, encostado na arma e apontando para a frente, sem curva (a pega "thumb break"), e os quatro dedos abraçando
+   por baixo até o lado direito, lado a lado (sem leque); a validação do `construir` reprova a arma que sair diferente
+   (desenho da 4.1b, seção 6.2).
 4. Correções manuais por arma, quando precisar, ficam no script da arma e passam pelas mesmas validações.
 
 ### 7.4 Validação e exportação
 
 - Nenhum dedo atravessando a arma mais que 0,3 mm; cada ponto de contato a no máximo 1 mm; renders de perto de cada
-  mão.
+  mão. Na pistola (4.1c), também: a luva de apoio a no máximo 0,3 mm dentro da do gatilho e cada dedo de apoio a no
+  máximo 1 mm dela, os dois polegares a pelo menos 2 mm do ferrolho (o recuo) e a até 20° do eixo do cano, o indicador
+  indexado acima do alto do gatilho e a palma afundada até o que cede — tudo medido na malha com o afundamento; na faca,
+  o polegar encostando no indicador. O jogo mede a mesma pega (`luvas_contato`: a diferença para o Blender até
+  0,05 mm).
 - `assets/maos/luvas.glb` leva a malha com esqueleto e as zonas; a pose de empunhadura de cada arma vai no `.glb` da
   arma como o clipe `empunhadura` (as animações da 4.3 entram ao lado).
 
 ### 7.5 Consequência na Fase 5
 
 A decisão da 4.1 de mãos de 4 dedos de massinha para os bonecos é substituída: em terceira pessoa, os bonecos de
-massinha usam as mesmas luvas e mangas, adaptadas às proporções deles.
+massinha usam as mesmas luvas, no braço de massinha deles e adaptadas às proporções deles (sem manga desde a 4.1b).
 
 ## 8. Subfases e mudanças nas regras
 
@@ -372,8 +451,8 @@ massinha usam as mesmas luvas e mangas, adaptadas às proporções deles.
 |---|---|
 | 4.1 (massinha) | ✅ 2026-09-26 — substituída por este desenho; fica registrada |
 | 4.1a | Pipeline realista e a AK-47 tipo 3 no nível final: régua e ficha, biblioteca de peças, construir, assar, exportar e validar; `GLTFLoader` no vendor e o novo `weaponModels`; material com zonas e acabamentos, reflexo do set e luz do viewmodel; a AK na bancada `arsenal` e em primeira pessoa, ainda sem mãos (as de massinha não servem na geometria nova; as luvas chegam na 4.1b); comando `skin` e as três skins de exemplo; atualização das regras e da memória |
-| 4.1b | Luvas, mangas, rig e o solver de empunhadura; a AK segurada em primeira pessoa |
-| 4.1c | Glock-18, M4A4 e a faca — a baioneta M9 (EUA, 1986) — no caminho provado, com as empunhaduras |
+| 4.1b | Luvas no braço de massinha do boneco (sem manga e sem roupa, decisão de 2026-09-26), rig e o solver de empunhadura com a mão da frente em "thumb break"; a AK segurada em primeira pessoa, com uma mão só na tela (decisão de 2026-09-27); o rebatedor da bancada |
+| 4.1c | ✅ 2026-10-02 — Glock-18 (3ª geração), M4A4 (a carabina M4A1) e a faca — a baioneta M9 (EUA, 1986) — no caminho provado, com as empunhaduras: a M4A4 na regra do fuzil, a pistola de duas mãos com os polegares para a frente e a luva com luva, a faca na empunhadura de martelo de uma mão; a palma que cede; a construção determinística; os cotovelos de luva pela varredura; a bancada, as plantas e as skins por classe (desenho e plano da 4.1c, `docs/superpowers/specs/2026-09-28-4.1c-glock-m4a4-m9-design.md`) |
 | 4.1d | AWP (com a luneta real), Nova e P90, com as empunhaduras |
 | 4.2 | Tiro e dano, como no plano |
 | 4.3 | Animações suaves e a opção stop-motion; carregador de metal e cápsulas de latão que quicam e param no chão (e amassam a massinha do cenário); a marca de dedo na inspeção; efeitos de estúdio |
@@ -390,11 +469,17 @@ A troca é em etapas, para nenhuma subfase deixar arma faltando nem pôr placeho
 - **4.1a:** sai a receita de massinha da AK (`src/data/armas/ak47.js`) e a planta antiga dela; a `WeaponLibrary` passa a
   servir a AK pelo `.glb` e as outras seis ainda pelo gerador de massinha.
 - **4.1b:** as luvas substituem as mãos de massinha na AK; as armas ainda de massinha continuam com as mãos de massinha.
+  O antebraço de massinha das luvas (`src/characters/hands/antebracoMassa.js`) e a braçadeira de massa (`armband.js`)
+  são o braço do boneco: ficam depois da 4.1d.
+- **4.1c:** saíram as receitas de massinha da Glock, da M4A4 e da faca (`src/data/armas/glock.js`, `m4a4.js`,
+  `knife.js`) e os testes que só existiam por elas; as plantas da 4.1 viraram as fichas no formato 2
+  (`tools/blender/refs/<id>.json`). A AWP, a Nova e a P90 continuam de massinha até a 4.1d.
 - **4.1c e 4.1d:** cada arma refeita perde a receita e a planta antigas. No fim da 4.1d saem de vez o gerador de SDF das
-  armas (`src/weapons/model/recipe.js`, `silhouette.js`, `weaponModel.js`), as receitas restantes, as mãos de massinha
-  (`src/characters/hands/`, `src/data/hands.js`), a paleta de massinha das armas (`src/data/weaponPalette.js`) e o
-  importador e exportador de receita do Blender (`tools/blender/massacre/`, `tools/blender/massacre_armas.py`), com os
-  testes deles.
+  armas (`src/weapons/model/recipe.js`, `silhouette.js`, `weaponModel.js`), as receitas restantes, as mãos de 4 dedos
+  de massinha (`src/characters/hands/handShape.js`, `handRig.js`, `handSkin.js`, `handLibrary.js` e
+  `src/data/hands.js` — não a pasta inteira, que desde a 4.1b tem as luvas, o antebraço e a braçadeira), a paleta de
+  massinha das armas (`src/data/weaponPalette.js`) e o importador e exportador de receita do Blender
+  (`tools/blender/massacre/`, `tools/blender/massacre_armas.py`), com os testes deles.
 - **Fica:** as formas novas do SDF (perfil, torno, tubo), que servem para o cenário; o viewmodel (`src/weapons/viewmodel/`,
   `src/data/viewmodel.js`); a bancada `arsenal`; o lançador `npm run blender` e o conversor de eixos; a
   `tools/silhueta.html`, que evolui para a régua.
@@ -407,6 +492,10 @@ A troca é em etapas, para nenhuma subfase deixar arma faltando nem pôr placeho
   silhueta do `.glb`); seção 0.15 (skins de cor e acabamento); textos das Fases 4, 5 e 11.
 - `docs/phases/phase-4.md` (nova tabela de subfases e as decisões de 2026-09-26), `docs/PROGRESS.md` e a memória
   (`massacre-workflow-rules`: "o Blender gera os modelos das armas e das mãos por script").
+- **Atualizados na 4.1b:** as regras 3 e 4 e a tabela de paridade falam em luvas (do punho para trás, o braço de
+  massinha); a seção 0.7 "Mãos" (sem manga e sem roupa, a regra da mão da frente) e a nova "Texturas CC0 no Blender"
+  (2026-09-27); a seção 0.12 com o "sem roupa por enquanto" e o motivo; este desenho (seções 1, 2, 4, 5.1, 5.3, 6.5, 7,
+  8.1 e 8.2).
 
 ## 9. Testes e aceite
 

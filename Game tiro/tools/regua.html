@@ -30,6 +30,15 @@
 // é o JSON no formato da ficha, para completar (medidas oficiais com a fonte, correção de cor) e gravar em
 // tools/blender/refs/<id>.json. Exemplo:
 //   tools/regua.html?arma=ak47&arquivo=File:AK-47%20assault%20rifle.jpg&mm=870&eixox=-130,-80
+// Desde a 4.1c (plano da 4.1c, D2 e D4): ?lado=direito|esquerdo diz o lado da arma na foto (com ?espelhar=1 a foto do
+// lado esquerdo fica com a boca em +X) e a foto sai marcada como a do contorno; ?faca=1 troca o referencial para o da
+// faca (a ponta da lâmina em x = 0, o eixo do cabo em y = 0 — o ?eixox= mede o centro do cabo nas colunas pedidas).
+// Sobreposição da conferência (P1 da 4.1c): ?render=<url do PNG>&janela=x0,x1,y0,y1 (a área em mm da ficha que a vista
+// ortográfica do Blender cobre, do vistas.json da conferência) desenha a foto e o render na mesma escala, lado a lado e
+// um por cima do outro (?alfa=, 0,5); ?espelharRender=1 vira o render (a vista do lado esquerdo, com a boca à esquerda,
+// sobre a foto do lado esquerdo espelhada).
+// ?recorte=x0,y0,x1,y1 (frações da foto, 0 a 1, depois do espelho) limita a arma a um retângulo: a foto com várias peças
+// (a faca com as bainhas) mede só a que está nele.
 import { sourceInfo, loadImage, weaponMask, largestComponent, traceLoops, area, simplify } from './regua/lib.js';
 
 const P = new URLSearchParams(location.search);
@@ -37,6 +46,8 @@ const ARMA = P.get('arma') || 'arma';
 const FILE = P.get('arquivo');
 const MM = Number(P.get('mm'));
 const MIRROR = P.get('espelhar') === '1';
+const LADO = P.get('lado') || 'direito';
+const FACA = P.get('faca') === '1';
 const PX = Number(P.get('pxmm') || 2.8);
 const FAIXA = Number(P.get('faixa') || 220);
 const info = document.getElementById('info');
@@ -65,6 +76,12 @@ async function run() {
   g.setTransform(1, 0, 0, 1, 0, 0);
   const pixels = g.getImageData(0, 0, W, H);
   const { mask: raw, mode } = weaponMask(pixels, W, H);
+  if (P.has('recorte')) {
+    const [a, b, c, d] = P.get('recorte').split(',').map(Number);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) if (x < a * W || x > c * W || y < b * H || y > d * H) raw[y * W + x] = 0;
+    }
+  }
   const mask = largestComponent(raw, W, H);
   const loops = traceLoops(mask, W, H).map((l) => ({ l, a: area(l) }));
   loops.sort((p, q) => Math.abs(q.a) - Math.abs(p.a));
@@ -158,10 +175,12 @@ async function run() {
     arma: ARMA,
     variante: P.get('variante') || '',
     unidade: 'mm',
-    referencial: 'boca do cano em x = 0; eixo do cano em y = 0 (centro do cano exposto); +X para a boca, +Y para cima; lado direito da arma',
+    referencial: FACA
+      ? 'ponta da lâmina em x = 0; eixo do cabo em y = 0 (centro do cabo); +X para a ponta, +Y para o dorso (o gume para baixo)'
+      : 'boca do cano em x = 0; eixo do cano em y = 0 (centro do cano exposto); +X para a boca, +Y para cima',
     fotos: [{
-      lado: MIRROR ? 'direito (espelhada)' : 'direito', arquivo: src.file, pagina: src.page, autor: src.artist, licenca: src.license,
-      pixels: [W, H], mmPorPixel: Math.round(s * 10000) / 10000, eixo,
+      lado: LADO, espelhada: MIRROR, contorno: true, arquivo: src.file, pagina: src.page, autor: src.artist, licenca: src.license,
+      pixels: [W, H], mmPorPixel: Math.round(s * 10000) / 10000, eixo, usos: ['contorno'],
     }],
     contorno, buracos, pecas: marcados.pecas, linhas: marcados.linhas, cores,
     medidasDaFoto: {
@@ -286,8 +305,53 @@ async function run() {
   };
   document.getElementById('copiar').onclick = () => navigator.clipboard.writeText(saida.textContent);
   mostrar();
+  if (P.has('render')) await sobrepor(cv, maxX, axisY, s);
   window.__pronto = true;
 }
+// A foto e o render do Blender na mesma escala (px/mm = ?pxmm): em cima a foto, no meio o render, embaixo os dois
+// sobrepostos. A janela é a área (mm, referencial da ficha) que a câmera ortográfica cobre.
+async function sobrepor(cv, maxX, axisY, s) {
+  const [x0, x1, y0, y1] = P.get('janela').split(',').map(Number);
+  const alfa = Number(P.get('alfa') || 0.5);
+  const render = await loadImage(P.get('render'));
+  const w = Math.round((x1 - x0) * PX);
+  const h = Math.round((y1 - y0) * PX);
+  const c = document.createElement('canvas');
+  c.id = 'sobreposicao';
+  c.width = w;
+  c.height = h * 3;
+  const q = c.getContext('2d');
+  q.fillStyle = '#e9e4da';
+  q.fillRect(0, 0, w, h * 3);
+  const foto = (dy) => q.drawImage(cv, maxX + x0 / s, axisY - y1 / s, (x1 - x0) / s, (y1 - y0) / s, 0, dy, w, h);
+  const blender = (dy) => {
+    q.save();
+    if (P.get('espelharRender') === '1') {
+      q.translate(w, 0);
+      q.scale(-1, 1);
+    }
+    q.drawImage(render, 0, dy, w, h);
+    q.restore();
+  };
+  foto(0);
+  blender(h);
+  foto(2 * h);
+  q.globalAlpha = alfa;
+  blender(2 * h);
+  q.globalAlpha = 1;
+  q.strokeStyle = 'rgba(0,120,255,0.35)';
+  for (let xm = Math.ceil(x0 / 10) * 10; xm <= x1; xm += 10) {
+    q.beginPath();
+    q.moveTo((xm - x0) * PX + 0.5, 0);
+    q.lineTo((xm - x0) * PX + 0.5, 3 * h);
+    q.stroke();
+  }
+  const titulo = document.createElement('div');
+  titulo.textContent = `sobreposição: foto, render e os dois (alfa ${alfa}) — janela x ${x0} … ${x1}, y ${y0} … ${y1} mm`;
+  document.getElementById('faixas').prepend(c);
+  document.getElementById('faixas').prepend(titulo);
+}
+
 run().catch((err) => {
   info.textContent = `erro: ${err.message}`;
   window.__pronto = true;

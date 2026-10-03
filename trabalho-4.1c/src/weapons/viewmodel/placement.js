@@ -30,21 +30,25 @@ export function weaponNudge(id) {
 
 /**
  * Posição de uma categoria com um ajuste por cima (o `viewmodel_ajuste` do console afina os dados ao vivo).
- * `gloveElbows`: os cotovelos dos braços de luva (sem os da categoria, os `elbows`).
+ * `gloveElbows`: os cotovelos dos braços de luva — o do ajuste, senão o da arma (`weapon`, os `gloveElbows` dela em
+ * VIEWMODEL.weapons), senão o da categoria (sem eles, os `elbows`), lado a lado.
  * @param {string} category
  * @param {{pos?:number[], angles?:number[], elbows?:{direita?:number[], esquerda?:number[]},
  *   gloveElbows?:{direita?:number[], esquerda?:number[]}}|null} [tune]
+ * @param {string|null} [weapon] a arma na mão
  */
-export function categoryPlacement(category, tune = null) {
+export function categoryPlacement(category, tune = null, weapon = null) {
   const base = VIEWMODEL.categories[category];
   if (!base) throw new Error(`categoria de viewmodel desconhecida: ${category}`);
   const elbows = { direita: tune?.elbows?.direita ?? base.elbows.direita, esquerda: tune?.elbows?.esquerda ?? base.elbows.esquerda };
   const luva = base.gloveElbows ?? base.elbows;
+  const daArma = (weapon && VIEWMODEL.weapons[weapon]?.gloveElbows) || {};
+  const lado = (s) => tune?.gloveElbows?.[s] ?? daArma[s] ?? luva[s];
   return {
     pos: tune?.pos ?? base.pos,
     angles: tune?.angles ?? base.angles,
     elbows,
-    gloveElbows: { direita: tune?.gloveElbows?.direita ?? luva.direita, esquerda: tune?.gloveElbows?.esquerda ?? luva.esquerda },
+    gloveElbows: { direita: lado('direita'), esquerda: lado('esquerda') },
   };
 }
 
@@ -87,9 +91,9 @@ export function elbowTarget(category, side, tune = null, out = new THREE.Vector3
   return out.fromArray(categoryPlacement(category, tune).elbows[side]);
 }
 
-/** Cotovelo do braço de luva de um lado, no referencial da câmera. */
-export function gloveElbowTarget(category, side, tune = null, out = new THREE.Vector3()) {
-  return out.fromArray(categoryPlacement(category, tune).gloveElbows[side]);
+/** Cotovelo do braço de luva de um lado, no referencial da câmera (o da arma `weapon` quando ela tem o dela). */
+export function gloveElbowTarget(category, side, tune = null, out = new THREE.Vector3(), weapon = null) {
+  return out.fromArray(categoryPlacement(category, tune, weapon).gloveElbows[side]);
 }
 
 /**

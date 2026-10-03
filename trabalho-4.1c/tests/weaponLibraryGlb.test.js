@@ -69,7 +69,8 @@ function carregadoresFalsos() {
       },
       async json(url) {
         conta.json++;
-        if (url.includes('relatorio')) return { arma: 'ak47', silhueta: { iouTolerancia: 0.991, iouBruto: 0.96 } };
+        // o relatório com a origem da arma na ficha (o pino do gatilho da AK, 551 mm atrás da boca)
+        if (url.includes('relatorio')) return { arma: 'ak47', origemMM: [-551, 0], silhueta: { iouTolerancia: 0.991, iouBruto: 0.96 } };
         if (url.includes('refs/ak47.json')) return structuredClone(FICHA);
         throw new Error(`sem ${url}`);
       },
@@ -105,6 +106,8 @@ test('weaponModels: as duas origens, os níveis de cada uma e o info da AK no fo
   assert.equal(info.anchors.maoDireita.pose, null);
   assert.ok(info.anchors.maoEsquerda && info.anchors.ejecao);
   assert.ok(Math.abs(info.plan.lengthU - 870 / 25.4) < 1e-9);
+  // a planta da ficha vai para a origem da ficha no jogo (551 mm à frente do pino do gatilho: a boca)
+  assert.deepEqual(info.planOrigin, [551 / 25.4, 0]);
   assert.equal(info.iou, 0.991);
   assert.ok(info.bounds.max[0] > info.bounds.min[0]);
   assert.equal(lib.info('ak47'), info);

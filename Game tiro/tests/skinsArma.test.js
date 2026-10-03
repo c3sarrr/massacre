@@ -1,6 +1,7 @@
 // Skins das armas realistas (Fase 4.1a; desenho, seção 6): as tabelas dos acabamentos, das cores e das skins nomeadas,
 // o registro das armas realistas (zonas, soquetes, peças, orçamentos, pintura de fábrica) e as contas puras de
-// src/weapons/skins/ (acabamento → material, skins de fábrica e nomeadas, os argumentos do comando `skin`).
+// src/weapons/skins/ (acabamento → material, skins de fábrica e nomeadas, os argumentos do comando `skin`); desde a 4.1c,
+// as skins nas zonas de cada classe (a faca sem carregador nem interno).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,7 +9,7 @@ import { ACABAMENTOS, PADROES } from '../src/data/acabamentos.js';
 import { CORES_SKIN } from '../src/data/coresSkin.js';
 import { SKINS_ARMA } from '../src/data/skinsArma.js';
 import {
-  ARMAS_REAIS, CLASSE_DA_CATEGORIA, LODS_REAIS, ORCAMENTOS, PECAS_MOVEIS, ZONAS, orcamentoDaArma, soquetesDaArma,
+  ARMAS_REAIS, CLASSE_DA_CATEGORIA, LODS_REAIS, ORCAMENTOS, PECAS_MOVEIS, ZONAS, orcamentoDaArma, soquetesDaArma, zonasDaArma,
 } from '../src/data/armasReais.js';
 import { VIEWMODEL } from '../src/data/viewmodel.js';
 import {
@@ -20,11 +21,16 @@ import {
 
 const HEX = /^#[0-9A-F]{6}$/;
 
-test('acabamentos: os 15 da seção 6.1 com metal e aspereza da tabela', () => {
+// Os 15 da seção 6.1 do desenho das armas mais os 2 das luvas (4.1b: couro e tecido); a borracha passou a ser a borracha
+// moldada (TPR) semifosca das luvas e das armas (0,9 → 0,68, desenho da 4.1b, seção 7.2); o polímero, o acetinado
+// do molde com o padrão `molde` (0,65 → 0,45, correções da P1 da 4.1c); o anodizado, o alumínio jateado acetinado e
+// sem a iridescência (0,25 → 0,42, correções da P1 da 4.1c).
+test('acabamentos: os 15 da seção 6.1 e os 2 das luvas com metal e aspereza da tabela', () => {
   const tabela = {
     oxidado: [1, 0.34], fosfatizado: [1, 0.55], fosco: [0, 0.85], acetinado: [0, 0.5], brilhante: [0, 0.25],
-    metalico: [0.6, 0.35], perolado: [0.2, 0.3], anodizado: [1, 0.25], escovado: [1, 0.3], cromado: [1, 0.05],
-    cerakote: [0, 0.7], carbono: [0, 0.35], madeira: [0, 0.45], polimero: [0, 0.65], borracha: [0, 0.9],
+    metalico: [0.6, 0.35], perolado: [0.2, 0.3], anodizado: [1, 0.42], escovado: [1, 0.3], cromado: [1, 0.05],
+    cerakote: [0, 0.7], carbono: [0, 0.35], madeira: [0, 0.45], polimero: [0, 0.45], borracha: [0, 0.68],
+    couro: [0, 0.56], tecido: [0, 0.88],
   };
   assert.deepEqual(Object.keys(ACABAMENTOS).sort(), Object.keys(tabela).sort());
   for (const [id, [metal, aspereza]] of Object.entries(tabela)) {
@@ -42,12 +48,12 @@ test('acabamentos: os 15 da seção 6.1 com metal e aspereza da tabela', () => {
   assert.equal(ACABAMENTOS.perolado.iridescencia, 0.8);
   assert.equal(ACABAMENTOS.perolado.iorIridescencia, 1.3);
   assert.deepEqual(ACABAMENTOS.perolado.filme, [250, 600]);
-  assert.equal(ACABAMENTOS.anodizado.iridescencia, 0.2);
+  assert.equal(ACABAMENTOS.anodizado.iridescencia, undefined); // a cor é do corante, não de filme fino
   assert.equal(ACABAMENTOS.escovado.anisotropia, 0.8);
   assert.equal(ACABAMENTOS.madeira.verniz, 0.6);
   assert.equal(ACABAMENTOS.carbono.padrao, 'carbono');
   assert.equal(ACABAMENTOS.madeira.padrao, 'veio');
-  assert.equal(ACABAMENTOS.polimero.padrao, 'pontilhado');
+  assert.equal(ACABAMENTOS.polimero.padrao, 'molde');
 });
 
 test('cores: as 20 da paleta da seção 6.2', () => {
@@ -79,7 +85,8 @@ test('skins nomeadas: as três de exemplo, com zonas, acabamentos e cores que ex
 test('registro das armas realistas: a AK-47 com zonas, peças, soquetes, orçamento e pintura de fábrica', () => {
   assert.deepEqual(ZONAS, ['corpo', 'guarnicao', 'carregador', 'detalhes', 'interno']);
   assert.deepEqual(LODS_REAIS, ['perto', 'mundo', 'longe']);
-  assert.deepEqual(PECAS_MOVEIS, ['ferrolho', 'carregador', 'gatilho', 'cao', 'seletor']);
+  // A alavanca de manejo e a tampa da janela de ejeção da M4 entraram na 4.1c (plano da 4.1c, D5).
+  assert.deepEqual(PECAS_MOVEIS, ['ferrolho', 'carregador', 'gatilho', 'cao', 'seletor', 'alavanca', 'tampa']);
   const ak = ARMAS_REAIS.ak47;
   assert.equal(ak.categoria, VIEWMODEL.weapons.ak47.category);
   assert.equal(ak.pasta, 'assets/armas/ak47/');
@@ -194,6 +201,31 @@ test('skins: fábrica, nomeadas por cima da fábrica, chave estável e validaç�
   const linhas = descreverSkin(fab);
   assert.equal(linhas.length, ZONAS.length);
   assert.match(linhas[0], /^corpo: Oxidado de fábrica #303135 · desgaste 0,22$/);
+});
+
+test('skins por classe: a de fábrica e as nomeadas valem nas zonas de cada realista (a faca sem carregador nem interno)', () => {
+  assert.deepEqual(zonasDaArma('knife'), ['corpo', 'guarnicao', 'detalhes']);
+  for (const id of Object.keys(ARMAS_REAIS)) {
+    const zonas = [...zonasDaArma(id)];
+    const fab = skinDeFabrica(id);
+    assert.deepEqual(Object.keys(fab.zonas), zonas, `${id}: a de fábrica`);
+    for (const [chave, def] of Object.entries(SKINS_ARMA)) {
+      const s = skinPorNome(id, chave);
+      assert.deepEqual(Object.keys(s.zonas), zonas, `${id} · ${def.nome}: as zonas da arma`);
+      // a zona que a skin traz vale; a zona que a arma não tem fica de fora
+      for (const z of zonas) assert.equal(s.zonas[z].acabamento, def.zonas[z].acabamento, `${id} · ${def.nome} · ${z}`);
+    }
+  }
+  const faca = skinDeFabrica('knife');
+  assert.throws(() => aplicarZonas('knife', faca, lerArgumentosSkin(['carregador=fosco:preto'])),
+    /knife não tem a zona carregador \(tem: corpo, guarnicao, detalhes\)/);
+  assert.throws(() => aplicarZonas('knife', faca, lerArgumentosSkin(['interno=escovado:preto'])), /knife não tem a zona interno/);
+  const desgastada = aplicarZonas('knife', faca, lerArgumentosSkin(['desgaste=0.5']));
+  assert.deepEqual(Object.keys(desgastada.zonas), ['corpo', 'guarnicao', 'detalhes']);
+  for (const z of Object.values(desgastada.zonas)) assert.equal(z.desgaste, 0.5);
+  // a skin da faca não precisa das zonas que ela não tem; a da AK precisa de todas
+  assert.doesNotThrow(() => validarSkin('knife', faca));
+  assert.throws(() => validarSkin('ak47', { ...faca, chave: 'personalizada' }), /skin de ak47 sem a zona carregador/);
 });
 
 test('comando skin: leitura dos argumentos', () => {

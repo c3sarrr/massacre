@@ -12,7 +12,7 @@ import bmesh
 import bpy
 import numpy as np
 
-from . import canonica, estudio
+from . import canonica, estudio, gravar
 from .unidades import S
 
 
@@ -260,7 +260,7 @@ def _gravar_webp(pasta, nome, rgba, alfa):
     caminho = f'{pasta}/{nome}.webp'
     img.filepath_raw = caminho
     img.file_format = 'WEBP'
-    img.save(filepath=caminho, quality=100)
+    gravar.com_novas_tentativas(lambda: img.save(filepath=caminho, quality=100), caminho)
     bpy.data.images.remove(img)
     return caminho
 
@@ -277,13 +277,12 @@ def _suavizar(canal):
 
 def _juntar_copias(objetos, nome):
     """Uma cópia juntada das peças, com os modificadores aplicados (mantém as UVs e os materiais) e na forma canônica
-    (canonica.canonizar: o Cycles triangula cada polígono pela ordem dos cantos): o alvo único do assar (as peças de
-    jogo) e a fonte única (o modelo alto — uma árvore de raios em vez de uma por peça)."""
-    dg = bpy.context.evaluated_depsgraph_get()
+    (canonica.avaliada: o Cycles triangula cada polígono pela ordem dos cantos; a avaliação ruim do booleano é refeita):
+    o alvo único do assar (as peças de jogo) e a fonte única (o modelo alto — uma árvore de raios em vez de uma por
+    peça)."""
     copias = []
     for ob in objetos:
-        me = canonica.canonizar(bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True,
-                                                                depsgraph=dg))
+        me = canonica.avaliada(ob)
         c = bpy.data.objects.new(f'{nome}.{ob.name}', me)
         c.matrix_world = ob.matrix_world.copy()
         bpy.context.scene.collection.objects.link(c)

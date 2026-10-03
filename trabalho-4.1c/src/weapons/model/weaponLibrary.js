@@ -24,6 +24,13 @@ import { WEAPON_LODS, assembleWeapon, buildWeaponMeshes, createWeaponMaterials }
 
 const RAIZ = new URL('../../../', import.meta.url);
 
+/** A boca do cano da receita, onde o (0, 0) da planta da 4.1 fica; a de massinha com planta precisa da âncora. */
+function bocaDaReceita(id, recipe) {
+  const boca = recipe.anchors?.boca?.pos;
+  if (!boca) throw new Error(`${id}: a receita tem planta (refs.planta) e não tem a âncora boca`);
+  return [boca[0], boca[1]];
+}
+
 export class WeaponLibrary {
   #sdf;
   #log;
@@ -78,7 +85,8 @@ export class WeaponLibrary {
     if (this.#glb.has(id)) return (await this.#glb.carregar(id)).info;
     if (!this.#recipes.has(id)) throw new Error(`arma sem modelo: ${id}`);
     if (!this.#plans.has(id)) {
-      // A planta vem do arquivo que a receita aponta (`refs.planta`); a faca não tem (é desenhada de cabeça): sem busca.
+      // A planta vem do arquivo que a receita aponta (`refs.planta`); sem ela (nenhuma de massinha hoje: a faca de
+      // massinha, a única, virou a M9 realista na 4.1c), a folha da bancada desenha a silhueta da receita: sem busca.
       const arquivo = this.#recipes.get(id).refs?.planta;
       const plan = arquivo ? plantaDoArquivo(await this.#carregar.json(new URL(arquivo, RAIZ).href)) : null;
       this.#plans.set(id, plan);
@@ -101,7 +109,8 @@ export class WeaponLibrary {
         id, source: 'massinha', category: VIEWMODEL.weapons[id]?.category ?? null,
         bounds: { min: [...b.min], max: [...b.max] }, radius: size.length() / 2,
         anchors: recipe.anchors, sockets: null, hands: true,
-        plan, lengthU: plan?.lengthU ?? silhouetteLength(recipe),
+        // a planta da 4.1 é relativa à boca do cano: vai para a âncora `boca` da receita
+        plan, planOrigin: plan ? bocaDaReceita(id, recipe) : null, lengthU: plan?.lengthU ?? silhouetteLength(recipe),
         parts: [...new Set(recipe.parts.map((p) => p.group))], zones: null, lods: [...WEAPON_LODS],
         report: null, ficha: null, iou: null, recipe,
       };

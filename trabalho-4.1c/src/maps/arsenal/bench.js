@@ -24,6 +24,19 @@ import { drawPlanSheet, planSheetMaterial } from './planSheets.js';
 const DEG = Math.PI / 180;
 const labelLength = (aspect, L) => Math.max(L.tapeWidth * 2.2, aspect * L.textHeight + L.margin * 2);
 
+/**
+ * Direção de uma peça na "Explodir" do painel: a da arma (`ARSENAL.explode.byWeapon`), senão, no carregador que desliza,
+ * o eixo dele (o `eixo` do .glb, em `userData.axis`), senão a da tabela pelo nome; a peça sem direção fica no lugar.
+ * @param {string} id a arma
+ * @param {string} name a peça móvel (realista) ou o grupo (massinha)
+ * @param {THREE.Object3D} holder o nó da peça na instância
+ * @returns {number[]}
+ */
+export function explodeDir(id, name, holder) {
+  const E = ARSENAL.explode;
+  return E.byWeapon[id]?.[name] ?? (name === 'carregador' ? holder?.userData.axis : null) ?? E.dirs[name] ?? [0, 0, 0];
+}
+
 export class ArsenalBench {
   /**
    * @param {{set:import('../../clay/set/index.js').SetLibrary, weapons:import('../../weapons/model/weaponLibrary.js').WeaponLibrary,
@@ -364,8 +377,9 @@ export class ArsenalBench {
   #applyExplode() {
     const parts = this.weapon?.userData.weapon.parts;
     if (!parts) return;
+    const id = this.weapon.userData.weapon.id;
     for (const [name, holder] of Object.entries(parts)) {
-      const dir = ARSENAL.explode.dirs[name] ?? [0, 0, 0];
+      const dir = explodeDir(id, name, holder);
       const k = this.state.explode * ARSENAL.explode.max;
       holder.position.set(holder.userData.rest[0] + dir[0] * k, holder.userData.rest[1] + dir[1] * k, holder.userData.rest[2] + dir[2] * k);
     }

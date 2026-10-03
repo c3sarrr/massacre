@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.dirname(AQUI))
 
 import bpy  # noqa: E402
 
-from armas import (assar, conferir, empunhadura_pega, exportar, lod, luvas, materiais, pecas, relevo,  # noqa: E402
-                   soquetes, validar, zonas)
+from armas import (assar, conferir, empunhadura_pega, exportar, gravar, lod, luvas, materiais, pecas,  # noqa: E402
+                   relevo, soquetes, validar, zonas)
 
 
 def _colecao(nome):
@@ -94,9 +94,9 @@ def construir(ctx):
     fontes = _malhas(alto)
     _etapa(t0, 'peças móveis e soquetes')
     # A pega (Fase 4.1b): as luvas refeitas pelo mesmo script e o solver na arma de jogo (o perto, peças em repouso).
-    # Só nas categorias que já têm a regra (src/data/luvas.js, CATEGORIAS_COM_PEGA; a pistola entra na Tarefa 11 do plano
-    # da 4.1c) e nas armas que não esperam a regra delas (`pega: false` em src/data/armasReais.js): nas outras a arma
-    # sai sem a pega, como no jogo, que monta as luvas só onde ela existe.
+    # Só nas categorias que já têm a regra (src/data/luvas.js, CATEGORIAS_COM_PEGA: o fuzil, a faca e a pistola) e nas
+    # armas que não esperam a regra delas (`pega: false` em src/data/armasReais.js): nas outras a arma sai sem a pega,
+    # como no jogo, que monta as luvas só onde ela existe.
     com_pega = ctx.get('pega', True)
     if com_pega:
         mao, bracos = empunhadura_pega.montar_luvas(ctx, _colecao('luvas'))
@@ -133,7 +133,8 @@ def construir(ctx):
         # nelas — sem relevo o alfa é todo 255 e o WebP o descarta (o jogo lê 1: liso)
         'relevos': {z: [round(v, 2) for v in c] for z, c in sorted(caixas_relevo.items())},
     })
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ctx['conferencia'], f"{ctx['id']}.blend"))
+    blend = os.path.join(ctx['conferencia'], f"{ctx['id']}.blend")
+    gravar.com_novas_tentativas(lambda: bpy.ops.wm.save_as_mainfile(filepath=blend), blend)
     if problemas:
         rel.update({'aprovado': False, 'problemas': problemas})
         exportar.gravar_relatorio(ctx['saida'], ctx['id'], rel)

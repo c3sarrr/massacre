@@ -15,8 +15,8 @@ novo está em `docs/superpowers/specs/2026-09-26-armas-realistas-design.md` e re
 |---|---|---|
 | 4.1 (massinha) | Oficina de armas de massinha: formas novas do SDF, receita por arma, gerador receita → malha de massinha, o Blender como editor da receita, mãos de 4 dedos, viewmodel parado, mapa `arsenal` e o primeiro lote — substituída pelo redesenho de 2026-09-26 (armas realistas); fica registrada abaixo | ✅ 2026-09-26 |
 | 4.1a | Pipeline realista e a AK-47 tipo 3 no nível final: régua e ficha, biblioteca de peças, construir, assar, exportar e validar; `GLTFLoader` no vendor e o novo `weaponModels`; material com zonas e acabamentos, reflexo do set e luz do viewmodel; a AK na bancada `arsenal` e em primeira pessoa, ainda sem mãos; comando `skin` e as três skins de exemplo; atualização das regras e da memória | ✅ 2026-09-26 |
-| 4.1b | Luvas táticas realistas no braço de massinha do boneco (sem manga e sem roupa), rig de 20 ossos por braço e o solver de empunhadura dentro do `construir` da arma, com a mão da frente em "thumb break" (o polegar reto e deitado de um lado, os quatro dedos do outro); a AK segurada em primeira pessoa nas duas facções, com uma mão só na tela; os comandos `luvas` e `luvas_contato`; o rebatedor de isopor da bancada — desenho em `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md` | em andamento (P2 respondida e corrigida; falta o aceite) |
-| 4.1c | Glock-18, M4A4 e a faca — a baioneta M9 (EUA, 1986) — no caminho provado, com as empunhaduras | a fazer |
+| 4.1b | Luvas táticas realistas no braço de massinha do boneco (sem manga e sem roupa), rig de 20 ossos por braço e o solver de empunhadura dentro do `construir` da arma, com a mão da frente em "thumb break" (o polegar reto e deitado de um lado, os quatro dedos do outro); a AK segurada em primeira pessoa nas duas facções, com uma mão só na tela; os comandos `luvas` e `luvas_contato`; o rebatedor de isopor da bancada — desenho em `docs/superpowers/specs/2026-09-26-4.1b-luvas-e-empunhadura-design.md` | ✅ 2026-09-27 (aceite: `luvas_contato` a 0,02 mm do Blender nas duas facções e nas três posições, memória estável; o FPS na máquina do usuário a medir) |
+| 4.1c | Glock-18 de 3ª geração, M4A4 (a carabina M4A1 com o guarda-mão de trilhos) e a faca — a baioneta M9 (EUA, 1986) — no caminho provado (ficha no formato 2 por classe, script do Blender, `construir` aprovado), com as empunhaduras: a M4A4 na regra do fuzil, a pistola de duas mãos com os polegares para a frente e a luva com luva, a faca na empunhadura de martelo de uma mão; a palma que cede; a construção determinística; os cotovelos de luva pela varredura; a bancada, as plantas e as skins por classe — desenho em `docs/superpowers/specs/2026-09-28-4.1c-glock-m4a4-m9-design.md` | ✅ 2026-10-02 (aceite: `luvas_contato` a 0,03 mm do Blender nas quatro armas e nas duas facções, nenhum aviso de pulso, memória estável, 272 a 283 FPS no Alto em 1920 × 1080 nesta máquina; o plano executado validado numa cópia limpa) |
 | 4.1d | AWP (com a luneta real), Nova e P90, com as empunhaduras | a fazer |
 | 4.2 | Tiro e dano: estado da arma (munição, cadência, recarga, modo), hitscan com spread e a inaccuracy da 3.2, padrões de spray gerados como no CS:GO, recoil real (aim punch) × visual (view punch), dano por hitbox, colete, capacete, penetração de blindagem, queda por distância, wallbang por material e espessura; campo de tiro com alvos de massinha, medidor de DPS e visualizador de spray | a fazer |
 | 4.3 | Animações suaves e a opção stop-motion (sacar, atirar, recarregar, inspecionar, correr); carregador de metal que sai e volta na recarga e cápsulas de latão que quicam e param no chão (e amassam a massinha do cenário); a marca de dedo na inspeção; tracers, luz de disparo, amassados e respingos na massa atingida, marcas nos outros materiais | a fazer |
@@ -25,6 +25,28 @@ novo está em `docs/superpowers/specs/2026-09-26-armas-realistas-design.md` e re
 | 4.6 | Faca: golpe leve e forte, backstab, bloqueio de frente com durabilidade, parry (devolve o tiro e atordoa), barra de carga e dash de execução — a katana do Doodle District sobre a faca do CS:GO | a fazer |
 | 4.7 | Granadas reais — fragmentação, atordoante, fumaça, molotov de garrafa com pano, incendiária e decoy — com os modelos do Blender, a física de quique do CS:GO, o arremesso com carga (curto/médio/longo) da referência e os efeitos de estúdio; a smoke bloqueia a visão e o raycast (o mesmo teste que a percepção dos bots da Fase 7 usa) | a fazer |
 | 4.8 | Sensação e aceite: passada de sensação por arma (coice do viewmodel, cadência, leitura), aceite da spec (sensação distinta, spray reproduzível, wallbang por material, smoke bloqueando raycast), desempenho e memória | a fazer |
+
+## Decisões do usuário (2026-09-28 a 2026-10-02) — Glock-18, M4A4 e a baioneta M9 (4.1c)
+
+Desenho em `docs/superpowers/specs/2026-09-28-4.1c-glock-m4a4-m9-design.md` (seção 0); plano em
+`docs/superpowers/plans/2026-09-28-4.1c-glock-m4a4-m9.md`, com o registro dos achados.
+
+1. **A Glock-18 com as duas mãos na tela**, na pega de polegares para a frente (nos fuzis continua só a mão da frente).
+2. **A M4A4 é a carabina M4A1** com o guarda-mão de trilhos, a torre A2, a alça de transporte com a mira A2 e a coronha
+   retrátil aberta.
+3. **As correções da P1** (2026-09-28): o polímero acetinado com o relevo do molde só nas regiões texturizadas, o punho
+   sem o zigue-zague dos pixels, o carregador da M4 acetinado cinza-esverdeado, o anodizado sem iridescência, a madeira
+   e o aço da AK pelas fotos e a pose da M9 do CS2 parada.
+4. **Construção determinística** (2026-10-01): a mesma entrada dá o mesmo modelo (a forma canônica das malhas).
+5. **Refazer o polegar da luva** (2026-10-02): o desvio lateral da MCP (Bookman & Fam 2010).
+6. **"Polegar reto, dedo na armação"**: os dois polegares retos para a frente e o indicador indexado na lateral da
+   armação, fora do gatilho; o dedo no gatilho fica para a animação de tiro.
+7. **"Fazer a palma fechar"** foi medida e piorou a pega: não entrou.
+8. **"Palma que cede"**: o tecido mole da palma afunda até o que a fonte mede (Pérez-González et al. 2013); só as duas
+   mãos da pistola chegam apertando.
+9. **Na P2** (2026-10-02): a luva preta da Tropa fica como está depois da correção do brilho de tecido (na luz quente da
+   bancada, tão escura quanto a lâmina preta da faca); o enquadramento dos fuzis fica como está (a mão do gatilho fora
+   da tela nas três posições prontas, como a AK da 4.1b).
 
 ## Decisões do usuário (2026-09-26 e 2026-09-27) — luvas e empunhadura (4.1b)
 

@@ -10,6 +10,7 @@ import {
   MAX_DEPTH, fail, readChild, readChildren, readNonNegative, readNumber, readPoints, readPositive, readPositiveVec3,
   readTransform, readType, readVec3,
 } from './params.js';
+import { suporteDoTronco } from './tronco.js';
 
 const TAU = Math.PI * 2;
 
@@ -137,6 +138,9 @@ function supportOf(node, type, path) {
         return m;
       };
     }
+    case 'tronco':
+      // Casca convexa dos retângulos das seções (o arredondamento só encolhe).
+      return suporteDoTronco(node, path);
     default:
       return fail(path, `forma desconhecida: ${type}`);
   }

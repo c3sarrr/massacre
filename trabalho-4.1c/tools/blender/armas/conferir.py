@@ -115,7 +115,8 @@ def _maos(ctx, pasta, sc, fundo, primeira):
         dados = json.loads(rig['pega'])
         luva = bpy.data.objects[f'luva_{lado}']
         modelo = maos_correcoes.Modelo(luva, rig, mao, luvas.REFORCO)
-        ob = modelo.para_malha(f'pega_{lado}', col, maos_rig.pose_de_json(dados['pose']))
+        # a palma afundada da pega (4.1c, a palma que cede), como no jogo
+        ob = modelo.para_malha(f'pega_{lado}', col, maos_rig.pose_de_json(dados['pose']), dados.get('palma'))
         e = Matrix(dados['encaixe'])
         e.translation = e.translation * S
         ob.matrix_world = e

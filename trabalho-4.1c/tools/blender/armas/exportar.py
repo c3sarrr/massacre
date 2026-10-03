@@ -11,7 +11,7 @@ import os
 import bpy
 from mathutils import Matrix, Vector
 
-from . import maos_rig
+from . import gravar, maos_rig
 from .unidades import S, U_POR_M
 
 
@@ -77,14 +77,14 @@ def exportar(ctx, origem_mm, lods, soquetes_objs, pasta, pega=None):
         o.select_set(True)
     bpy.context.view_layer.objects.active = raiz
     caminho = os.path.join(pasta, f"{ctx['id']}.glb")
-    bpy.ops.export_scene.gltf(
+    gravar.com_novas_tentativas(lambda: bpy.ops.export_scene.gltf(
         filepath=caminho, export_format='GLB', use_selection=True, export_yup=True, export_apply=True,
         export_texcoords=True, export_normals=True, export_tangents=True, export_materials='EXPORT',
         export_image_format='NONE', export_extras=True, export_cameras=False, export_lights=False,
         export_animations=bool(pega), export_animation_mode='ACTIONS', export_force_sampling=True,
         export_frame_range=False, export_skins=bool(pega), export_morph=False, export_draco_mesh_compression_enable=True,
         export_draco_mesh_compression_level=6, export_draco_position_quantization=14, export_draco_normal_quantization=10,
-        export_draco_texcoord_quantization=12, export_draco_generic_quantization=12)
+        export_draco_texcoord_quantization=12, export_draco_generic_quantization=12), caminho)
     return caminho
 
 
@@ -117,20 +117,23 @@ def exportar_luvas(pasta, bracos, marcas):
         o.select_set(True)
     bpy.context.view_layer.objects.active = raiz
     caminho = os.path.join(pasta, 'luvas.glb')
-    bpy.ops.export_scene.gltf(
+    gravar.com_novas_tentativas(lambda: bpy.ops.export_scene.gltf(
         filepath=caminho, export_format='GLB', use_selection=True, export_yup=True, export_apply=False,
         export_texcoords=True, export_normals=True, export_tangents=True, export_materials='EXPORT',
         export_image_format='NONE', export_extras=True, export_attributes=True, export_cameras=False,
         export_lights=False, export_animations=False, export_skins=True, export_morph=False,
         export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
         export_draco_position_quantization=14, export_draco_normal_quantization=10,
-        export_draco_texcoord_quantization=12, export_draco_generic_quantization=16)
+        export_draco_texcoord_quantization=12, export_draco_generic_quantization=16), caminho)
     return caminho
 
 
 def gravar_relatorio(pasta, id_, relatorio):
     caminho = os.path.join(pasta, f'{id_}.relatorio.json')
-    with open(caminho, 'w', encoding='utf-8', newline='\n') as f:
-        json.dump(relatorio, f, ensure_ascii=False, indent=1)
-        f.write('\n')
+
+    def escrever():
+        with open(caminho, 'w', encoding='utf-8', newline='\n') as f:
+            json.dump(relatorio, f, ensure_ascii=False, indent=1)
+            f.write('\n')
+    gravar.com_novas_tentativas(escrever, caminho)
     return caminho

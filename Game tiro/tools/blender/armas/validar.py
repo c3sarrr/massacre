@@ -1,5 +1,6 @@
 # Validação que bloqueia a exportação das armas realistas (Fase 4.1a; desenho em docs/superpowers/specs/
-# 2026-09-26-armas-realistas-design.md, seção 4.6): as medidas-chave dentro de ±1 % do alvo da ficha; a silhueta de lado
+# 2026-09-26-armas-realistas-design.md, seção 4.6): as medidas-chave dentro de ±1 % do alvo da ficha (desde a 4.1c, as
+# da classe da arma, medidas pelo nome — a faca tem a lâmina e a espessura dela no lugar do cano e das miras); a silhueta de lado
 # ≥ 98 % com a tolerância de 1 px da foto — a máscara renderizada pela câmera ortográfica que olha o lado direito contra
 # o contorno da ficha, na mesma conta de tools/regua/geometria.js (rasterizar pelo centro da célula, dilatar por disco,
 # IoU bruto e com tolerância), aqui em numpy; os orçamentos de triângulos e de texturas; os soquetes, as zonas e as peças
@@ -12,7 +13,7 @@ import bmesh
 import bpy
 import numpy as np
 
-from . import lod
+from . import canonica, lod
 from .unidades import S
 
 MM_POR_PX = 0.5   # resolução da máscara de lado
@@ -116,6 +117,13 @@ def _mascara_render(objetos, x0, y0, x1, y1, pasta):
     return alfa
 
 
+def foto_do_contorno(ficha):
+    """A foto que dá o contorno (Fase 4.1c, D2): a marcada com `contorno: true`, de qualquer lado; sem marca, a do lado
+    direito (a ficha da AK). É a mesma regra de src/weapons/model/ficha.js (fotoDoContorno)."""
+    fotos = ficha['fotos']
+    return next((f for f in fotos if f.get('contorno') is True), None) or next(f for f in fotos if f['lado'] == 'direito')
+
+
 def silhueta(objetos, ficha, pasta):
     """IoU da silhueta de lado (render × contorno da ficha), com a tolerância de 1 px da foto; grava a sobreposição."""
     os.makedirs(pasta, exist_ok=True)
@@ -126,7 +134,7 @@ def silhueta(objetos, ficha, pasta):
     modelo = _mascara_render(objetos, x0, y0, x1, y1, pasta)
     altura, largura = modelo.shape
     foto = rasterizar([ficha['contorno'], *ficha.get('buracos', [])], x0, y1, MM_POR_PX, largura, altura)
-    mm_px_foto = next(f for f in ficha['fotos'] if f['lado'].startswith('direito'))['mmPorPixel']
+    mm_px_foto = foto_do_contorno(ficha)['mmPorPixel']
     r = max(1, round(mm_px_foto / MM_POR_PX))
     res = iou(modelo, foto, r)
     rgba = np.zeros((altura, largura, 4), np.float32)
@@ -150,59 +158,100 @@ def _peca(ob):
 
 
 def _extremos(objetos):
-    """Mínimo e máximo (mm, no referencial do Blender) dos vértices avaliados dos objetos."""
-    dg = bpy.context.evaluated_depsgraph_get()
+    """Mínimo e máximo (mm, no referencial do Blender) dos vértices avaliados dos objetos (canonica.avaliacao: a
+    avaliação ruim do booleano é refeita)."""
     lo = np.full(3, np.inf)
     hi = np.full(3, -np.inf)
     for ob in objetos:
-        ev = ob.evaluated_get(dg)
-        me = ev.to_mesh()
-        co = np.empty(len(me.vertices) * 3, np.float32)
-        me.vertices.foreach_get('co', co)
+        with canonica.avaliacao(ob) as me:
+            co = np.empty(len(me.vertices) * 3, np.float32)
+            me.vertices.foreach_get('co', co)
         co = co.reshape(-1, 3)
         mw = np.array(ob.matrix_world)
         w = co @ mw[:3, :3].T + mw[:3, 3]
         lo = np.minimum(lo, w.min(0))
         hi = np.maximum(hi, w.max(0))
-        ev.to_mesh_clear()
     return lo / S, hi / S
 
 
-def medidas(objetos, canos, soquetes_def, ficha):
-    """As cinco medidas-chave (mm) com o alvo da ficha e o erro relativo."""
-    lo, hi = _extremos(objetos)
-    lo_s, hi_s = _extremos([o for o in objetos if _peca(o) != 'carregador'])
-    lo_c, hi_c = _extremos(canos)
+def _nome(ob):
+    """O nome da peça sem o sufixo de cópia do Blender (`cano.001` → `cano`)."""
+    return ob.name.split('.')[0]
+
+
+# As medidas-chave por nome (desenho geral, seção 3.4; Fase 4.1c, D3 — as da classe vêm do contexto, `ctx['medidas']`).
+# Cada uma recebe o perto (peças juntadas), as peças de jogo separadas (pelo nome) e os soquetes.
+def _comprimento(perto, _pecas, _soq):
+    lo, hi = _extremos(perto)
+    return hi[0] - lo[0]
+
+
+def _cano(_perto, pecas, _soq):
+    lo, hi = _extremos([o for o in pecas if _nome(o) == 'cano'])
+    return hi[0] - lo[0]
+
+
+def _raio_de_mira(_perto, _pecas, soq):
+    return abs(soq['mira_tras'][0] - soq['mira_frente'][0])
+
+
+def _altura_sem_carregador(perto, _pecas, _soq):
+    lo, hi = _extremos([o for o in perto if _peca(o) != 'carregador'])
+    return hi[2] - lo[2]
+
+
+def _altura_com_carregador(perto, _pecas, _soq):
+    lo, hi = _extremos(perto)
+    return hi[2] - lo[2]
+
+
+def _lamina(perto, pecas, _soq):
+    """Da face da frente da guarda à ponta da lâmina, ao longo do X (a faca)."""
+    _lo, hi = _extremos(perto)
+    _lo_g, hi_g = _extremos([o for o in pecas if _nome(o) == 'guarda'])
+    return hi[0] - hi_g[0]
+
+
+def _espessura_lamina(_perto, pecas, _soq):
+    """A maior espessura da lâmina, de lado a lado (o Y do Blender)."""
+    lo, hi = _extremos([o for o in pecas if _nome(o) == 'lamina'])
+    return hi[1] - lo[1]
+
+
+MEDIDAS = {
+    'comprimento': _comprimento, 'cano': _cano, 'raioDeMira': _raio_de_mira,
+    'alturaSemCarregador': _altura_sem_carregador, 'alturaComCarregador': _altura_com_carregador,
+    'lamina': _lamina, 'espessuraLamina': _espessura_lamina,
+}
+MEDIDAS_DE_FOGO = ('comprimento', 'cano', 'raioDeMira', 'alturaSemCarregador', 'alturaComCarregador')
+
+
+def medidas(perto, pecas, soquetes_def, ficha, nomes=MEDIDAS_DE_FOGO):
+    """As medidas-chave `nomes` (mm) com o alvo da ficha e o erro relativo."""
     soq = {nome: xy for nome, xy, _lado, _rot in soquetes_def}
-    valores = {
-        'comprimento': hi[0] - lo[0],
-        'cano': hi_c[0] - lo_c[0],
-        'raioDeMira': abs(soq['mira_tras'][0] - soq['mira_frente'][0]),
-        'alturaSemCarregador': hi_s[2] - lo_s[2],
-        'alturaComCarregador': hi[2] - lo[2],
-    }
     saida = {}
-    for nome, mm in valores.items():
+    for nome in nomes:
+        if nome not in MEDIDAS:
+            raise ValueError(f'medida desconhecida: {nome} (tem: {", ".join(MEDIDAS)})')
+        mm = float(MEDIDAS[nome](perto, pecas, soq))
         alvo = ficha['medidas'][nome]['mm']
-        saida[nome] = {'mm': round(float(mm), 2), 'alvo': alvo, 'erro': round((float(mm) - alvo) / alvo, 5)}
+        saida[nome] = {'mm': round(mm, 2), 'alvo': alvo, 'erro': round((mm - alvo) / alvo, 5)}
     return saida
 
 
 def malha(objetos):
-    """Peças fechadas (arestas que não são de exatamente duas faces) e sem faces degeneradas, com os modificadores."""
-    dg = bpy.context.evaluated_depsgraph_get()
+    """Peças fechadas (arestas que não são de exatamente duas faces) e sem faces degeneradas, com os modificadores
+    (canonica.avaliacao: a avaliação ruim do booleano é refeita; a aresta solta que se repete é recusada lá)."""
     abertas = 0
     degeneradas = 0
     nomes = []
     for ob in objetos:
-        ev = ob.evaluated_get(dg)
-        me = ev.to_mesh()
-        bm = bmesh.new()
-        bm.from_mesh(me)
+        with canonica.avaliacao(ob) as me:
+            bm = bmesh.new()
+            bm.from_mesh(me)
         a = sum(1 for e in bm.edges if not e.is_manifold)
         d = sum(1 for f in bm.faces if f.calc_area() < 1e-12)
         bm.free()
-        ev.to_mesh_clear()
         abertas += a
         degeneradas += d
         if a or d:
@@ -210,12 +259,12 @@ def malha(objetos):
     return {'bordasAbertas': abertas, 'facesDegeneradas': degeneradas, 'pecasComProblema': nomes[:20]}
 
 
-def relatorio_e_problemas(ctx, ficha, lods, soquetes_def, soquetes_nomes, canos, pecas_jogo, lados, uv, densidade, pasta):
+def relatorio_e_problemas(ctx, ficha, lods, soquetes_def, soquetes_nomes, pecas_jogo, lados, uv, densidade, pasta):
     """Tudo o que a seção 4.6 pede, num dicionário do relatório e na lista de problemas (vazia = aprovado)."""
     perto = [o for k, o in lods['perto'].items() if not k.startswith('_')]
     rel = {}
     rel.update(silhueta(perto, ficha, pasta))
-    rel['medidas'] = medidas(perto, canos, soquetes_def, ficha)
+    rel['medidas'] = medidas(perto, pecas_jogo, soquetes_def, ficha, ctx.get('medidas', MEDIDAS_DE_FOGO))
     rel['malha'] = malha(pecas_jogo)
     rel['malha']['facesNaoTrianguladas'] = sum(1 for o in perto for f in o.data.polygons if f.loop_total > 3)
     rel['lods'] = {nome: {'triangulos': lod.triangulos([o for k, o in partes.items() if not k.startswith('_')])}

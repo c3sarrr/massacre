@@ -29,23 +29,70 @@ export const VIEWMODEL = F({
    * dos offsets; `angles` = [arfagem, guinada, rolagem] em graus (guinada + vira a boca para o centro da tela, arfagem +
    * levanta a boca, rolagem + tomba o topo para a esquerda); `elbows` = para onde cada antebraço aponta, fora da tela
    * (o cotovelo real fica no alinhamento, a um antebraço do pulso).
+   * `gloveElbows` (Fase 4.1b) = os mesmos alvos para os braços de luva, nas categorias das armas com pega (sem ele, os
+   * `elbows`): o braço realista tem o pulso e o antebraço com os limites da AAOS. Achados por varredura das direções do
+   * antebraço com a pega da AK de verdade — o cotovelo fora da tela em 16:9 e 21:9, abaixo do pulso e o antebraço a
+   * mais de 3 mm da arma, nas três posições prontas do CS: a mão do gatilho com o menor Σ(ângulo/limite)² — 11–19° de
+   * extensão e 9–13° de desvio ulnar (a pegada do punho de pistola) e o antebraço na meia pronação; a da frente, desde a
+   * pega em C do CS:GO (2026-09-27: o polegar reto e deitado no lado esquerdo, os quatro dedos no direito), com o menor
+   * pior ângulo em relação ao limite (minimax — a soma dos quadrados trocava extensão por supinação e a deixava a 79,9°
+   * de 80°): 68–72° de supinação, 60–62° de extensão e 14–18° de desvio radial, todos a no máximo 91 % do limite (na
+   * P2, a pega antiga pedia 77,8° de supinação, 97 %), com o antebraço a 6,6 mm da arma. A palma para cima debaixo do
+   * guarda-mão pede muita supinação: o braço pendente é a referência da torção (o polegar para cima da câmera). Uma
+   * referência pelo ombro (o úmero) não serve: as posições do viewmodel são estilizadas como as do CS (a mão do gatilho
+   * a 16 cm do ombro, o cotovelo do apoio 44 cm à frente do olho) e a torção passava de 100°.
+   * A `faca` (correções da P1 da 4.1c, P1.4, com a pega de martelo da Tarefa 9): a M9 do CS2 parada — a lâmina subindo
+   * para o centro da tela com a face para a câmera, os dentes do dorso embaixo, o gume em cima e as costas da luva para
+   * a câmera, embaixo à direita; a de antes (10, 18, −30) mostrava os dentes para cima (o "de ponta-cabeça" do usuário)
+   * e, com a luva, pedia 133° de extensão e 114° de desvio ulnar do pulso. Achada por busca de padrão nos ângulos, na
+   * posição e no cotovelo de luva contra a miniatura de vitrine do CS2 (a frente da guarda, a ponta, o meio do cabo e o
+   * pomo na tela), com a face da lâmina a ≥ 0,7 para a câmera e o pulso a no máximo 13 % de cada limite da AAOS nas três
+   * posições prontas (6° de extensão, 3° de desvio ulnar, 11° de pronação na Mesa). A faca só tem a mão direita: o
+   * cotovelo de luva da esquerda não é usado.
+   * A `pistola` (Tarefa 12 da 4.1c, com a pega de polegares para a frente da Tarefa 11): os cotovelos de luva pela
+   * varredura de tools/cotovelos.mjs com a Glock e as luvas de verdade — o minimax do pior ângulo em relação ao limite
+   * nas três posições prontas, com o cotovelo fora da tela e abaixo do pulso, o antebraço a mais de 3 mm da arma, cada
+   * antebraço para o seu lado (o triângulo da pega isósceles: sem isso, o achado cruzava o antebraço direito por baixo
+   * do esquerdo, encostados) e a mais de 3 mm do outro braço. O do gatilho vai reto para trás, na altura do pulso (27°
+   * de extensão, 14° de desvio ulnar e 6° de pronação: 46 % do limite no pior); o de apoio, para trás e para a esquerda
+   * (27° de extensão, 11° de desvio ulnar e 25° de supinação: 40 %); os antebraços a 38 mm um do outro. Os cotovelos da
+   * massinha deixavam o pulso de luva a 295 % do limite (84° de desvio ulnar).
    */
   categories: F({
-    pistola: F({ pos: F([1.8, -0.9, -13.5]), angles: F([3, 4, -2]), elbows: F({ direita: F([12, -20, 2]), esquerda: F([-10, -20, 0]) }) }),
-    rifle: F({ pos: F([4.5, -3.1, -9]), angles: F([4, 1, -2]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -16, -4]) }) }),
+    pistola: F({
+      pos: F([1.8, -0.9, -13.5]), angles: F([3, 4, -2]), elbows: F({ direita: F([12, -20, 2]), esquerda: F([-10, -20, 0]) }),
+      gloveElbows: F({ direita: F([4.2, -6.6, 510]), esquerda: F([-27.9, -5.7, 48.4]) }),
+    }),
+    rifle: F({
+      pos: F([4.5, -3.1, -9]), angles: F([4, 1, -2]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -16, -4]) }),
+      gloveElbows: F({ direita: F([13.1, -8.2, 13.9]), esquerda: F([-9.9, -52.4, -9.7]) }),
+    }),
     sniper: F({ pos: F([5, -4.1, -9.6]), angles: F([3.5, 1, -1.5]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -17, -8]) }) }),
     escopeta: F({ pos: F([4.5, -3.2, -9.2]), angles: F([4, 1, -2]), elbows: F({ direita: F([15, -18, 6]), esquerda: F([-18, -17, -6]) }) }),
     smgBullpup: F({ pos: F([4.9, -4, -14.5]), angles: F([4, 2, -2]), elbows: F({ direita: F([14, -19, 4]), esquerda: F([-14, -19, -2]) }) }),
-    faca: F({ pos: F([3.4, -2.4, -10.5]), angles: F([10, 18, -30]), elbows: F({ direita: F([16, -16, 4]), esquerda: F([-9, -20, 4]) }) }),
+    faca: F({
+      pos: F([1.15, -2.21, -13.9]), angles: F([14.2, 45.7, -175.85]), elbows: F({ direita: F([16, -16, 4]), esquerda: F([-9, -20, 4]) }),
+      gloveElbows: F({ direita: F([-2, -31, -16]), esquerda: F([-9, -20, 4]) }),
+    }),
   }),
   // Categoria de cada arma com modelo — a receita de massinha ou o .glb do Blender (as da 4.4 entram aqui junto com o
   // modelo) — e, quando a silhueta pede, um ajuste fino somado à posição da categoria (`nudge`, u no referencial da
   // câmera): a alça de transporte da M4A4 fica mais alta que a tampa da AK, então a M4 desce um pouco para não tapar o
-  // lado direito da tela.
+  // lado direito da tela (revisto na Tarefa 12 da 4.1c com os modelos de verdade, na Mesa em 16:9: no décimo direito da
+  // tela, o alto da AK fica a −0,64 e o da M4A4 a −0,27 sem o ajuste e a −0,40 com ele — fica).
+  // `gloveElbows` da arma (Tarefa 12 da 4.1c) vale sobre o da categoria, lado a lado, quando a pega dela pede: com a pega
+  // da M4A4 (a mão da frente no guarda-mão de trilhos, o punho A2) e o ajuste fino, os cotovelos do `rifle` deixavam a
+  // supinação do apoio a 77° (96 % do limite) e o cotovelo do gatilho na altura do pulso; um cotovelo de apoio comum às
+  // duas armas ficava a 92 % nas duas (a AK pede mais desvio radial, a M4 mais supinação). Os dela, pela varredura de
+  // tools/cotovelos.mjs na M4A4: o do gatilho para trás, 1° abaixo do pulso (14° de extensão, 6° de desvio ulnar e 3° de
+  // supinação: 20 % do limite); o de apoio, 61° de extensão, 16–18° de desvio radial e 69–70° de supinação (87 %).
   weapons: F({
     glock: F({ category: 'pistola' }),
     ak47: F({ category: 'rifle' }),
-    m4a4: F({ category: 'rifle', nudge: F([0.3, -0.6, -0.4]) }),
+    m4a4: F({
+      category: 'rifle', nudge: F([0.3, -0.6, -0.4]),
+      gloveElbows: F({ direita: F([113.9, -10.8, 395.8]), esquerda: F([-40, -130, -1.7]) }),
+    }),
     awp: F({ category: 'sniper' }),
     nova: F({ category: 'escopeta' }),
     p90: F({ category: 'smgBullpup' }),

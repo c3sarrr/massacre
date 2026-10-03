@@ -21,6 +21,27 @@ export const ARSENAL = F({
   // Reflexo das armas realistas (Fase 4.1a, src/render/setReflection.js): o olho do "Segurar", de pé no tapete de frente
   // para a roda — de onde a arma na mão vê a bancada (a arma da roda entra só como parte do set, a 51 u).
   reflexo: F({ x: 0, z: 236 }),
+  // Rebatedor (Fase 4.1b; desenho da 4.1b, seção 7.6): uma placa de isopor branco de 20 mm num C-stand, atrás de quem
+  // olha a bancada e virada para ela — o lado do receptor das armas realistas refletia o estúdio escuro atrás do olho e
+  // saía quase preto. Quem acende a placa é o `luz` da montagem (o rim: alto, do outro lado do set e apontando para cá,
+  // é a única luz que chega pela frente ali; a key e o fill ficam atrás dela), e ela olha para a bissetriz entre essa luz
+  // e o olho do reflexo, no plano horizontal, e deita `inclinacao` graus para trás (o cartão rebatedor de mesa do
+  // estúdio de verdade, que devolve a contraluz para a frente). O lado do receptor virado para quem olha a roda
+  // reflete, a partir do olho, a direção +Z um pouco para baixo (elevação −0,29): o tampo logo atrás dele. Medido na
+  // bancada (a luminância do receptor): em pé na beira da mesa, a placa começava acima desse reflexo e clareava menos o
+  // aço que alta e girada; deitada, a borda de baixo fica perto e rente ao tampo (cobre o centro do reflexo), a de
+  // cima longe e alta — quase de frente para o rim — e abaixo dos raios da key que vão ao tapete (sem sombra na
+  // bancada). `centro` = x e z do centro da placa; a altura sai da inclinação: a aresta de baixo de trás assenta no
+  // tampo, na madeira atrás do tapete (girada para o rim, ela cruzaria a beira de trás do tapete em diagonal; o canto
+  // mais perto fica 11 mm atrás dela, e a aresta de baixo da frente passa 6 mm acima do tapete). `braco` = do encaixe atrás da placa até a coluna do tripé (a coluna desce fora da
+  // mesa); `conta` = o diâmetro das contas de isopor fundidas (mm).
+  rebatedor: F({
+    luz: 'rim',
+    centro: F([0, 400]),
+    largura: 700, altura: 220, espessura: 20, inclinacao: 25,
+    braco: 150,
+    conta: 4, cor: '#F2F1EC',
+  }),
   // Roda de modelar (QTT11): pé de metal pesado, coluna e prato torneado com anéis de centragem; gira devagar.
   turntable: F({
     x: 0, z: 185,
@@ -64,12 +85,23 @@ export const ARSENAL = F({
   ]),
   label: SHOWCASE_SET.label,
   // "Explodir" do painel: cada grupo (massinha) ou peça móvel (realista) se afasta do corpo nessa direção (u por unidade
-  // da régua). O cão da realista sai por cima e para a direita; o seletor, para a direita.
+  // da régua; referencial da arma: +X a boca, +Y em cima, +Z o lado direito). Pela tabela do nome (as peças da AK e os
+  // grupos das de massinha): o cão da AK sai por cima e para a direita; o ferrolho e o seletor, para a direita, o lado
+  // deles. O carregador que desliza sai pelo eixo dele (o `eixo` do .glb: o da Glock pelo eixo do punho, para baixo e
+  // para trás, sem atravessar a frente do punho). `byWeapon` vale sobre os dois quando a peça da arma está noutro lugar
+  // (4.1c, Tarefa 13): o ferrolho da Glock (a corrediça por cima da armação) sobe; o seletor da Glock e o da M4 (a
+  // alavanca do lado esquerdo) saem pela esquerda, pelo eixo de giro; a alavanca de manejo da M4 sai para trás pelo
+  // trilho dela e sobe acima da coronha; a tampa da janela da M4 (no lado direito, sem direção na tabela) sai para a
+  // direita.
   explode: F({
     max: 8,
     dirs: F({
       carregador: F([0, -1, 0]), ferrolho: F([0, 0, 1]), slide: F([0, 1, 0]), gatilho: F([0, -0.8, 0.6]),
       bomba: F([1, -0.2, 0]), alavanca: F([0, 0.3, 1]), silenciador: F([1, 0, 0]), cao: F([0, 0.5, 1]), seletor: F([0, 0, 1]),
+    }),
+    byWeapon: F({
+      glock: F({ ferrolho: F([0, 1, 0]), seletor: F([0, 0, -1]) }),
+      m4a4: F({ alavanca: F([-0.8, 0.6, 0]), seletor: F([0, 0, -1]), tampa: F([0, 0, 1]) }),
     }),
   }),
   anchorSize: 2.4, // eixos das âncoras

@@ -143,7 +143,7 @@ export function aplicarZonas(id, atual, pedido) {
   const a = arma(id);
   const zonas = {};
   const citadas = Object.keys(pedido.zonas ?? {});
-  for (const z of citadas) if (!a.zonas.includes(z)) throw new Error(`${id} não tem a zona ${z}`);
+  for (const z of citadas) if (!a.zonas.includes(z)) throw new Error(`${id} não tem a zona ${z} (tem: ${a.zonas.join(', ')})`);
   for (const z of a.zonas) {
     const velha = atual.zonas[z];
     const nova = pedido.zonas?.[z];

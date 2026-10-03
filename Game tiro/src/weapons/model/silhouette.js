@@ -87,10 +87,16 @@ export function polygonMask(outline, holes, grid) {
   return mask;
 }
 
-/** A planta no referencial da arma: a boca do cano da planta vai para a âncora `boca` da receita. */
-export function placeReference(recipe, ref) {
-  const boca = recipe.anchors?.boca?.pos ?? [0, 0, 0];
-  const shift = (p) => [p[0] + boca[0], p[1] + boca[1]];
+/**
+ * A planta no referencial da arma: o (0, 0) da planta (a boca do cano; na faca, a ponta) vai para a origem da planta do
+ * `info` (`planOrigin`: a âncora `boca` da de massinha, a origem da ficha da realista) ou, numa receita, para a âncora
+ * `boca` dela. Sem nenhuma das duas, erro (a planta não tem onde ficar).
+ * @param {{planOrigin?:number[]|null, anchors?:object, id?:string}} owner o `info` da arma, ou a receita
+ */
+export function placeReference(owner, ref) {
+  const origem = owner.planOrigin ?? owner.anchors?.boca?.pos;
+  if (!origem) throw new Error(`${owner.id ?? ref.weapon ?? 'arma'}: a planta sem origem (nem planOrigin nem a âncora boca)`);
+  const shift = (p) => [p[0] + origem[0], p[1] + origem[1]];
   return { outline: ref.points.map(shift), holes: (ref.holes ?? []).map((h) => h.map(shift)) };
 }
 

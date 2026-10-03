@@ -1,6 +1,7 @@
 // Skins das armas realistas (Fase 4.1a; desenho, seção 6): as tabelas dos acabamentos, das cores e das skins nomeadas,
 // o registro das armas realistas (zonas, soquetes, peças, orçamentos, pintura de fábrica) e as contas puras de
-// src/weapons/skins/ (acabamento → material, skins de fábrica e nomeadas, os argumentos do comando `skin`).
+// src/weapons/skins/ (acabamento → material, skins de fábrica e nomeadas, os argumentos do comando `skin`); desde a 4.1c,
+// as skins nas zonas de cada classe (a faca sem carregador nem interno).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,7 +9,7 @@ import { ACABAMENTOS, PADROES } from '../src/data/acabamentos.js';
 import { CORES_SKIN } from '../src/data/coresSkin.js';
 import { SKINS_ARMA } from '../src/data/skinsArma.js';
 import {
-  ARMAS_REAIS, CLASSE_DA_CATEGORIA, LODS_REAIS, ORCAMENTOS, PECAS_MOVEIS, ZONAS, orcamentoDaArma, soquetesDaArma,
+  ARMAS_REAIS, CLASSE_DA_CATEGORIA, LODS_REAIS, ORCAMENTOS, PECAS_MOVEIS, ZONAS, orcamentoDaArma, soquetesDaArma, zonasDaArma,
 } from '../src/data/armasReais.js';
 import { VIEWMODEL } from '../src/data/viewmodel.js';
 import {
@@ -200,6 +201,31 @@ test('skins: fábrica, nomeadas por cima da fábrica, chave estável e validaç�
   const linhas = descreverSkin(fab);
   assert.equal(linhas.length, ZONAS.length);
   assert.match(linhas[0], /^corpo: Oxidado de fábrica #303135 · desgaste 0,22$/);
+});
+
+test('skins por classe: a de fábrica e as nomeadas valem nas zonas de cada realista (a faca sem carregador nem interno)', () => {
+  assert.deepEqual(zonasDaArma('knife'), ['corpo', 'guarnicao', 'detalhes']);
+  for (const id of Object.keys(ARMAS_REAIS)) {
+    const zonas = [...zonasDaArma(id)];
+    const fab = skinDeFabrica(id);
+    assert.deepEqual(Object.keys(fab.zonas), zonas, `${id}: a de fábrica`);
+    for (const [chave, def] of Object.entries(SKINS_ARMA)) {
+      const s = skinPorNome(id, chave);
+      assert.deepEqual(Object.keys(s.zonas), zonas, `${id} · ${def.nome}: as zonas da arma`);
+      // a zona que a skin traz vale; a zona que a arma não tem fica de fora
+      for (const z of zonas) assert.equal(s.zonas[z].acabamento, def.zonas[z].acabamento, `${id} · ${def.nome} · ${z}`);
+    }
+  }
+  const faca = skinDeFabrica('knife');
+  assert.throws(() => aplicarZonas('knife', faca, lerArgumentosSkin(['carregador=fosco:preto'])),
+    /knife não tem a zona carregador \(tem: corpo, guarnicao, detalhes\)/);
+  assert.throws(() => aplicarZonas('knife', faca, lerArgumentosSkin(['interno=escovado:preto'])), /knife não tem a zona interno/);
+  const desgastada = aplicarZonas('knife', faca, lerArgumentosSkin(['desgaste=0.5']));
+  assert.deepEqual(Object.keys(desgastada.zonas), ['corpo', 'guarnicao', 'detalhes']);
+  for (const z of Object.values(desgastada.zonas)) assert.equal(z.desgaste, 0.5);
+  // a skin da faca não precisa das zonas que ela não tem; a da AK precisa de todas
+  assert.doesNotThrow(() => validarSkin('knife', faca));
+  assert.throws(() => validarSkin('ak47', { ...faca, chave: 'personalizada' }), /skin de ak47 sem a zona carregador/);
 });
 
 test('comando skin: leitura dos argumentos', () => {

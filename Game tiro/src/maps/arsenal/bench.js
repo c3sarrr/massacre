@@ -24,6 +24,19 @@ import { drawPlanSheet, planSheetMaterial } from './planSheets.js';
 const DEG = Math.PI / 180;
 const labelLength = (aspect, L) => Math.max(L.tapeWidth * 2.2, aspect * L.textHeight + L.margin * 2);
 
+/**
+ * Direção de uma peça na "Explodir" do painel: a da arma (`ARSENAL.explode.byWeapon`), senão, no carregador que desliza,
+ * o eixo dele (o `eixo` do .glb, em `userData.axis`), senão a da tabela pelo nome; a peça sem direção fica no lugar.
+ * @param {string} id a arma
+ * @param {string} name a peça móvel (realista) ou o grupo (massinha)
+ * @param {THREE.Object3D} holder o nó da peça na instância
+ * @returns {number[]}
+ */
+export function explodeDir(id, name, holder) {
+  const E = ARSENAL.explode;
+  return E.byWeapon[id]?.[name] ?? (name === 'carregador' ? holder?.userData.axis : null) ?? E.dirs[name] ?? [0, 0, 0];
+}
+
 export class ArsenalBench {
   /**
    * @param {{set:import('../../clay/set/index.js').SetLibrary, weapons:import('../../weapons/model/weaponLibrary.js').WeaponLibrary,
@@ -46,7 +59,8 @@ export class ArsenalBench {
     this.stand = null;
     this.weapon = null; // instância na roda
     // `skin`: a skin de massa da de massinha (a da realista é a do serviço); `faction`: null na realista.
-    this.state = { id: null, faction: null, lod: 'perto', skin: null, explode: 0, anchors: false, plan: false, spin: true };
+    // `gloves`: a facção das luvas no "Segurar" das armas com pega (Fase 4.1b).
+    this.state = { id: null, faction: null, lod: 'perto', gloves: 'massaCrua', skin: null, explode: 0, anchors: false, plan: false, spin: true };
     this.skinMaterials = [];
     this.overlay = null;
     this.onChange = null; // o painel escuta (troca de arma, carga pronta, skin)
@@ -277,6 +291,12 @@ export class ArsenalBench {
     return this.refresh();
   }
 
+  /** A facção das luvas no "Segurar" (a arma da roda não muda: a pintura é das luvas). */
+  setGloveFaction(faccao) {
+    this.state.gloves = faccao;
+    this.onChange?.();
+  }
+
   /**
    * Skin da arma da roda. Na realista, `value` é "fabrica" ou a chave de uma skin nomeada e a troca é no serviço (o
    * evento `skin` volta por onSkin e remonta a roda e a fileira; a mão troca sozinha); na de massinha, a chave de uma
@@ -357,8 +377,9 @@ export class ArsenalBench {
   #applyExplode() {
     const parts = this.weapon?.userData.weapon.parts;
     if (!parts) return;
+    const id = this.weapon.userData.weapon.id;
     for (const [name, holder] of Object.entries(parts)) {
-      const dir = ARSENAL.explode.dirs[name] ?? [0, 0, 0];
+      const dir = explodeDir(id, name, holder);
       const k = this.state.explode * ARSENAL.explode.max;
       holder.position.set(holder.userData.rest[0] + dir[0] * k, holder.userData.rest[1] + dir[1] * k, holder.userData.rest[2] + dir[2] * k);
     }
