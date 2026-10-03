@@ -4,15 +4,27 @@
 // pega a poeira num lugar novo, flutuando devagar com a convecção do calor da lâmpada.
 // Com `box`, a poeira só ocupa a parte do cone dentro da caixa (a pista: o ar da base, onde o boneco anda — a key fica
 // a 10 m e o cone inteiro espalharia os grãos longe da câmera).
+// As posições não vão num atributo de vértice: ficam numa textura RGB32F (um texel por grão, na ordem dos vértices) que o
+// shader lê com texelFetch pelo gl_VertexID, e a troca de pose sobe a textura. Motivo medido no aceite da 4.1c (Tarefa
+// 15): no ANGLE/D3D11 do Chrome no Windows, um buffer DYNAMIC_DRAW desenhado inteiro três vezes sem mudar passa a
+// estático (BufferD3D::promoteStaticUsage) e cada bufferSubData seguinte escreve pelo buffer de staging com Map(WRITE),
+// que espera a GPU — com as posições subindo a 12 poses/s, o processo da GPU parava 20–70 ms e o quadro do jogo junto
+// (1,6–3,2 % dos quadros acima de 16,7 ms na pista sem limite de FPS; 0,05–0,1 % sem essa subida). A textura sobe por
+// outro caminho, sem a espera; o desenho (GL_POINTS, o tamanho, o brilho e o cintilar de cada grão) é o mesmo, conferido
+// pixel a pixel contra o atributo.
 
 import * as THREE from 'three';
 import { RNG } from '../../core/rng.js';
 
 const _p = new THREE.Vector3();
 
+/** Grãos por linha da textura de posições (a altura sai da quantidade). */
+const POS_WIDTH = 64;
+
 const VERT = /* glsl */ `
 attribute float aSize;
 attribute float aTwinkle;
+uniform highp sampler2D uPositions; // xyz de cada grão no espaço do objeto, um texel por vértice
 uniform vec3 uLightPos;
 uniform vec3 uLightDir;
 uniform float uCosOuter;
@@ -23,7 +35,8 @@ uniform float uPixelScale;
 uniform float uPose;
 varying float vBright;
 void main() {
-  vec4 world = modelMatrix * vec4(position, 1.0);
+  vec3 grain = texelFetch(uPositions, ivec2(gl_VertexID % ${POS_WIDTH}, gl_VertexID / ${POS_WIDTH}), 0).xyz;
+  vec4 world = modelMatrix * vec4(grain, 1.0);
   vec3 toP = world.xyz - uLightPos;
   float dist = length(toP);
   vec3 dirL = toP / max(dist, 1e-4);
@@ -67,7 +80,9 @@ export class DustMotes {
     this.drift = drift;
     this.box = box ? new THREE.Box3(new THREE.Vector3(...box.min), new THREE.Vector3(...box.max)) : null;
     this.rng = new RNG(`poeira:${seed}`);
-    this.positions = new Float32Array(count * 3);
+    // xyz por grão; o fim da última linha da textura sobra em zero (nenhum vértice lê ali).
+    const rows = Math.max(1, Math.ceil(count / POS_WIDTH));
+    this.positions = new Float32Array(POS_WIDTH * rows * 3);
     this.velocity = new Float32Array(count * 3);
     const sizes = new Float32Array(count);
     const twinkle = new Float32Array(count);
@@ -76,16 +91,25 @@ export class DustMotes {
       sizes[i] = this.rng.float(0.5, 1.6);
       twinkle[i] = this.rng.float(0, 100);
     }
+    this.posTexture = new THREE.DataTexture(this.positions, POS_WIDTH, rows, THREE.RGBFormat, THREE.FloatType);
+    this.posTexture.name = 'massacre.poeira-posicoes';
+    // O three r186 não dá formato com tamanho para RGB + FLOAT (fica o RGB sem tamanho, que o texStorage2D recusa e a
+    // textura sai vazia): o RGB32F vai explícito.
+    this.posTexture.internalFormat = 'RGB32F';
+    this.posTexture.minFilter = THREE.NearestFilter;
+    this.posTexture.magFilter = THREE.NearestFilter;
+    this.posTexture.generateMipmaps = false;
+    this.posTexture.needsUpdate = true;
+    // Sem atributo de posição (ela vem da textura): os atributos fixos do grão e a contagem pelo drawRange.
     this.geometry = new THREE.BufferGeometry();
-    this.posAttr = new THREE.BufferAttribute(this.positions, 3);
-    this.posAttr.setUsage(THREE.DynamicDrawUsage);
-    this.geometry.setAttribute('position', this.posAttr);
     this.geometry.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
     this.geometry.setAttribute('aTwinkle', new THREE.BufferAttribute(twinkle, 1));
+    this.geometry.setDrawRange(0, count);
     this.material = new THREE.ShaderMaterial({
       vertexShader: VERT,
       fragmentShader: FRAG,
       uniforms: {
+        uPositions: { value: this.posTexture },
         uLightPos: { value: new THREE.Vector3() },
         uLightDir: { value: new THREE.Vector3(0, -1, 0) },
         uCosOuter: { value: 0.8 },
@@ -104,6 +128,8 @@ export class DustMotes {
     this.points.name = 'poeira';
     this.points.frustumCulled = false;
     this.points.renderOrder = 10;
+    // O raycast dos Points lê o atributo de posição, que a poeira não tem: ela não é alvo de raio.
+    this.points.raycast = () => {};
     this.syncLight();
   }
 
@@ -208,7 +234,7 @@ export class DustMotes {
         : along < f.range * 0.15 || along > f.range * 1.2;
       if (outside || along / Math.max(len, 1e-4) < cosOuter) this.#spawn(i);
     }
-    this.posAttr.needsUpdate = true;
+    this.posTexture.needsUpdate = true;
   }
 
   /** Escala de pixel do ponto (altura do buffer / (2·tan(fov/2))). */
@@ -220,5 +246,6 @@ export class DustMotes {
     this.points.removeFromParent();
     this.geometry.dispose();
     this.material.dispose();
+    this.posTexture.dispose();
   }
 }
