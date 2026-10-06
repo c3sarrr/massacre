@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Ícone × render</title>
+<style>
+  body { margin: 0; background: #7a7a7a; font: 12px sans-serif; color: #fff; }
+  .linha { display: flex; gap: 6px; padding: 4px; }
+  .quadro { position: relative; width: 262px; height: 196px; background: #b8b8b8; overflow: hidden; }
+  .quadro img { position: absolute; left: 0; top: 0; width: 262px; height: 196px; }
+  .rotulo { padding: 2px 6px; }
+</style>
+</head>
+<body>
+<!-- O ícone do CS2 só lido no navegador (© Valve Corporation — só referência visual, nada guardado); o render é o da
+     conferência. Nada desta página lê os pixels do ícone. -->
+<div class="linha">
+  <div><div class="rotulo">ícone do CS2</div><div class="quadro"><img id="i1"></div></div>
+  <div><div class="rotulo">render (pose do ícone)</div><div class="quadro"><img id="r1"></div></div>
+</div>
+<div class="linha">
+  <div><div class="rotulo">os dois (render a <span id="alfa"></span>)</div>
+    <div class="quadro"><img id="i2"><img id="r2"></div></div>
+  <div><div class="rotulo">diferença</div>
+    <div class="quadro"><img id="i3"><img id="r3" style="mix-blend-mode: difference"></div></div>
+</div>
+<script>
+  const P = new URLSearchParams(location.search);
+  const alfa = Number(P.get('alfa') || 0.5);
+  document.getElementById('alfa').textContent = alfa;
+  for (const id of ['i1', 'i2', 'i3']) document.getElementById(id).src = P.get('icone');
+  for (const id of ['r1', 'r2', 'r3']) document.getElementById(id).src = P.get('render');
+  document.getElementById('r2').style.opacity = alfa;
+  // `largura`: o tamanho dos quadros (o ícone tem 512 × 384; 262 cabe os quatro na tela)
+  const largura = Number(P.get('largura') || 262);
+  for (const q of document.querySelectorAll('.quadro, .quadro img')) {
+    q.style.width = `${largura}px`;
+    q.style.height = `${Math.round(largura * 0.75)}px`;
+  }
+  // `zoom`, `cx`, `cy`: a ampliação em volta do ponto (cx, cy) do ícone (pixels de 512 × 384), dentro do quadro
+  const zoom = Number(P.get('zoom') || 1);
+  if (zoom !== 1) {
+    const cx = Number(P.get('cx') || 256), cy = Number(P.get('cy') || 192);
+    for (const img of document.querySelectorAll('.quadro img')) {
+      img.style.transformOrigin = `${(cx / 512) * 100}% ${(cy / 384) * 100}%`;
+      img.style.transform = `scale(${zoom})`;
+    }
+  }
+  // `so`: só um dos quatro (i1, r1, os dois, diferença), para olhar de perto
+  const so = P.get('so');
+  if (so) document.querySelectorAll('.linha > div').forEach((d, k) => { d.style.display = String(k) === so ? '' : 'none'; });
+</script>
+</body>
+</html>

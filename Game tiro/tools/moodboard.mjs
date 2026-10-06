@@ -134,6 +134,14 @@ const BOARDS = [
   { id: 'QSC', label: 'Busca: gun skin concept art', url: 'https://www.pinterest.com/search/pins/?q=gun%20skin%20concept%20art', phase: '4.1c' },
   { id: 'QVW', label: 'Busca: valorant weapon skin', url: 'https://www.pinterest.com/search/pins/?q=valorant%20weapon%20skin', phase: '4.1c' },
   { id: 'QCT', label: 'Busca: claymation weapon toy', url: 'https://www.pinterest.com/search/pins/?q=claymation%20weapon%20toy', phase: '4.1c' },
+  { id: 'QAR', label: 'Busca: accuracy international awm', url: 'https://www.pinterest.com/search/pins/?q=accuracy%20international%20awm', phase: '4.1d' },
+  { id: 'QSB', label: 'Busca: schmidt bender pm ii scope', url: 'https://www.pinterest.com/search/pins/?q=schmidt%20bender%20pm%20ii%20scope', phase: '4.1d' },
+  { id: 'QSH', label: 'Busca: sniper rifle standing support hand', url: 'https://www.pinterest.com/search/pins/?q=sniper%20rifle%20standing%20support%20hand', phase: '4.1d' },
+  { id: 'QNA', label: 'Busca: benelli nova shotgun', url: 'https://www.pinterest.com/search/pins/?q=benelli%20nova%20shotgun', phase: '4.1d' },
+  { id: 'QNP', label: 'Busca: pump action shotgun grip hands', url: 'https://www.pinterest.com/search/pins/?q=pump%20action%20shotgun%20grip%20hands', phase: '4.1d' },
+  { id: 'QP9', label: 'Busca: fn p90', url: 'https://www.pinterest.com/search/pins/?q=fn%20p90', phase: '4.1d' },
+  { id: 'QPX', label: 'Busca: p90 magazine', url: 'https://www.pinterest.com/search/pins/?q=p90%20magazine', phase: '4.1d' },
+  { id: 'QPH', label: 'Busca: p90 grip hands', url: 'https://www.pinterest.com/search/pins/?q=p90%20grip%20hands', phase: '4.1d' },
 ];
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);

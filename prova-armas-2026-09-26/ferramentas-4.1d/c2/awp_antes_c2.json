@@ -1,0 +1,3098 @@
+{
+ "formato": 2,
+ "arma": "awp",
+ "variante": "a AWP do CS2 (a família AW de coronha fixa verde, com o desenho do modelo do jogo: a luneta curta verde, o cano liso e fino, o freio de fendas com a porca, o bipé dobrado para a frente) na escala e com a mecânica da Accuracy International AWM .338 Lapua Magnum de coronha fixa com os dois espaçadores",
+ "unidade": "mm",
+ "referencial": "boca do cano em x = 0; eixo do cano em y = 0 (o centro do cano exposto entre x = −420 e −120); +X para a boca, +Y para cima",
+ "referencia": {
+  "jogo": "CS2",
+  "relatorio": "docs/research/4.1d/cs2.md",
+  "aviso": "a forma, as cores e a configuração seguem o modelo do CS2 (decisão do usuário de 2026-10-03, desenho da 4.1d, item 9): imitar as proporções do modelo da Valve pede a conferência de um advogado antes de vender; nenhuma malha, textura ou imagem do jogo entra no projeto, só os números lidos pela régua"
+ },
+ "notas": [
+  "contorno, buracos e peças de lado tirados da vista de lado do modelo do jogo (W_awp_csgo.png, o lado esquerdo, espelhada) pela régua (tools/regua.html?url=…&mm=1230&lado=esquerdo&espelhar=1&eixox=-420,-120), escalada ao comprimento da AWM real: 0,9816 mm/px; o eixo do cano pelo centro do cano exposto entre x = −420 e −120 (o cano mede 20,61 mm de diâmetro)",
+  "as peças pela cor (tools/regua/pecas.js): o verde da coronha pelo matiz (g − (r + b)/2 ≥ 3,5: a coronha lê cinza-esverdeada mesmo na sombra), o cinza neutro da soleira e da capa de bochecha, o preto; a divisa da soleira com a coronha lida coluna a coluna pelo matiz (x = −1181,5 de y = −15 a −56, inclinando até −1170 embaixo); a ação, o trilho, o guarda-mato, a capa e o bloco dela limpos à mão sobre os contornos da cor",
+  "correção à pesquisa (docs/research/4.1d/awp.md, seção 1.2) e ao desenho da 4.1d (itens 3 e 4.1): o guarda-mão do jogo termina em x = −486 (a ponteira com o adaptador do bipé), e o cano à vista, com o freio, tem 486 mm, 39,5 % do comprimento — não 25,5 %: o 25,5 % é a ponta do bipé dobrado (x = −311 a −296), lida como a frente do guarda-mão; o ícone do CS2 mostra o mesmo cano exposto longo",
+  "a luneta do jogo vai de x = −953,2 (a borda de borracha da ocular) a −637,1 (a borda da objetiva): 316 mm, 25,7 % do comprimento, com o eixo 55,3 mm acima do do cano; a ocular de Ø 38,3, o tubo de Ø 28,6 e a objetiva de Ø 57 (a S&B 3–12×50 PM II real tem 342 mm, o tubo de 34, a objetiva de 57 e a ocular de 43,1: o jogo encurtou a luneta e afinou o tubo; vale o jogo, item 9)",
+  "os anéis da luneta em x = −844 a −824 e −764 a −748, com a base no trilho (y = 20,6); a torre de elevação no topo (Ø 20, o centro em x = −796, até y = 92,3) e o bloco sextavado da torre lateral esquerda (a paralaxe da S&B) no mesmo x; a de deriva à direita, igual à de elevação (a vista de lado não a mostra; o ícone do CS2 sim)",
+  "o trilho do jogo tem fendas a 9,5 mm de passo onde os anéis não as cobrem (x = −860,2 a −738,7); a AW real tem a cauda de andorinha de 11 mm integral à ação — a do jogo é uma base com fendas sobre ela, de x = −913 a −716",
+  "o freio do jogo: a porca de x = −81 a −53 (o colar sextavado até −71 e a braçadeira com o parafuso embaixo, Ø 29,4), o corpo de Ø 21,6 de −53 a −8,5 com a ponta arredondada e uma fenda de cada lado (x = −43 a −35); o cano de Ø 20,6 de −690 a −81, mais grosso (Ø 24) na saída da ação (−716 a −690)",
+  "o bipé dobrado para a frente: a cabeça no fundo do guarda-mão (x = −556 a −517, o pivô em (−534, −54)), as pernas lado a lado de −517 a −296 em y = −48 a −62, as molas de −520 a −470, o tubo de dentro (mais claro e fino) de −420 a −320, os pés de −312 a −296",
+  "o lado direito (o ferrolho, a alavanca com a bola, a trava de três posições, a janela de ejeção) sai das fotos reais: a vista do jogo é do lado esquerdo. Olhadas também, sem medida (macros sem escala): \"Medicina Lines Family Day 18 October 2024 17.jpg\" (Pangalau, CC BY-SA 4.0: a alavanca, a bola, as torres e o poço do carregador de perto), \"USMC-19580.jpg\" e \"USMC-19560.jpg\" (Cpl. R. Logan Kyle, USMC, domínio público: a bola e o ferrolho aberto)",
+  "as larguras (vistaDeCima) não têm fonte publicada para a AWM; a AT-XC da AI mede 100 mm de largura com a alavanca (https://www.accuracyinternational.com/at-xc-sport): as da coronha, do guarda-mão e da ação são estimativas, com o método em cada uma, a conferir contra o ícone do CS2 na P1"
+ ],
+ "medidas": {
+  "comprimento": {
+   "mm": 1230,
+   "fonte": "brochura \"AW rifle system\" da Accuracy International (arquivada em 2012-09-04), tabela \"Choose your weapon\": AWM .338 Lapua Magnum, 48,5 pol. — a coronha fixa com os dois espaçadores (o manual do AW dá 1178 mm com os dois no AW 7,62)"
+  },
+  "cano": {
+   "mm": 635,
+   "fonte": "vista de lado do CS2, W_awp_csgo.png escalada a 1230 mm: o tubo do cano da frente da ação (x = −716) ao colar do freio (x = −81); o cano real é de 27 pol. (686 mm, brochura da AI), com o trecho dentro da ação e sob o freio"
+  },
+  "raioDeMira": {
+   "mm": 308,
+   "fonte": "vista de lado do CS2, W_awp_csgo.png escalada a 1230 mm: da lente da ocular (x = −949, 4 mm dentro da borda de borracha) à da objetiva (x = −641, 4 mm dentro da borda) — a linha de mira da luneta (os soquetes mira_tras e mira_frente)"
+  },
+  "alturaSemCarregador": {
+   "mm": 229.7,
+   "fonte": "vista de lado do CS2, W_awp_csgo.png escalada a 1230 mm: do alto da torre de elevação (y = 92,3) ao pé do punho (y = −137,4); o carregador não passa do pé"
+  },
+  "alturaComCarregador": {
+   "mm": 229.7,
+   "fonte": "vista de lado do CS2, W_awp_csgo.png escalada a 1230 mm: a mesma — o fundo do carregador (y = −97,2) fica acima do pé do punho"
+  },
+  "canoExposto": {
+   "mm": 486,
+   "fonte": "vista de lado do CS2: da ponteira do guarda-mão (x = −486) à boca, com o freio (39,5 % do comprimento)"
+  },
+  "luneta": {
+   "mm": 316.1,
+   "fonte": "vista de lado do CS2: da borda da ocular (x = −953,2) à da objetiva (x = −637,1), 25,7 % do comprimento"
+  },
+  "canoReal": {
+   "mm": 686,
+   "fonte": "brochura da AI: o cano do AWM .338 de 27 pol. (só informativa: o jogo mostra 635 mm de tubo)"
+  }
+ },
+ "fotos": [
+  {
+   "lado": "esquerdo",
+   "espelhada": true,
+   "contorno": true,
+   "arquivo": "W_awp_csgo.png",
+   "pagina": "https://counterstrike.fandom.com/wiki/File:W_awp_csgo.png",
+   "autor": "Valve Corporation (modelo do jogo)",
+   "licenca": "© Valve Corporation — só referência visual, lida no navegador, nada guardado",
+   "origem": "jogo",
+   "url": "https://static.wikia.nocookie.net/cswikia/images/6/65/W_awp_csgo.png/revision/latest?cb=20151111053333",
+   "pixels": [
+    1276,
+    255
+   ],
+   "mmPorPixel": 0.9816,
+   "eixo": {
+    "medidoEntreX": [
+     -420,
+     -120
+    ],
+    "canoMedidoMM": 20.61,
+    "amostras": 151
+   },
+   "usos": [
+    "contorno",
+    "buracos",
+    "peças de lado (pela cor: tools/regua/pecas.js)",
+    "tornos do cano, do freio e da luneta",
+    "pontos (anéis, torres, trilho, bipé, parafusos)",
+    "cores"
+   ]
+  },
+  {
+   "lado": "esquerdo",
+   "espelhada": false,
+   "arquivo": "File:L115A3 sniper rifle.jpg",
+   "pagina": "https://commons.wikimedia.org/wiki/File:L115A3_sniper_rifle.jpg",
+   "autor": "Andrew Linnett (Ministério da Defesa britânico)",
+   "licenca": "OGL v1.0",
+   "origem": "livre",
+   "pixels": [
+    3820,
+    1158
+   ],
+   "mmPorPixel": 0.397,
+   "usos": [
+    "a ação de perto (o retém do ferrolho à esquerda, o poço do carregador, a base da luneta)",
+    "o chassi AICS (o punho, o buraco do polegar, o guarda-mato) para os detalhes de dentro do contorno do jogo"
+   ]
+  },
+  {
+   "lado": "esquerdo",
+   "espelhada": false,
+   "arquivo": "File:Psg 90 AM.068399 (1).jpg",
+   "pagina": "https://commons.wikimedia.org/wiki/File:Psg_90_AM.068399_(1).jpg",
+   "autor": "Armémuseum (Museu do Exército Sueco)",
+   "licenca": "CC BY 4.0",
+   "origem": "livre",
+   "pixels": [
+    1200,
+    455
+   ],
+   "mmPorPixel": 1.05,
+   "usos": [
+    "a coronha AICS fixa verde de verdade: os parafusos, a soleira quadriculada, a capa de bochecha, o punho"
+   ]
+  },
+  {
+   "lado": "direito",
+   "espelhada": false,
+   "arquivo": "File:Medicina Lines Family Day 18 October 2024 13.jpg",
+   "pagina": "https://commons.wikimedia.org/wiki/File:Medicina_Lines_Family_Day_18_October_2024_13.jpg",
+   "autor": "Pangalau",
+   "licenca": "CC BY-SA 4.0",
+   "origem": "livre",
+   "pixels": [
+    6960,
+    4640
+   ],
+   "mmPorPixel": 0.2,
+   "usos": [
+    "o lado direito: a alavanca do ferrolho com a bola, a trava no escudo do ferrolho, a janela de ejeção",
+    "o freio sem silenciador (as fendas e o colar)"
+   ]
+  }
+ ],
+ "contorno": [
+  [
+   -802,
+   92.3
+  ],
+  [
+   -806.9,
+   91.3
+  ],
+  [
+   -806.9,
+   74.6
+  ],
+  [
+   -812.8,
+   73.6
+  ],
+  [
+   -815.7,
+   69.7
+  ],
+  [
+   -819.7,
+   68.7
+  ],
+  [
+   -825.6,
+   69.7
+  ],
+  [
+   -825.6,
+   71.7
+  ],
+  [
+   -828.5,
+   72.6
+  ],
+  [
+   -846.2,
+   72.6
+  ],
+  [
+   -847.2,
+   68.7
+  ],
+  [
+   -864.8,
+   69.7
+  ],
+  [
+   -882.5,
+   73.6
+  ],
+  [
+   -946.3,
+   74.6
+  ],
+  [
+   -950.2,
+   72.6
+  ],
+  [
+   -953.2,
+   62.8
+  ],
+  [
+   -953.2,
+   52
+  ],
+  [
+   -948.3,
+   38.3
+  ],
+  [
+   -946.3,
+   38.3
+  ],
+  [
+   -943.4,
+   35.3
+  ],
+  [
+   -881.5,
+   36.3
+  ],
+  [
+   -861.9,
+   40.2
+  ],
+  [
+   -845.2,
+   40.2
+  ],
+  [
+   -845.2,
+   20.6
+  ],
+  [
+   -848.1,
+   20.6
+  ],
+  [
+   -850.1,
+   18.7
+  ],
+  [
+   -854,
+   20.6
+  ],
+  [
+   -858,
+   20.6
+  ],
+  [
+   -858.9,
+   18.7
+  ],
+  [
+   -866.8,
+   20.6
+  ],
+  [
+   -868.8,
+   18.7
+  ],
+  [
+   -879.6,
+   17.7
+  ],
+  [
+   -879.6,
+   13.7
+  ],
+  [
+   -913.9,
+   13.7
+  ],
+  [
+   -912.9,
+   -7.9
+  ],
+  [
+   -916.9,
+   -8.8
+  ],
+  [
+   -917.8,
+   -10.8
+  ],
+  [
+   -1033.7,
+   -11.8
+  ],
+  [
+   -1035.6,
+   -4.9
+  ],
+  [
+   -1049.4,
+   1
+  ],
+  [
+   -1163.2,
+   1
+  ],
+  [
+   -1169.1,
+   -2
+  ],
+  [
+   -1207.4,
+   0
+  ],
+  [
+   -1226.1,
+   -1
+  ],
+  [
+   -1230,
+   -6.9
+  ],
+  [
+   -1230,
+   -48.1
+  ],
+  [
+   -1228,
+   -75.6
+  ],
+  [
+   -1223.1,
+   -110.9
+  ],
+  [
+   -1221.2,
+   -113.9
+  ],
+  [
+   -1219.2,
+   -123.7
+  ],
+  [
+   -1216.3,
+   -127.6
+  ],
+  [
+   -1210.4,
+   -127.6
+  ],
+  [
+   -1190.7,
+   -121.7
+  ],
+  [
+   -1177,
+   -120.7
+  ],
+  [
+   -1119.1,
+   -120.7
+  ],
+  [
+   -1105.3,
+   -115.8
+  ],
+  [
+   -1101.4,
+   -95.2
+  ],
+  [
+   -1064.1,
+   -95.2
+  ],
+  [
+   -1060.2,
+   -96.2
+  ],
+  [
+   -1057.2,
+   -99.1
+  ],
+  [
+   -1057.2,
+   -101.1
+  ],
+  [
+   -1044.5,
+   -113.9
+  ],
+  [
+   -1042.5,
+   -113.9
+  ],
+  [
+   -1026.8,
+   -125.7
+  ],
+  [
+   -1011.1,
+   -123.7
+  ],
+  [
+   -987.5,
+   -125.7
+  ],
+  [
+   -975.8,
+   -127.6
+  ],
+  [
+   -951.2,
+   -137.4
+  ],
+  [
+   -924.7,
+   -137.4
+  ],
+  [
+   -918.8,
+   -133.5
+  ],
+  [
+   -916.9,
+   -105
+  ],
+  [
+   -911,
+   -84.4
+  ],
+  [
+   -908,
+   -84.4
+  ],
+  [
+   -907,
+   -86.4
+  ],
+  [
+   -900.2,
+   -88.3
+  ],
+  [
+   -858.9,
+   -87.4
+  ],
+  [
+   -847.2,
+   -81.5
+  ],
+  [
+   -843.2,
+   -73.6
+  ],
+  [
+   -829.5,
+   -73.6
+  ],
+  [
+   -827.5,
+   -97.2
+  ],
+  [
+   -757.8,
+   -91.3
+  ],
+  [
+   -753.9,
+   -87.4
+  ],
+  [
+   -754.9,
+   -67.7
+  ],
+  [
+   -736.2,
+   -66.8
+  ],
+  [
+   -734.3,
+   -64.8
+  ],
+  [
+   -717.6,
+   -59.9
+  ],
+  [
+   -715.6,
+   -57.9
+  ],
+  [
+   -698.9,
+   -53
+  ],
+  [
+   -686.2,
+   -47.1
+  ],
+  [
+   -553.6,
+   -45.2
+  ],
+  [
+   -552.7,
+   -51
+  ],
+  [
+   -544.8,
+   -58.9
+  ],
+  [
+   -540.9,
+   -59.9
+  ],
+  [
+   -533,
+   -66.8
+  ],
+  [
+   -519.3,
+   -65.8
+  ],
+  [
+   -514.4,
+   -60.9
+  ],
+  [
+   -510.5,
+   -59.9
+  ],
+  [
+   -486.9,
+   -61.8
+  ],
+  [
+   -482,
+   -59.9
+  ],
+  [
+   -479,
+   -62.8
+  ],
+  [
+   -474.1,
+   -60.9
+  ],
+  [
+   -471.2,
+   -63.8
+  ],
+  [
+   -464.3,
+   -61.8
+  ],
+  [
+   -463.3,
+   -63.8
+  ],
+  [
+   -454.5,
+   -64.8
+  ],
+  [
+   -451.6,
+   -61.8
+  ],
+  [
+   -451.6,
+   -59.9
+  ],
+  [
+   -446.6,
+   -59.9
+  ],
+  [
+   -444.7,
+   -62.8
+  ],
+  [
+   -440.8,
+   -60.9
+  ],
+  [
+   -430,
+   -59.9
+  ],
+  [
+   -421.1,
+   -59.9
+  ],
+  [
+   -420.1,
+   -61.8
+  ],
+  [
+   -414.3,
+   -62.8
+  ],
+  [
+   -402.5,
+   -62.8
+  ],
+  [
+   -399.5,
+   -59.9
+  ],
+  [
+   -323.9,
+   -58.9
+  ],
+  [
+   -319,
+   -59.9
+  ],
+  [
+   -317.1,
+   -62.8
+  ],
+  [
+   -303.3,
+   -62.8
+  ],
+  [
+   -302.3,
+   -64.8
+  ],
+  [
+   -298.4,
+   -61.8
+  ],
+  [
+   -298.4,
+   -59.9
+  ],
+  [
+   -295.5,
+   -56.9
+  ],
+  [
+   -299.4,
+   -49.1
+  ],
+  [
+   -302.3,
+   -47.1
+  ],
+  [
+   -303.3,
+   -49.1
+  ],
+  [
+   -320,
+   -51
+  ],
+  [
+   -320,
+   -48.1
+  ],
+  [
+   -323,
+   -44.2
+  ],
+  [
+   -339.6,
+   -45.2
+  ],
+  [
+   -340.6,
+   -48.1
+  ],
+  [
+   -344.6,
+   -49.1
+  ],
+  [
+   -413.3,
+   -49.1
+  ],
+  [
+   -416.2,
+   -45.2
+  ],
+  [
+   -432.9,
+   -45.2
+  ],
+  [
+   -432.9,
+   -47.1
+  ],
+  [
+   -436.8,
+   -48.1
+  ],
+  [
+   -451.6,
+   -48.1
+  ],
+  [
+   -452.5,
+   -44.2
+  ],
+  [
+   -458.4,
+   -45.2
+  ],
+  [
+   -459.4,
+   -47.1
+  ],
+  [
+   -463.3,
+   -48.1
+  ],
+  [
+   -488.9,
+   -48.1
+  ],
+  [
+   -492.8,
+   -45.2
+  ],
+  [
+   -487.9,
+   -45.2
+  ],
+  [
+   -486.9,
+   -42.2
+  ],
+  [
+   -486.9,
+   -10.8
+  ],
+  [
+   -92.3,
+   -9.8
+  ],
+  [
+   -91.3,
+   -12.8
+  ],
+  [
+   -84.4,
+   -17.7
+  ],
+  [
+   -59.9,
+   -17.7
+  ],
+  [
+   -53,
+   -14.7
+  ],
+  [
+   -51,
+   -10.8
+  ],
+  [
+   -8.8,
+   -10.8
+  ],
+  [
+   -5.9,
+   -9.8
+  ],
+  [
+   0,
+   -2
+  ],
+  [
+   -1,
+   5.9
+  ],
+  [
+   -7.9,
+   10.8
+  ],
+  [
+   -47.1,
+   10.8
+  ],
+  [
+   -51,
+   11.8
+  ],
+  [
+   -52,
+   13.7
+  ],
+  [
+   -87.4,
+   13.7
+  ],
+  [
+   -89.3,
+   9.8
+  ],
+  [
+   -689.1,
+   9.8
+  ],
+  [
+   -708.7,
+   12.8
+  ],
+  [
+   -714.6,
+   11.8
+  ],
+  [
+   -718.6,
+   12.8
+  ],
+  [
+   -717.6,
+   17.7
+  ],
+  [
+   -727.4,
+   17.7
+  ],
+  [
+   -732.3,
+   18.7
+  ],
+  [
+   -733.3,
+   20.6
+  ],
+  [
+   -738.2,
+   17.7
+  ],
+  [
+   -742.1,
+   20.6
+  ],
+  [
+   -746,
+   19.6
+  ],
+  [
+   -745.1,
+   41.2
+  ],
+  [
+   -726.4,
+   40.2
+  ],
+  [
+   -674.4,
+   26.5
+  ],
+  [
+   -637.1,
+   25.5
+  ],
+  [
+   -637.1,
+   83.4
+  ],
+  [
+   -674.4,
+   83.4
+  ],
+  [
+   -727.4,
+   69.7
+  ],
+  [
+   -746,
+   68.7
+  ],
+  [
+   -749,
+   72.6
+  ],
+  [
+   -765.7,
+   72.6
+  ],
+  [
+   -766.7,
+   68.7
+  ],
+  [
+   -777.5,
+   68.7
+  ],
+  [
+   -781.4,
+   73.6
+  ],
+  [
+   -785.3,
+   73.6
+  ],
+  [
+   -786.3,
+   91.3
+  ]
+ ],
+ "buracos": [
+  [
+   [
+    -976.7,
+    -45.2
+   ],
+   [
+    -953.2,
+    -48.1
+   ],
+   [
+    -952.2,
+    -51
+   ],
+   [
+    -946.3,
+    -56.9
+   ],
+   [
+    -946.3,
+    -71.7
+   ],
+   [
+    -951.2,
+    -81.5
+   ],
+   [
+    -959.1,
+    -89.3
+   ],
+   [
+    -965,
+    -92.3
+   ],
+   [
+    -970.8,
+    -93.3
+   ],
+   [
+    -972.8,
+    -95.2
+   ],
+   [
+    -992.4,
+    -93.3
+   ],
+   [
+    -1004.2,
+    -83.4
+   ],
+   [
+    -1006.2,
+    -75.6
+   ],
+   [
+    -1005.2,
+    -63.8
+   ],
+   [
+    -1004.2,
+    -60.9
+   ],
+   [
+    -999.3,
+    -56.9
+   ],
+   [
+    -999.3,
+    -55
+   ],
+   [
+    -995.4,
+    -51
+   ]
+  ],
+  [
+   [
+    -897.2,
+    -47.1
+   ],
+   [
+    -891.3,
+    -48.1
+   ],
+   [
+    -891.3,
+    -67.7
+   ],
+   [
+    -883.5,
+    -75.6
+   ],
+   [
+    -879.6,
+    -76.6
+   ],
+   [
+    -871.7,
+    -76.6
+   ],
+   [
+    -870.7,
+    -73.6
+   ],
+   [
+    -877.6,
+    -72.6
+   ],
+   [
+    -883.5,
+    -67.7
+   ],
+   [
+    -884.5,
+    -48.1
+   ],
+   [
+    -859.9,
+    -48.1
+   ],
+   [
+    -854,
+    -56
+   ],
+   [
+    -852.1,
+    -63.8
+   ],
+   [
+    -853,
+    -76.6
+   ],
+   [
+    -856,
+    -82.5
+   ],
+   [
+    -894.3,
+    -82.5
+   ],
+   [
+    -899.2,
+    -80.5
+   ],
+   [
+    -902.1,
+    -74.6
+   ],
+   [
+    -904.1,
+    -73.6
+   ],
+   [
+    -905.1,
+    -56
+   ],
+   [
+    -902.1,
+    -48.1
+   ]
+  ],
+  [
+   [
+    -822.6,
+    41.2
+   ],
+   [
+    -813.8,
+    40.2
+   ],
+   [
+    -810.8,
+    36.3
+   ],
+   [
+    -781.4,
+    36.3
+   ],
+   [
+    -778.4,
+    40.2
+   ],
+   [
+    -765.7,
+    40.2
+   ],
+   [
+    -764.7,
+    20.6
+   ],
+   [
+    -767.6,
+    20.6
+   ],
+   [
+    -769.6,
+    18.7
+   ],
+   [
+    -773.5,
+    18.7
+   ],
+   [
+    -774.5,
+    20.6
+   ],
+   [
+    -777.5,
+    20.6
+   ],
+   [
+    -778.4,
+    18.7
+   ],
+   [
+    -782.4,
+    18.7
+   ],
+   [
+    -784.3,
+    20.6
+   ],
+   [
+    -786.3,
+    20.6
+   ],
+   [
+    -787.3,
+    18.7
+   ],
+   [
+    -792.2,
+    18.7
+   ],
+   [
+    -793.2,
+    20.6
+   ],
+   [
+    -796.1,
+    20.6
+   ],
+   [
+    -798.1,
+    17.7
+   ],
+   [
+    -800,
+    17.7
+   ],
+   [
+    -803,
+    20.6
+   ],
+   [
+    -805.9,
+    20.6
+   ],
+   [
+    -806.9,
+    18.7
+   ],
+   [
+    -810.8,
+    18.7
+   ],
+   [
+    -811.8,
+    20.6
+   ],
+   [
+    -819.7,
+    18.7
+   ],
+   [
+    -820.7,
+    20.6
+   ],
+   [
+    -822.6,
+    20.6
+   ]
+  ]
+ ],
+ "buracosNomes": [
+  "buracoPolegar",
+  "guardaMato",
+  "vaoLuneta"
+ ],
+ "pecas": {
+  "coronha": [
+   [
+    -719.5,
+    2.9
+   ],
+   [
+    -720.5,
+    1
+   ],
+   [
+    -748,
+    0
+   ],
+   [
+    -749,
+    2
+   ],
+   [
+    -751,
+    0
+   ],
+   [
+    -796.1,
+    -1
+   ],
+   [
+    -797.1,
+    1
+   ],
+   [
+    -806.9,
+    0
+   ],
+   [
+    -809.9,
+    2
+   ],
+   [
+    -815.7,
+    2
+   ],
+   [
+    -817.7,
+    0
+   ],
+   [
+    -836.4,
+    1
+   ],
+   [
+    -837.3,
+    -1
+   ],
+   [
+    -859.9,
+    0
+   ],
+   [
+    -860.9,
+    -2
+   ],
+   [
+    -863.8,
+    -2
+   ],
+   [
+    -865.8,
+    -3.9
+   ],
+   [
+    -891.3,
+    -2.9
+   ],
+   [
+    -906.1,
+    -6.9
+   ],
+   [
+    -909,
+    -5.9
+   ],
+   [
+    -910,
+    -7.9
+   ],
+   [
+    -913.9,
+    -7.9
+   ],
+   [
+    -914.9,
+    -9.8
+   ],
+   [
+    -917.8,
+    -9.8
+   ],
+   [
+    -919.8,
+    -11.8
+   ],
+   [
+    -1040.5,
+    -11.8
+   ],
+   [
+    -1127.9,
+    -12.8
+   ],
+   [
+    -1162.3,
+    -12.8
+   ],
+   [
+    -1170,
+    -13.5
+   ],
+   [
+    -1181.5,
+    -15
+   ],
+   [
+    -1181.5,
+    -56
+   ],
+   [
+    -1179.5,
+    -77
+   ],
+   [
+    -1177.5,
+    -92
+   ],
+   [
+    -1174,
+    -101
+   ],
+   [
+    -1172,
+    -113
+   ],
+   [
+    -1170,
+    -120.7
+   ],
+   [
+    -1160.3,
+    -120.7
+   ],
+   [
+    -1146.6,
+    -118.8
+   ],
+   [
+    -1119.1,
+    -120.7
+   ],
+   [
+    -1117.1,
+    -119.8
+   ],
+   [
+    -1119.1,
+    -118.8
+   ],
+   [
+    -1116.1,
+    -96.2
+   ],
+   [
+    -1064.1,
+    -95.2
+   ],
+   [
+    -1057.2,
+    -98.2
+   ],
+   [
+    -1056.2,
+    -102.1
+   ],
+   [
+    -1052.3,
+    -104.1
+   ],
+   [
+    -1052.3,
+    -106
+   ],
+   [
+    -1049.4,
+    -106
+   ],
+   [
+    -1049.4,
+    -109
+   ],
+   [
+    -1044.5,
+    -113.9
+   ],
+   [
+    -1042.5,
+    -113.9
+   ],
+   [
+    -1026.8,
+    -125.7
+   ],
+   [
+    -1011.1,
+    -123.7
+   ],
+   [
+    -975.8,
+    -127.6
+   ],
+   [
+    -951.2,
+    -137.4
+   ],
+   [
+    -924.7,
+    -137.4
+   ],
+   [
+    -920.8,
+    -135.5
+   ],
+   [
+    -922.7,
+    -134.5
+   ],
+   [
+    -920.8,
+    -105
+   ],
+   [
+    -914.9,
+    -79.5
+   ],
+   [
+    -911,
+    -82.5
+   ],
+   [
+    -911,
+    -84.4
+   ],
+   [
+    -907,
+    -84.4
+   ],
+   [
+    -907,
+    -86.4
+   ],
+   [
+    -896.2,
+    -86.4
+   ],
+   [
+    -897.2,
+    -88.3
+   ],
+   [
+    -858.9,
+    -87.4
+   ],
+   [
+    -853,
+    -83.4
+   ],
+   [
+    -850.1,
+    -76.6
+   ],
+   [
+    -843.2,
+    -73.6
+   ],
+   [
+    -839.3,
+    -74.6
+   ],
+   [
+    -827.5,
+    -72.6
+   ],
+   [
+    -811.8,
+    -72.6
+   ],
+   [
+    -810.8,
+    -70.7
+   ],
+   [
+    -806.9,
+    -71.7
+   ],
+   [
+    -804,
+    -68.7
+   ],
+   [
+    -799.1,
+    -69.7
+   ],
+   [
+    -797.1,
+    -66.8
+   ],
+   [
+    -790.2,
+    -66.8
+   ],
+   [
+    -789.2,
+    -68.7
+   ],
+   [
+    -758.8,
+    -69.7
+   ],
+   [
+    -754.9,
+    -67.7
+   ],
+   [
+    -736.2,
+    -66.8
+   ],
+   [
+    -733.3,
+    -63.8
+   ],
+   [
+    -728.4,
+    -63.8
+   ],
+   [
+    -726.4,
+    -61.8
+   ],
+   [
+    -720.5,
+    -60.9
+   ],
+   [
+    -717.6,
+    -57.9
+   ],
+   [
+    -712.7,
+    -57.9
+   ],
+   [
+    -707.8,
+    -55
+   ],
+   [
+    -694,
+    -51
+   ],
+   [
+    -686.2,
+    -47.1
+   ],
+   [
+    -679.3,
+    -47.1
+   ],
+   [
+    -671.4,
+    -44.2
+   ],
+   [
+    -670.5,
+    -47.1
+   ],
+   [
+    -669.5,
+    -45.2
+   ],
+   [
+    -548.7,
+    -45.2
+   ],
+   [
+    -547.8,
+    -41.2
+   ],
+   [
+    -540.9,
+    -41.2
+   ],
+   [
+    -540.9,
+    -38.3
+   ],
+   [
+    -538.9,
+    -39.3
+   ],
+   [
+    -539.9,
+    -42.2
+   ],
+   [
+    -489.8,
+    -42.2
+   ],
+   [
+    -488.9,
+    -36.3
+   ],
+   [
+    -486.9,
+    -35.3
+   ],
+   [
+    -485.9,
+    -2.9
+   ],
+   [
+    -489.8,
+    0
+   ],
+   [
+    -494.7,
+    0
+   ],
+   [
+    -495.7,
+    2
+   ],
+   [
+    -498.7,
+    2
+   ],
+   [
+    -498.7,
+    0
+   ],
+   [
+    -505.5,
+    0
+   ],
+   [
+    -506.5,
+    2
+   ],
+   [
+    -522.2,
+    2
+   ],
+   [
+    -523.2,
+    0
+   ],
+   [
+    -529.1,
+    0
+   ],
+   [
+    -531.1,
+    2
+   ],
+   [
+    -592.9,
+    2
+   ],
+   [
+    -592.9,
+    0
+   ],
+   [
+    -600.8,
+    0
+   ],
+   [
+    -606.7,
+    2
+   ],
+   [
+    -647.9,
+    2
+   ],
+   [
+    -654.8,
+    0
+   ],
+   [
+    -671.4,
+    0
+   ],
+   [
+    -672.4,
+    -3.9
+   ],
+   [
+    -678.3,
+    -3.9
+   ],
+   [
+    -678.3,
+    -1
+   ],
+   [
+    -675.4,
+    0
+   ],
+   [
+    -687.2,
+    1
+   ],
+   [
+    -694,
+    -1
+   ],
+   [
+    -695,
+    2
+   ],
+   [
+    -719.5,
+    1
+   ]
+  ],
+  "soleira": [
+   [
+    -1181.5,
+    -0.5
+   ],
+   [
+    -1207.4,
+    0
+   ],
+   [
+    -1226.1,
+    -1
+   ],
+   [
+    -1230,
+    -6.9
+   ],
+   [
+    -1230,
+    -48.1
+   ],
+   [
+    -1228,
+    -75.6
+   ],
+   [
+    -1223.1,
+    -110.9
+   ],
+   [
+    -1221.2,
+    -113.9
+   ],
+   [
+    -1219.2,
+    -123.7
+   ],
+   [
+    -1216.3,
+    -127.6
+   ],
+   [
+    -1210.4,
+    -127.6
+   ],
+   [
+    -1190.7,
+    -121.7
+   ],
+   [
+    -1170,
+    -120.7
+   ],
+   [
+    -1172,
+    -113
+   ],
+   [
+    -1174,
+    -101
+   ],
+   [
+    -1177.5,
+    -92
+   ],
+   [
+    -1179.5,
+    -77
+   ],
+   [
+    -1181.5,
+    -56
+   ]
+  ],
+  "bochecha": [
+   [
+    -1181.5,
+    -0.5
+   ],
+   [
+    -1169.1,
+    -2
+   ],
+   [
+    -1163.2,
+    1
+   ],
+   [
+    -1049.4,
+    1
+   ],
+   [
+    -1035.6,
+    -4.9
+   ],
+   [
+    -1033.7,
+    -11.8
+   ],
+   [
+    -1040.5,
+    -12.3
+   ],
+   [
+    -1127,
+    -12.8
+   ],
+   [
+    -1170,
+    -13.5
+   ],
+   [
+    -1181.5,
+    -15
+   ]
+  ],
+  "blocoBochecha": [
+   [
+    -1181,
+    -15.5
+   ],
+   [
+    -1153,
+    -15.5
+   ],
+   [
+    -1153,
+    -42.5
+   ],
+   [
+    -1181,
+    -42.5
+   ]
+  ],
+  "guardaMato": [
+   [
+    -913,
+    -47
+   ],
+   [
+    -904,
+    -47
+   ],
+   [
+    -904,
+    -75
+   ],
+   [
+    -900,
+    -80
+   ],
+   [
+    -890,
+    -83.4
+   ],
+   [
+    -857,
+    -82.5
+   ],
+   [
+    -853,
+    -77
+   ],
+   [
+    -850,
+    -77
+   ],
+   [
+    -847.2,
+    -81.5
+   ],
+   [
+    -858.9,
+    -87.4
+   ],
+   [
+    -900.2,
+    -88.3
+   ],
+   [
+    -907,
+    -86.4
+   ],
+   [
+    -911,
+    -84.4
+   ],
+   [
+    -913,
+    -72
+   ]
+  ],
+  "gatilho": [
+   [
+    -891.3,
+    -49.1
+   ],
+   [
+    -891.3,
+    -51
+   ],
+   [
+    -887.4,
+    -52
+   ],
+   [
+    -888.4,
+    -56.9
+   ],
+   [
+    -887.4,
+    -56.9
+   ],
+   [
+    -887.4,
+    -65.8
+   ],
+   [
+    -886.4,
+    -65.8
+   ],
+   [
+    -886.4,
+    -67.7
+   ],
+   [
+    -880.5,
+    -73.6
+   ],
+   [
+    -876.6,
+    -73.6
+   ],
+   [
+    -876.6,
+    -72.6
+   ],
+   [
+    -880.5,
+    -71.7
+   ],
+   [
+    -884.5,
+    -67.7
+   ],
+   [
+    -884.5,
+    -64.8
+   ],
+   [
+    -885.4,
+    -64.8
+   ],
+   [
+    -885.4,
+    -51
+   ],
+   [
+    -884.5,
+    -51
+   ],
+   [
+    -884.5,
+    -49.1
+   ]
+  ],
+  "carregador": [
+   [
+    -828.5,
+    -73.6
+   ],
+   [
+    -829.5,
+    -75.6
+   ],
+   [
+    -827.5,
+    -97.2
+   ],
+   [
+    -757.8,
+    -91.3
+   ],
+   [
+    -753.9,
+    -87.4
+   ],
+   [
+    -754.9,
+    -73.6
+   ]
+  ],
+  "acao": [
+   [
+    -913,
+    0
+   ],
+   [
+    -715.6,
+    0
+   ],
+   [
+    -715.6,
+    12.8
+   ],
+   [
+    -913,
+    12.8
+   ]
+  ],
+  "trilho": [
+   [
+    -913,
+    11.8
+   ],
+   [
+    -715.6,
+    11.8
+   ],
+   [
+    -717.6,
+    17.7
+   ],
+   [
+    -733,
+    20.6
+   ],
+   [
+    -848,
+    20.6
+   ],
+   [
+    -850,
+    18.7
+   ],
+   [
+    -858,
+    20.6
+   ],
+   [
+    -862.9,
+    20.6
+   ],
+   [
+    -879.6,
+    17.7
+   ],
+   [
+    -879.6,
+    13.7
+   ],
+   [
+    -913,
+    13.7
+   ]
+  ],
+  "bipe": [
+   [
+    -486.9,
+    -35.3
+   ],
+   [
+    -488.9,
+    -36.3
+   ],
+   [
+    -489.8,
+    -42.2
+   ],
+   [
+    -539.9,
+    -42.2
+   ],
+   [
+    -539.9,
+    -38.3
+   ],
+   [
+    -541.9,
+    -39.3
+   ],
+   [
+    -540.9,
+    -41.2
+   ],
+   [
+    -547.8,
+    -41.2
+   ],
+   [
+    -548.7,
+    -45.2
+   ],
+   [
+    -553.6,
+    -45.2
+   ],
+   [
+    -552.7,
+    -51
+   ],
+   [
+    -546.8,
+    -56.9
+   ],
+   [
+    -544.8,
+    -56.9
+   ],
+   [
+    -544.8,
+    -58.9
+   ],
+   [
+    -540.9,
+    -59.9
+   ],
+   [
+    -536,
+    -64.8
+   ],
+   [
+    -517.3,
+    -64.8
+   ],
+   [
+    -514.4,
+    -60.9
+   ],
+   [
+    -510.5,
+    -59.9
+   ],
+   [
+    -486.9,
+    -61.8
+   ],
+   [
+    -482,
+    -59.9
+   ],
+   [
+    -479,
+    -62.8
+   ],
+   [
+    -474.1,
+    -60.9
+   ],
+   [
+    -471.2,
+    -63.8
+   ],
+   [
+    -464.3,
+    -61.8
+   ],
+   [
+    -463.3,
+    -63.8
+   ],
+   [
+    -454.5,
+    -64.8
+   ],
+   [
+    -451.6,
+    -61.8
+   ],
+   [
+    -451.6,
+    -59.9
+   ],
+   [
+    -446.6,
+    -59.9
+   ],
+   [
+    -444.7,
+    -62.8
+   ],
+   [
+    -440.8,
+    -60.9
+   ],
+   [
+    -421.1,
+    -59.9
+   ],
+   [
+    -420.1,
+    -61.8
+   ],
+   [
+    -402.5,
+    -62.8
+   ],
+   [
+    -399.5,
+    -59.9
+   ],
+   [
+    -319,
+    -59.9
+   ],
+   [
+    -317.1,
+    -62.8
+   ],
+   [
+    -311.2,
+    -62.8
+   ],
+   [
+    -311.2,
+    -50.1
+   ],
+   [
+    -320,
+    -51
+   ],
+   [
+    -320,
+    -48.1
+   ],
+   [
+    -323,
+    -44.2
+   ],
+   [
+    -339.6,
+    -45.2
+   ],
+   [
+    -340.6,
+    -48.1
+   ],
+   [
+    -413.3,
+    -49.1
+   ],
+   [
+    -416.2,
+    -45.2
+   ],
+   [
+    -432.9,
+    -45.2
+   ],
+   [
+    -432.9,
+    -47.1
+   ],
+   [
+    -451.6,
+    -48.1
+   ],
+   [
+    -452.5,
+    -44.2
+   ],
+   [
+    -458.4,
+    -45.2
+   ],
+   [
+    -459.4,
+    -47.1
+   ],
+   [
+    -488.9,
+    -48.1
+   ],
+   [
+    -492.8,
+    -45.2
+   ],
+   [
+    -487.9,
+    -45.2
+   ]
+  ]
+ },
+ "linhas": {
+  "luneta": [
+   [
+    -953.2,
+    55.3
+   ],
+   [
+    -637.1,
+    55.3
+   ]
+  ],
+  "canoExposto": [
+   [
+    -486.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0
+   ]
+  ],
+  "pernasBipe": [
+   [
+    -517.0,
+    -55.0
+   ],
+   [
+    -296.0,
+    -55.0
+   ]
+  ],
+  "sulcoGuardaMao": [
+   [
+    -690.0,
+    -7.5
+   ],
+   [
+    -500.0,
+    -7.5
+   ]
+  ],
+  "divisaSoleira": [
+   [
+    -1181.5,
+    -0.5
+   ],
+   [
+    -1181.5,
+    -56.0
+   ],
+   [
+    -1179.5,
+    -77.0
+   ],
+   [
+    -1177.5,
+    -92.0
+   ],
+   [
+    -1174.0,
+    -101.0
+   ],
+   [
+    -1172.0,
+    -113.0
+   ],
+   [
+    -1170.0,
+    -120.7
+   ]
+  ]
+ },
+ "tornos": {
+  "cano": {
+   "centroY": 0,
+   "perfil": [
+    [
+     -716,
+     0
+    ],
+    [
+     -716,
+     12.0
+    ],
+    [
+     -694,
+     12.0
+    ],
+    [
+     -690,
+     10.3
+    ],
+    [
+     -81,
+     10.3
+    ],
+    [
+     -81,
+     0
+    ]
+   ],
+   "fonte": "vista do CS2: Ø 20,61 pela régua (eixox −420…−120); a saída da ação mais grossa (o topo a 11,8–12,8 de −716 a −690)"
+  },
+  "alma": {
+   "centroY": 0,
+   "perfil": [
+    [
+     -200,
+     0
+    ],
+    [
+     -200,
+     4.3
+    ],
+    [
+     1,
+     4.3
+    ],
+    [
+     1,
+     0
+    ]
+   ],
+   "fonte": "o calibre .338 (8,59 mm; Exército Britânico, L115A3): a boca vista de frente"
+  },
+  "porca": {
+   "centroY": -1.0,
+   "perfil": [
+    [
+     -88.4,
+     0
+    ],
+    [
+     -88.4,
+     11.6
+    ],
+    [
+     -86.4,
+     14.7
+    ],
+    [
+     -51,
+     14.7
+    ],
+    [
+     -49,
+     12.6
+    ],
+    [
+     -49,
+     0
+    ]
+   ],
+   "sextavadoAte": -73.4,
+   "fonte": "vista do CS2, medida pela altura de cada coluna da silhueta (revisão da Tarefa 8 da 4.1d): o colar de −51 a −86,4 com o topo a 13,7 e o fundo a −15,7 (o parafuso de baixo desce a −17,7), chanfrado na frente até o freio (−49) e atrás até o cano (−88,4); a face chata da vista vai da frente até −73,4 (a parte sextavada: a braçadeira com o parafuso embaixo) e a de trás é redonda (o anel de trava). A primeira leitura (de −80 a −53, com o sextavado atrás) encurtava o colar 6 mm e trocava a ordem das partes"
+  },
+  "freio": {
+   "centroY": 0,
+   "perfil": [
+    [
+     -53,
+     0
+    ],
+    [
+     -53,
+     10.8
+    ],
+    [
+     -8.5,
+     10.8
+    ],
+    [
+     -5,
+     9.6
+    ],
+    [
+     -3,
+     8.2
+    ],
+    [
+     -1.5,
+     6.4
+    ],
+    [
+     0,
+     4.0
+    ],
+    [
+     0,
+     0
+    ]
+   ],
+   "fonte": "vista do CS2: ±10,8 de −52 a −8, a ponta arredondada até a boca"
+  },
+  "luneta": {
+   "centroY": 55.3,
+   "perfil": [
+    [
+     -953.2,
+     0
+    ],
+    [
+     -953.2,
+     17.5
+    ],
+    [
+     -951,
+     19.15
+    ],
+    [
+     -886,
+     19.15
+    ],
+    [
+     -880,
+     17.6
+    ],
+    [
+     -870,
+     16.2
+    ],
+    [
+     -862,
+     14.3
+    ],
+    [
+     -728,
+     14.3
+    ],
+    [
+     -720,
+     16.7
+    ],
+    [
+     -710,
+     19.6
+    ],
+    [
+     -700,
+     21.6
+    ],
+    [
+     -690,
+     24.5
+    ],
+    [
+     -680,
+     26.5
+    ],
+    [
+     -670,
+     28.45
+    ],
+    [
+     -641,
+     28.45
+    ],
+    [
+     -637.1,
+     27.5
+    ],
+    [
+     -637.1,
+     0
+    ]
+   ],
+   "fonte": "vista do CS2: o topo e o fundo da luneta a cada 5 mm, fora dos anéis e das torres (o eixo no meio, 55,3 mm acima do do cano)"
+  }
+ },
+ "pontos": {
+  "pinoGatilho": [
+   -884.0,
+   -45.0
+  ],
+  "lenteOcular": [
+   -949.0,
+   55.3
+  ],
+  "lenteObjetiva": [
+   -641.0,
+   55.3
+  ],
+  "olho": [
+   -1039.0,
+   55.3
+  ],
+  "aneis": {
+   "x": [
+    [
+     -844.0,
+     -824.0
+    ],
+    [
+     -764.0,
+     -748.0
+    ]
+   ],
+   "base": 20.6,
+   "raio": 18.3,
+   "fonte": "vista do CS2 (o vão entre a base e o tubo, coluna a coluna); o raio de fora é o do tubo mais 4 mm (estimativa)"
+  },
+  "torreElevacao": {
+   "x": -796.0,
+   "raio": 10.0,
+   "topo": 92.3
+  },
+  "torreLateral": {
+   "x": -797.0,
+   "lado": "esquerdo",
+   "sextavado": 30.0,
+   "saliencia": 9.0,
+   "fonte": "vista do CS2: o bloco sextavado de x = −812 a −782 na face esquerda; a saliência é estimativa"
+  },
+  "torreDeriva": {
+   "x": -796.0,
+   "lado": "direito",
+   "raio": 10.0,
+   "alcance": 37.0,
+   "fonte": "a S&B PM II (a deriva à direita, igual à elevação); o ícone do CS2"
+  },
+  "anelAumento": {
+   "x": [
+    -903.0,
+    -895.0
+   ]
+  },
+  "bordaOcular": {
+   "x": [
+    -953.2,
+    -946.0
+   ]
+  },
+  "bordaObjetiva": {
+   "x": [
+    -660.0,
+    -637.1
+   ]
+  },
+  "trilho": {
+   "topo": 20.6,
+   "base": 11.8,
+   "fendas": [
+    -860.2,
+    -851.2,
+    -818.2,
+    -808.7,
+    -799.2,
+    -789.7,
+    -780.2,
+    -771.7,
+    -738.7
+   ],
+   "larguraFenda": 3.2,
+   "profundidade": 1.9,
+   "passo": 9.5,
+   "x": [
+    -913.0,
+    -715.6
+   ]
+  },
+  "escudoFerrolho": {
+   "x": [
+    -913.0,
+    -900.0
+   ],
+   "y": [
+    0.0,
+    12.8
+   ]
+  },
+  "ferrolho": {
+   "raio": 10.0,
+   "recuo": 130.0,
+   "graus": 60.0,
+   "fonte": "brochura da AI: o corpo de 0,75 pol. (20 mm) e a abertura de 60°; o recuo é estimativa (o AT-X de ação curta tem 110 mm, gunmart; o cartucho .338 é uns 20 mm mais longo que o 7,62 NATO)"
+  },
+  "bolaFerrolho": {
+   "centro": [
+    -893.0,
+    -6.0
+   ],
+   "lado": 46.0,
+   "raio": 12.0,
+   "fonte": "estimativa: a brochura da AI põe a bola \"rente ao lado da coronha, logo acima do gatilho\"; a bola do AT-X tem 24 mm (gunmart); o lado pela largura da coronha (60 mm) mais a folga da mão"
+  },
+  "raizAlavanca": [
+   -905.0,
+   6.0
+  ],
+  "janelaEjecao": {
+   "x": [
+    -895.0,
+    -800.0
+   ],
+   "y": [
+    3.0,
+    12.8
+   ],
+   "lado": "direito",
+   "fonte": "estimativa: o cartucho .338 Lapua Magnum de 93,5 mm (C.I.P.) mais a folga; USMC-19560 (a janela aberta)"
+  },
+  "trava": {
+   "centro": [
+    -907.0,
+    9.0
+   ],
+   "lado": "direito",
+   "graus": [
+    0.0,
+    55.0,
+    110.0
+   ],
+   "fonte": "manual do AW: três posições, a toda aplicada a cerca de 110° da posição de fogo; o meio é a \"primeira trava\""
+  },
+  "retemFerrolho": {
+   "centro": [
+    -905.0,
+    6.0
+   ],
+   "lado": "esquerdo",
+   "fonte": "manual do AW (A3 e J5): no lado esquerdo da ação"
+  },
+  "travaCarregador": [
+   -842.0,
+   -72.0
+  ],
+  "parafusos": [
+   [
+    -1158.1,
+    -84.5
+   ],
+   [
+    -1132.9,
+    -29.2
+   ],
+   [
+    -1115.6,
+    -29.5
+   ],
+   [
+    -1047.3,
+    -30.3
+   ],
+   [
+    -944.6,
+    -29.4
+   ],
+   [
+    -940.9,
+    -121.9
+   ],
+   [
+    -847.6,
+    -32.2
+   ],
+   [
+    -643.3,
+    -30.8
+   ],
+   [
+    -546.5,
+    -29.3
+   ]
+  ],
+  "freio": {
+   "fendas": [
+    {
+     "x": [
+      -43.0,
+      -35.0
+     ],
+     "y": [
+      -6.0,
+      5.0
+     ]
+    }
+   ],
+   "parafusoPorca": {
+    "centro": [
+     -62.0,
+     -15.7
+    ],
+    "raio": 3.0
+   }
+  },
+  "bipe": {
+   "pivo": [
+    -534.0,
+    -54.0
+   ],
+   "cabeca": {
+    "x": [
+     -556.0,
+     -517.0
+    ],
+    "y": [
+     -66.0,
+     -43.0
+    ]
+   },
+   "pernas": {
+    "x": [
+     -517.0,
+     -296.0
+    ],
+    "y": [
+     -62.0,
+     -48.0
+    ],
+    "raio": 5.0
+   },
+   "molas": [
+    -520.0,
+    -470.0
+   ],
+   "tuboInterno": [
+    -420.0,
+    -320.0
+   ],
+   "pes": [
+    -312.0,
+    -296.0
+   ],
+   "botao": [
+    -455.0,
+    -46.0
+   ]
+  },
+  "adaptadorBipe": {
+   "x": [
+    -525.0,
+    -495.0
+   ],
+   "y": [
+    -30.0,
+    -5.0
+   ],
+   "parafuso": [
+    -500.0,
+    -20.0
+   ]
+  },
+  "maoApoio": [
+   -585.0,
+   -22.0
+  ],
+  "punho": {
+   "centro": [
+    -945.0,
+    -100.0
+   ],
+   "frente": [
+    [
+     -916.9,
+     -105.0
+    ],
+    [
+     -918.8,
+     -133.5
+    ]
+   ]
+  }
+ },
+ "vistaDeCima": {
+  "fonte": {
+   "descricao": "as larguras que a vista de lado não dá: o diâmetro do cano, do freio e da luneta medidos de lado (são de revolução); o resto é estimativa, com o método em cada uma, a conferir contra o ícone do CS2 na P1",
+   "licenca": "números derivados"
+  },
+  "larguras": {
+   "coronha": {
+    "mm": 60.0,
+    "nota": "estimativa: a AT-XC da AI tem 100 mm de largura com a alavanca; menos a alavanca e a bola (~40)"
+   },
+   "guardaMao": {
+    "mm": 54.0,
+    "nota": "estimativa: o guarda-mão do AICS um pouco mais estreito que a coronha na ação (o ícone do CS2)"
+   },
+   "punho": {
+    "mm": 34.0,
+    "nota": "estimativa: o punho do AICS (a mão fecha em volta; o buraco do polegar o atravessa)"
+   },
+   "soleira": {
+    "mm": 46.0,
+    "nota": "estimativa: a soleira de borracha da AI, mais larga que o fim da coronha"
+   },
+   "bochecha": {
+    "mm": 42.0,
+    "nota": "estimativa: a capa de bochecha da AICS"
+   },
+   "blocoBochecha": {
+    "mm": 6.0,
+    "nota": "estimativa: a saliência do bloco preto na face esquerda"
+   },
+   "acao": {
+    "mm": 34.0,
+    "nota": "estimativa: o ferrolho de 20 mm e as paredes da ação de aço"
+   },
+   "trilho": {
+    "mm": 21.2,
+    "nota": "a base do jogo com fendas no passo de 9,5 mm: a largura da MIL-STD-1913 (0,835 pol.)"
+   },
+   "carregador": {
+    "mm": 24.0,
+    "nota": "estimativa: o .338 Lapua Magnum (a base de 14,91 mm) em fileira única, com as paredes e os lábios"
+   },
+   "guardaMato": {
+    "mm": 18.0,
+    "nota": "estimativa: o aro largo para luvas (Wikipedia AW)"
+   },
+   "gatilho": {
+    "mm": 7.0,
+    "nota": "estimativa"
+   },
+   "cano": {
+    "mm": 20.6,
+    "fonte": "vista do CS2 (de revolução)"
+   },
+   "freio": {
+    "mm": 21.6,
+    "fonte": "vista do CS2 (de revolução)"
+   },
+   "porca": {
+    "mm": 29.4,
+    "fonte": "vista do CS2 (de revolução)"
+   },
+   "luneta": {
+    "mm": 28.6,
+    "fonte": "vista do CS2: o tubo (de revolução)"
+   },
+   "objetiva": {
+    "mm": 57.0,
+    "fonte": "vista do CS2: a campânula (de revolução); a S&B real tem 57"
+   },
+   "bipe": {
+    "mm": 42.0,
+    "nota": "estimativa: as duas pernas lado a lado (Ø 10) a 32 mm de centro a centro"
+   }
+  }
+ },
+ "cores": {
+  "laterais": {
+   "foto": {
+    "srgb": "#454B3F",
+    "linear": [
+     0.059,
+     0.07,
+     0.049
+    ]
+   },
+   "fabrica": "#454B3F",
+   "correcao": "a média das laterais da coronha na vista do jogo (x −1100…−1060, y −80…−40), dentro de #3C4136–#4A4F44 (awp.md): fica como a do jogo"
+  },
+  "guardaMao": {
+   "foto": {
+    "srgb": "#494E43",
+    "linear": [
+     0.067,
+     0.076,
+     0.057
+    ]
+   },
+   "fabrica": "#454B3F",
+   "correcao": "o guarda-mão um pouco mais claro na luz da vista; a mesma peça verde da coronha (uma zona: guarnicao)"
+  },
+  "luneta": {
+   "foto": {
+    "srgb": "#4C4C31",
+    "linear": [
+     0.075,
+     0.075,
+     0.032
+    ]
+   },
+   "fabrica": "#454B3F",
+   "correcao": "a luneta do jogo é um verde-oliva mais amarelado; a pintura de fábrica dá à luneta o verde da coronha (desenho da 4.1d, 4.1: o tubo da luneta na zona guarnicao)"
+  },
+  "bordas": {
+   "foto": {
+    "srgb": "#323333",
+    "linear": [
+     0.038,
+     0.039,
+     0.039
+    ]
+   },
+   "fabrica": "#2C2D2F",
+   "correcao": "os anéis e as bordas das campânulas pretos; o preto do corpo (zona corpo)"
+  },
+  "cano": {
+   "foto": {
+    "srgb": "#383D42",
+    "linear": [
+     0.042,
+     0.049,
+     0.057
+    ]
+   },
+   "fabrica": "#2C2D2F",
+   "correcao": "o cano mediu cinza-azulado com o brilho da luz da vista; de fábrica, o preto oxidado da ação"
+  },
+  "freio": {
+   "foto": {
+    "srgb": "#272729",
+    "linear": [
+     0.027,
+     0.027,
+     0.029
+    ]
+   },
+   "fabrica": "#2C2D2F",
+   "correcao": "o preto do corpo"
+  },
+  "acao": {
+   "foto": {
+    "srgb": "#8C8988",
+    "linear": [
+     0.288,
+     0.277,
+     0.272
+    ]
+   },
+   "fabrica": "#2C2D2F",
+   "correcao": "a placa clara da ação na vista é a etiqueta gravada do jogo (sem texto aqui, regra 9): de fábrica, o preto do corpo"
+  },
+  "carregador": {
+   "foto": {
+    "srgb": "#71706E",
+    "linear": [
+     0.207,
+     0.202,
+     0.196
+    ]
+   },
+   "fabrica": "#4F5153",
+   "correcao": "aço escurecido: a vista mostra o carregador claro com a luz; o ícone do CS2 o mostra escuro"
+  },
+  "soleira": {
+   "foto": {
+    "srgb": "#4B4B4B",
+    "linear": [
+     0.071,
+     0.071,
+     0.071
+    ]
+   },
+   "fabrica": "#2E2E2F",
+   "correcao": "a borracha cinza da vista; de fábrica, o preto da capa (uma zona: detalhes), o quadriculado no relevo"
+  },
+  "bochecha": {
+   "foto": {
+    "srgb": "#262526",
+    "linear": [
+     0.02,
+     0.019,
+     0.02
+    ]
+   },
+   "fabrica": "#2E2E2F",
+   "correcao": "fica como a do jogo (zona detalhes)"
+  },
+  "bipe": {
+   "foto": {
+    "srgb": "#5C5C5B",
+    "linear": [
+     0.13,
+     0.129,
+     0.123
+    ]
+   },
+   "fabrica": "#2E2E2F",
+   "correcao": "o bipé preto fosco (zona detalhes); a vista o mostra cinza com a luz"
+  },
+  "interno": {
+   "foto": null,
+   "fabrica": "#9A9CA0",
+   "correcao": "o ferrolho de aço visto pela janela (zona interno), como o das armas da 4.1c"
+  },
+  "vidro": {
+   "foto": null,
+   "fabrica": "#2F3E52",
+   "correcao": "o tratamento das lentes da S&B (azul-violeta) no reflexo do set; nenhuma vista do jogo mostra a lente de frente"
+  },
+  "municao": {
+   "foto": null,
+   "fabrica": "#B08D57",
+   "correcao": "o latão dos estojos (e o tombak do projétil) dos cinco .338 vistos pelas fendas e pela boca do carregador (zona municao, que nenhuma skin pinta; registro da Tarefa 10): a cor de um estojo de latão 70/30 de fábrica, estimativa"
+  }
+ }
+}
