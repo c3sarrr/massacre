@@ -1,0 +1,7 @@
+[
+ {"nome": "orelha de perto, frente-topo", "icone": [132.2, 48.3], "video": [817.5, 443.0]},
+ {"nome": "orelha de perto, trás-topo", "icone": [146.6, 51.6], "video": [838.45, 443.8]},
+ {"nome": "botão da alavanca", "icone": [149.5, 196.0], "video": [759.5, 632.5], "peso": 0.5},
+ {"nome": "botão da mira da frente", "icone": [145.0, 90.0], "video": [803.2, 488.2], "peso": 0.5},
+ {"nome": "canto de trás do topo do trilho", "icone": [257.2, 123.4], "video": [1029.1, 518.5]}
+]

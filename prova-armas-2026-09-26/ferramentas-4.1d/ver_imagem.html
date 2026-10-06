@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Ver imagem</title>
+<style>
+  body { margin: 0; background: #7a7a7a; font: 12px sans-serif; color: #fff; }
+  #quadro { margin: 4px; background-repeat: no-repeat; background-color: #b8b8b8; image-rendering: auto; }
+  #rotulo { padding: 2px 6px; }
+  #quadro { position: relative; }
+  .mira { position: absolute; background: #ff2d2d; opacity: 0.8; pointer-events: none; }
+</style>
+</head>
+<body>
+<!-- Só mostra uma imagem (a foto livre ou a vista do jogo, só lida no navegador), ampliada em volta de um ponto. Nada
+     desta página lê os pixels da imagem nem guarda nada. -->
+<div id="rotulo"></div>
+<div id="quadro"></div>
+<script>
+  const P = new URLSearchParams(location.search);
+  const url = P.get('url');
+  const zoom = Number(P.get('zoom') || 1);
+  const largura = Number(P.get('largura') || 512);
+  const altura = Number(P.get('altura') || Math.round(largura * 0.75));
+  const q = document.getElementById('quadro');
+  q.style.width = `${largura}px`;
+  q.style.height = `${altura}px`;
+  const img = new Image();
+  img.onload = () => {
+    const cx = Number(P.get('cx') ?? img.naturalWidth / 2), cy = Number(P.get('cy') ?? img.naturalHeight / 2);
+    q.style.backgroundImage = `url("${url}")`;
+    q.style.backgroundSize = `${img.naturalWidth * zoom}px ${img.naturalHeight * zoom}px`;
+    q.style.backgroundPosition = `${largura / 2 - cx * zoom}px ${altura / 2 - cy * zoom}px`;
+    document.getElementById('rotulo').textContent = `${img.naturalWidth} × ${img.naturalHeight} · centro (${cx}, ${cy}) · ×${zoom}`;
+  };
+  // `mira=1`: uma cruz fina no centro do quadro (o ponto (cx, cy) da imagem), para ler a posição de um detalhe
+  if (P.get('mira')) {
+    const h = document.createElement('div'), v = document.createElement('div');
+    h.className = v.className = 'mira';
+    Object.assign(h.style, { left: '0px', top: `${altura / 2}px`, width: `${largura}px`, height: '1px' });
+    Object.assign(v.style, { left: `${largura / 2}px`, top: '0px', width: '1px', height: `${altura}px` });
+    q.append(h, v);
+  }
+  img.src = url;
+</script>
+</body>
+</html>

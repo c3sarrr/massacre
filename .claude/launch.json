@@ -17,7 +17,7 @@
     {
       "name": "massacre-trabalho",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["trabalho-4.1c/tools/dev-server.mjs", "5176"],
+      "runtimeArgs": ["trabalho-4.1d/tools/dev-server.mjs", "5176"],
       "port": 5176
     }
   ]
