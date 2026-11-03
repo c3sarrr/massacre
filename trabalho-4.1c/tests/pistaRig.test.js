@@ -100,3 +100,44 @@ test('poeira em caixa: nasce e continua só dentro da caixa e do cone da key', (
   check('depois de 20 s de poses');
   dust.dispose();
 });
+
+test('poeira: as posições sobem por uma textura a cada pose, nenhum atributo de vértice sobe (ANGLE/D3D11)', () => {
+  // Um buffer de vértices que sobe a 12 poses/s e é desenhado inteiro entre elas trava o processo da GPU no ANGLE/D3D11
+  // (aceite da 4.1c, Tarefa 15): as posições vivem numa textura RGB32F, um texel por grão, lida pelo gl_VertexID.
+  const key = light('key');
+  const spot = new THREE.SpotLight(0xffffff, 1, 0, key.angleDeg * DEG, key.penumbra);
+  spot.position.set(...key.position);
+  spot.target.position.set(...key.target);
+  spot.updateMatrixWorld(true);
+  spot.target.updateMatrixWorld(true);
+  const count = RIG.dust.count;
+  const dust = new DustMotes({ light: spot, count, size: RIG.dust.size, drift: RIG.dust.drift, seed: 'teste', box: RIG.dust.box });
+  const geo = dust.geometry;
+  assert.equal(geo.attributes.position, undefined, 'a poeira não tem atributo de posição');
+  assert.equal(geo.drawRange.start, 0);
+  assert.equal(geo.drawRange.count, count, 'a contagem dos grãos vem do drawRange');
+  const tex = dust.material.uniforms.uPositions?.value;
+  assert.ok(tex?.isDataTexture, 'textura de posições no uniform uPositions');
+  assert.equal(tex.format, THREE.RGBFormat);
+  assert.equal(tex.type, THREE.FloatType);
+  assert.equal(tex.internalFormat, 'RGB32F', 'formato com tamanho (o three deixa RGB + FLOAT sem tamanho)');
+  assert.equal(tex.minFilter, THREE.NearestFilter);
+  assert.equal(tex.magFilter, THREE.NearestFilter);
+  assert.equal(tex.generateMipmaps, false);
+  const { width, height, data } = tex.image;
+  assert.equal(data, dust.positions, 'a textura é o próprio estado da simulação (sem cópia por pose)');
+  assert.ok(width * height >= count && data.length === width * height * 3);
+  // O shader acha o texel do vértice com a mesma largura da textura.
+  assert.match(dust.material.vertexShader, new RegExp(`texelFetch\\(uPositions, ivec2\\(gl_VertexID % ${width}, gl_VertexID / ${width}\\), 0\\)`));
+  assert.doesNotMatch(dust.material.vertexShader, /vec4\(position, 1\.0\)/);
+  const versions = () => Object.values(geo.attributes).map((a) => a.version);
+  const before = versions();
+  const v0 = tex.version;
+  for (let pose = 1; pose <= 24; pose++) dust.step(pose);
+  assert.equal(tex.version, v0 + 24, 'uma subida da textura por pose');
+  assert.deepEqual(versions(), before, 'nenhum atributo de vértice sobe');
+  // A densidade (graphics.particles) continua cortando pelo drawRange.
+  dust.setDensity(0.5);
+  assert.equal(geo.drawRange.count, Math.round(count * 0.5));
+  dust.dispose();
+});
